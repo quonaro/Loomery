@@ -637,6 +637,7 @@ describe('empty session pruning', () => {
     expect(container?.querySelector('.session-list-view')).not.toBeNull();
     expect(container?.querySelector('.session-tabs')).not.toBeNull();
     expect(container?.textContent).not.toContain('Sessions (');
+    expect(container?.querySelector('.chat-header')).toBeNull();
     expect(deleteImmediatelySpy).not.toHaveBeenCalled();
   });
 
@@ -2623,7 +2624,7 @@ describe('header status badges', () => {
     expect(container?.querySelector('.chat-header-filter-chip')).toBeNull();
   });
 
-  it('switches to a draft chat view and starts a new session', async () => {
+  it('starts a new session from the sessions list without closing it', async () => {
     const startNewSessionSpy = vi.spyOn(openCodeModule, 'startNewSession');
 
     setState('sessions', [session('active', 500)]);
@@ -2634,7 +2635,7 @@ describe('header status badges', () => {
 
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const newChatButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="New chat"]'
+      '.session-tabs-new .chat-header-btn[aria-label="New chat"]'
     ) as HTMLButtonElement | null;
     expect(newChatButton).toBeInstanceOf(HTMLButtonElement);
 
@@ -2643,13 +2644,10 @@ describe('header status badges', () => {
 
     expect(startNewSessionSpy).toHaveBeenCalled();
     expect(state.activeSessionId).toBeNull();
+    // The list stays open; only the Open Sessions control closes it.
     expect(
       container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
-    ).toBeNull();
-    expect(container?.querySelector('.chat-main-shell')).toBeInstanceOf(HTMLDivElement);
-    expect(container?.querySelector('.chat-header .chat-header-title-text')?.textContent).toBe(
-      'New Chat'
-    );
+    ).toBeInstanceOf(HTMLDivElement);
   });
 
   it('keeps the created session active when sending from the restored sessions screen', async () => {
@@ -2706,7 +2704,7 @@ describe('header status badges', () => {
     expect(container?.querySelector('[data-msg-id="assistant-streaming"]')).not.toBeNull();
 
     const newChatButton = container?.querySelector<HTMLButtonElement>(
-      '.chat-header .chat-header-btn[aria-label="New chat"]'
+      '.session-tabs-new .chat-header-btn[aria-label="New chat"]'
     );
     expect(newChatButton).toBeInstanceOf(HTMLButtonElement);
     newChatButton?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
@@ -2743,7 +2741,7 @@ describe('header status badges', () => {
 
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const newChatButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="New chat"]'
+      '.session-tabs-new .chat-header-btn[aria-label="New chat"]'
     ) as HTMLButtonElement | null;
     expect(newChatButton).toBeInstanceOf(HTMLButtonElement);
 
@@ -2773,7 +2771,7 @@ describe('header status badges', () => {
 
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const newChatButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="New chat"]'
+      '.session-tabs-new .chat-header-btn[aria-label="New chat"]'
     ) as HTMLButtonElement | null;
     expect(newChatButton).toBeInstanceOf(HTMLButtonElement);
 
@@ -2786,7 +2784,7 @@ describe('header status badges', () => {
     expect(state.sessions.some((item) => item.id === 'draft-session')).toBe(true);
     expect(
       container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
-    ).toBeNull();
+    ).toBeInstanceOf(HTMLDivElement);
   });
 
   it('keeps an untouched active session when returning to the sessions list', async () => {
@@ -2810,6 +2808,25 @@ describe('header status badges', () => {
 
     expect(deleteImmediatelySpy).not.toHaveBeenCalled();
     expect(container?.querySelector('.session-list-view')).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('closes the sessions list when the open-sessions control is used while it is open', async () => {
+    setState('sessions', [session('active', 500)]);
+    setState('activeSessionId', 'active');
+    setShowSessionPicker(true);
+
+    cleanup = render(() => Chat(), container!);
+    expect(
+      container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
+    ).toBeInstanceOf(HTMLDivElement);
+
+    requestOpenAllSessions();
+    await Promise.resolve();
+
+    expect(
+      container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
+    ).toBeNull();
+    expect(container?.querySelector('.chat-main-shell')).toBeInstanceOf(HTMLDivElement);
   });
 
   it('filters completed sessions from the header badge', async () => {

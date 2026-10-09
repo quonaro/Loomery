@@ -95,6 +95,21 @@ describe('SessionTabs', () => {
     expect(container.querySelector('.session-tab-title')?.textContent).toBe('New Session');
   });
 
+  it('retires the draft tab without opening the active session when autoOpenActive is false', async () => {
+    setSessions([session('a', 3)]);
+    setOpenSessionTabsForTest([NEW_SESSION_TAB_ID]);
+
+    cleanup = render(
+      () => <SessionTabs onCreateSession={() => {}} autoOpenActive={false} />,
+      container
+    );
+
+    setState('activeSessionId', 'a');
+
+    await vi.waitFor(() => expect(getOpenSessionTabs()).toEqual([]));
+    expect(container.querySelectorAll('.session-tab')).toHaveLength(0);
+  });
+
   it('shows the running dot while a session is generating', () => {
     setSessions([session('a', 3)]);
     setState('activeSessionId', 'a');

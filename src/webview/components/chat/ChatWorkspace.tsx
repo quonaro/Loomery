@@ -153,7 +153,25 @@ export function ChatWorkspace(props: {
     props.showSessionPicker ? props.sessionListFilterPrefix : 'Viewing:';
   const sidebarFilterTitle = () =>
     props.showSessionPicker ? props.sessionListFilterTitle : props.sidebarSessionListFilterTitle;
-  const sessionPickerHeader = (useSidebarCounts = false, showTitle = true) => (
+  // The top-level picker header only earns its row when it actually carries
+  // controls (back button, filter chip, badges, sibling workspace alerts). With
+  // the title removed and the new-chat button living in the tab strip, an empty
+  // header would otherwise be a bare divider.
+  const hasTopLevelSessionHeaderContent = () =>
+    !!props.subagentParentId ||
+    !!props.sessionListFilterLabel ||
+    state.siblingWorkspaceAlerts.length > 0 ||
+    (props.shouldShowFailedBadge && props.failedSessionsCount > 0) ||
+    (props.shouldShowAttentionBadge && props.attentionSessionsCount > 0) ||
+    (props.shouldShowPlanReadyBadge && props.planReadySessionsCount > 0) ||
+    (props.shouldShowCompletedBadge && props.completedSessionsCount > 0) ||
+    (props.shouldShowRunningBadge && props.runningSessionsCount > 0) ||
+    (props.shouldShowPendingBadge && props.pendingSessionsCount > 0);
+  const sessionPickerHeader = (
+    useSidebarCounts = false,
+    showTitle = true,
+    showNewChatButton = true
+  ) => (
     <SessionPickerHeader
       showTitle={showTitle}
       filterLabel={useSidebarCounts ? sidebarFilterLabel() : props.sessionListFilterLabel}
@@ -184,7 +202,7 @@ export function ChatWorkspace(props: {
       pendingCount={
         useSidebarCounts ? props.sessionSidebarPendingCount : props.pendingSessionsCount
       }
-      showNewChatButton
+      showNewChatButton={showNewChatButton}
       onMarkAllRead={markAllReadAction()}
       onBack={useSidebarCounts ? props.onOpenTopLevelSidebarSessions : props.onOpenParentSession}
       onClearFilter={
@@ -300,11 +318,15 @@ export function ChatWorkspace(props: {
       class={`interactive-session${props.showModels ? ' interactive-session-showing-models' : ''}`}
     >
       <WindowChatThemeToggle />
-      <Show when={props.showSessionHeader && props.showSessionPicker}>
+      <Show
+        when={
+          props.showSessionHeader && props.showSessionPicker && hasTopLevelSessionHeaderContent()
+        }
+      >
         <div
           class={`chat-header ${props.shouldRenderWorkspace ? 'chat-header-centered chat-header-chat-layout' : ''}`}
         >
-          <div class="chat-header-inner">{sessionPickerHeader(false, false)}</div>
+          <div class="chat-header-inner">{sessionPickerHeader(false, false, false)}</div>
         </div>
       </Show>
 

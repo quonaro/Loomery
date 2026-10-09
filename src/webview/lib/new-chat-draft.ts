@@ -14,9 +14,11 @@ import {
   setShowModelPicker,
   setShowModels,
   setState,
+  showSessionPicker,
   state,
   stopLoading,
 } from './state';
+import { readWebviewInstanceContext } from './state-stored-values';
 import { isEmptySession } from './empty-session';
 import { resetMessageEditState } from './message-edit-state';
 import { NEW_SESSION_TAB_ID, openSessionTab } from './session-tabs';
@@ -82,7 +84,12 @@ export function startNewChatDraft() {
     setShowModels(false);
     setShowModelPicker(false);
     stopLoading();
-    setPersistentShowSessionPicker(false);
+    // Creating a session from the open sessions list keeps that list visible;
+    // only the Open Sessions control closes it. The editor surface still
+    // switches away so its composer tracks the new draft.
+    if (!(showSessionPicker() && readWebviewInstanceContext()?.surface !== 'editor')) {
+      setPersistentShowSessionPicker(false);
+    }
     restoreSelectedModelForComposer(null);
     setSelectedAgent(getDefaultPrimaryAgentName(state.agents), {
       sessionId: null,

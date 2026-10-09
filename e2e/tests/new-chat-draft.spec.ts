@@ -65,26 +65,54 @@ for (const source of ['chat', 'sessions']) {
       if (source === 'sessions') await openSessions(page);
 
       const newChat = page.getByRole('button', { name: 'New chat', exact: true }).first();
-      await newChat.evaluate((element) => {
-        element.addEventListener(
-          'click',
-          () => {
-            requestAnimationFrame(() => {
-              const logo = document.querySelector<HTMLImageElement>('.chat-empty-logo');
-              const box = logo?.getBoundingClientRect();
-              const ready =
-                !!logo?.complete &&
-                logo.naturalWidth > 0 &&
-                !!box &&
-                box.width > 0 &&
-                box.height > 0;
-              document.body.dataset.newChatLogoFirstFrame = String(ready);
-            });
-          },
-          { once: true }
-        );
-      });
-      await newChat.click();
+      if (source === 'chat') {
+        await newChat.evaluate((element) => {
+          element.addEventListener(
+            'click',
+            () => {
+              requestAnimationFrame(() => {
+                const logo = document.querySelector<HTMLImageElement>('.chat-empty-logo');
+                const box = logo?.getBoundingClientRect();
+                const ready =
+                  !!logo?.complete &&
+                  logo.naturalWidth > 0 &&
+                  !!box &&
+                  box.width > 0 &&
+                  box.height > 0;
+                document.body.dataset.newChatLogoFirstFrame = String(ready);
+              });
+            },
+            { once: true }
+          );
+        });
+        await newChat.click();
+      } else {
+        // Creating a session from the list keeps it open now; the Open Sessions
+        // control toggles it closed and reveals the new draft.
+        await newChat.click();
+        await expect(page.locator('.session-list-view')).toBeVisible();
+        await page.evaluate(() => {
+          const harness = (
+            window as Window & {
+              __loomeryE2E?: { dispatchExtensionMessage?: (message: { type: string }) => void };
+            }
+          ).__loomeryE2E;
+          harness?.dispatchExtensionMessage?.({ type: 'command/open-sessions' });
+          // The toggle round-trips through the extension, so capture the readiness
+          // on the first frame where the draft logo exists.
+          const measure = () => {
+            const logo = document.querySelector<HTMLImageElement>('.chat-empty-logo');
+            if (!logo) {
+              requestAnimationFrame(measure);
+              return;
+            }
+            const box = logo.getBoundingClientRect();
+            const ready = logo.complete && logo.naturalWidth > 0 && box.width > 0 && box.height > 0;
+            document.body.dataset.newChatLogoFirstFrame = String(ready);
+          };
+          requestAnimationFrame(measure);
+        });
+      }
       await expect(page.locator('body')).toHaveAttribute('data-new-chat-logo-first-frame', 'true', {
         timeout: 5_000,
       });

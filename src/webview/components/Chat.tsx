@@ -618,8 +618,15 @@ export function Chat() {
   );
 
   const openAllSessions = async () => {
+    // The same control opens and closes the sessions list, so creating a new
+    // session no longer has to dismiss it.
+    const toggleClosed = !isEditorSurface && showSessionPicker();
     setSessionFilter(null);
     setSubagentParentId(null);
+    if (toggleClosed) {
+      setShowSessionPicker(false);
+      return;
+    }
     const sessionId = state.activeSessionId;
     const directReturnSessionId = getDirectSessionReturnId(sessionId);
     if (directReturnSessionId) {

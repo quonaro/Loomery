@@ -76,6 +76,11 @@ type GenerationAttempt = {
   cleanupPromise: Promise<void> | null;
 };
 
+type InFlightGeneration = {
+  cancel: () => void;
+  completion: Promise<void>;
+};
+
 type CommitHistoryContext = {
   profile: string;
   examples: string[];
@@ -132,7 +137,7 @@ const DENY_ALL_PERMISSION_RULES: PermissionRule[] = [
 ];
 
 export class CommitMessageService {
-  private readonly inFlightRoots = new Set<string>();
+  private readonly inFlightRoots = new Map<string, InFlightGeneration>();
   private helperSequence = 0;
 
   constructor(
@@ -158,17 +163,27 @@ export class CommitMessageService {
       if (!repository) return;
 
       const root = repository.rootUri.fsPath;
-      if (this.inFlightRoots.has(root)) {
-        await vscode.window.showInformationMessage(
-          'A commit message is already being generated for this repository.'
-        );
-        return;
+      const previous = this.inFlightRoots.get(root);
+      if (previous) {
+        previous.cancel();
+        await previous.completion.catch(() => undefined);
       }
-      this.inFlightRoots.add(root);
+
+      const cancellation = new vscode.CancellationTokenSource();
+      const commandCancellation = token?.onCancellationRequested(() => cancellation.cancel());
+      if (token?.isCancellationRequested) cancellation.cancel();
+      const completion = this.generateForRepository(repository, cancellation.token);
+      const generation: InFlightGeneration = {
+        cancel: () => cancellation.cancel(),
+        completion,
+      };
+      this.inFlightRoots.set(root, generation);
       try {
-        await this.generateForRepository(repository, token);
+        await completion;
       } finally {
-        this.inFlightRoots.delete(root);
+        if (this.inFlightRoots.get(root) === generation) this.inFlightRoots.delete(root);
+        commandCancellation?.dispose();
+        cancellation.dispose();
       }
     } catch (err) {
       if (err instanceof GenerationCancelledError) return;

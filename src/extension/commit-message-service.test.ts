@@ -68,6 +68,36 @@ const mocks = vi.hoisted(() => {
     ),
     clipboardWriteText: vi.fn((_value: string) => Promise.resolve()),
     executeCommand: vi.fn((_command: string) => Promise.resolve()),
+    CancellationTokenSource: vi.fn(function (this: {
+      token: {
+        readonly isCancellationRequested: boolean;
+        onCancellationRequested(listener: CancellationListener): { dispose(): void };
+      };
+      cancel(): void;
+      dispose(): void;
+    }) {
+      const listeners = new Set<CancellationListener>();
+      let cancelled = false;
+      this.token = {
+        get isCancellationRequested() {
+          return cancelled;
+        },
+        onCancellationRequested(listener: CancellationListener) {
+          if (cancelled) {
+            listener();
+            return { dispose: () => undefined };
+          }
+          listeners.add(listener);
+          return { dispose: () => listeners.delete(listener) };
+        },
+      };
+      this.cancel = () => {
+        if (cancelled) return;
+        cancelled = true;
+        for (const listener of listeners) listener();
+      };
+      this.dispose = () => listeners.clear();
+    }),
     triggerCancellation() {
       cancellationRequested = true;
       for (const listener of cancellationListeners) listener();
@@ -92,6 +122,7 @@ vi.mock('vscode', () => ({
   },
   ProgressLocation: { SourceControl: 1 },
   FileType: { SymbolicLink: 64 },
+  CancellationTokenSource: mocks.CancellationTokenSource,
   env: { clipboard: { writeText: mocks.clipboardWriteText } },
   commands: { executeCommand: mocks.executeCommand },
 }));
@@ -1323,29 +1354,42 @@ describe('CommitMessageService', () => {
     expect(repository.inputBox.value).toBe('');
   });
 
-  it('prevents duplicate in-flight generation for the same root', async () => {
+  it('force-regenerates instead of rejecting a duplicate request for the same root', async () => {
     const repository = createRepository();
     setGitRepositories([repository]);
-    const response = deferred<unknown>();
-    const request = createRequest({ messageResponse: () => response.promise });
+    const firstResponse = deferred<unknown>();
+    let messageRequests = 0;
+    const request = createRequest({
+      messageResponse: () => {
+        messageRequests += 1;
+        return messageRequests === 1
+          ? firstResponse.promise
+          : {
+              info: {
+                structured: {
+                  subject: 'feat: regenerated message',
+                  body: 'Regenerated body.',
+                },
+              },
+            };
+      },
+    });
     const { service } = createService(request);
 
     const first = service.generate();
-    await waitFor(() => request.mock.calls.some(([, path]) => path.includes('/message?')));
-    await service.generate();
+    await waitFor(() => messageRequests === 1);
+    const second = service.generate();
+    await second;
+    await first;
 
-    expect(repository.status).toHaveBeenCalledOnce();
-    expect(mocks.window.showInformationMessage).toHaveBeenCalledWith(
-      'A commit message is already being generated for this repository.'
-    );
+    expect(mocks.window.showInformationMessage).not.toHaveBeenCalled();
     expect(
       request.mock.calls.filter(
         ([method, path]) => method === 'POST' && path.startsWith('/session?')
       )
-    ).toHaveLength(1);
-
-    mocks.triggerCancellation();
-    await first;
+    ).toHaveLength(2);
+    expect(repository.inputBox.value).toBe('feat: regenerated message\n\nRegenerated body.');
+    expect(request).toHaveBeenCalledWith('POST', '/session/helper-1/abort?directory=%2Frepo');
   });
 
   it('applies a generated message without waiting for helper-session deletion', async () => {

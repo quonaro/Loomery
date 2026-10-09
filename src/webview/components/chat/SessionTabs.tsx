@@ -57,15 +57,14 @@ export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive
   // Keep whatever session is active visible in the strip and retire the draft
   // tab once a real session takes over. The writes are untracked so closing the
   // active tab does not immediately reopen it when the tab list changes before
-  // the session switch lands. The sessions list view disables this: there the
-  // active session is not necessarily one the user opened, and auto-tabbing it
-  // would defeat empty-session pruning.
+  // the session switch lands. The sessions list view skips opening the active
+  // session (it is not necessarily one the user opened, and auto-tabbing it
+  // would defeat empty-session pruning) but still retires the draft tab.
   createEffect(() => {
-    if (props.autoOpenActive === false) return;
     const active = state.activeSessionId;
     untrack(() => {
       if (!active) return;
-      openSessionTab(active);
+      if (props.autoOpenActive !== false) openSessionTab(active);
       closeSessionTab(NEW_SESSION_TAB_ID);
     });
   });

@@ -12,7 +12,9 @@ import {
   setInputText,
   setSelectedModel,
   setSelectedAgent,
+  setShowSessionPicker,
   setState,
+  showSessionPicker,
   state,
 } from './state';
 
@@ -58,6 +60,22 @@ describe('startNewChatDraft', () => {
     startNewChatDraft();
 
     expect(getOpenSessionTabs()).toContain(NEW_SESSION_TAB_ID);
+  });
+
+  it('keeps the sessions list open when a new session starts from it', () => {
+    setShowSessionPicker(true);
+
+    startNewChatDraft();
+
+    expect(showSessionPicker()).toBe(true);
+  });
+
+  it('leaves the sessions list closed when a new session starts elsewhere', () => {
+    setShowSessionPicker(false);
+
+    startNewChatDraft();
+
+    expect(showSessionPicker()).toBe(false);
   });
 
   it('preserves the complete composer draft', () => {

@@ -10076,26 +10076,7 @@ export function MessageList() {
                       draggable="false"
                     />
                   </Show>
-                  <div class="chat-empty-hints">
-                    <div class="chat-empty-hint-grid">
-                      <span class="chat-empty-hint">
-                        <kbd>@</kbd> add files / agents
-                      </span>
-                      <span class="chat-empty-hint">
-                        <kbd>/</kbd> run commands
-                      </span>
-                      <span class="chat-empty-hint">
-                        <kbd>$</kbd> select skills
-                      </span>
-                      <span class="chat-empty-hint">
-                        <kbd>&amp;</kbd> link sessions
-                      </span>
-                    </div>
-                    <span class="chat-empty-hint">
-                      <kbd>Shift</kbd>
-                      <kbd>Enter</kbd> new line
-                    </span>
-                  </div>
+                  <span class="chat-empty-wordmark">LOOMERY</span>
                 </div>
               </Show>
             }
