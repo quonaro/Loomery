@@ -6,14 +6,6 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "oxc.fmt.configPath": "oxfmt.config.mts",
-  "tailwindCSS.files.exclude": [
-    "**/.git/**",
-    "**/node_modules/**",
-    "**/.hg/**",
-    "**/.svn/**",
-    "**/artifacts/**",
-    "**/tmp/**"
-  ],
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
@@ -34,5 +26,25 @@
   },
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/artifacts": true,
+    "**/tmp": true,
+    "**/*.vsix": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/artifacts": true,
+    "**/tmp": true,
+    "**/*.vsix": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true
+  }
 }

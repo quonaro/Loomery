@@ -1,0 +1,66 @@
+shell: bash
+
+dev:
+  desc: Extension Host with auto-rebuild on change (Ctrl+C to stop)
+  color: green
+  script: |
+    set -euo pipefail
+    BIN="${LOOMERY_VSCODE_EXECUTABLE:-}"
+    if [ -z "$BIN" ]; then
+      BIN="$(command -v code || command -v codium || command -v vscodium || true)"
+    fi
+    if [ -z "$BIN" ]; then
+      echo "Could not locate VS Code executable; set LOOMERY_VSCODE_EXECUTABLE"
+      exit 1
+    fi
+    READY_REF="$(mktemp)"
+    touch "$READY_REF"
+    npm run watch:extension &
+    EXT_PID=$!
+    npm run watch:webview &
+    WEB_PID=$!
+    cleanup() {
+      kill "$EXT_PID" "$WEB_PID" 2>/dev/null || true
+    }
+    trap cleanup EXIT INT TERM
+    deadline=$(( $(date +%s) + 180 ))
+    while [ ! dist/extension/extension.js -nt "$READY_REF" ] || [ ! dist/webview/webview.mjs -nt "$READY_REF" ]; do
+      if ! kill -0 "$EXT_PID" 2>/dev/null || ! kill -0 "$WEB_PID" 2>/dev/null; then
+        echo "A watcher exited before the first build finished; check the output above"
+        exit 1
+      fi
+      if [ "$(date +%s)" -ge "$deadline" ]; then
+        echo "Timed out waiting for the first rebuild; launching anyway"
+        break
+      fi
+      sleep 1
+    done
+    rm -f "$READY_REF"
+    # NOTE: `code --wait` does not block for Extension Host windows (it returns
+    # as soon as the running instance takes over), so lota dev stays alive by
+    # waiting on the watchers instead. Stop with Ctrl+C; closing the host
+    # window alone does not stop the watchers.
+    "$BIN" --new-window --disable-extensions --disable-workspace-trust --profile="Loomery Extension Dev" --extensionDevelopmentPath="$PWD" --enable-proposed-api=quonaro.loomery "$PWD"
+    wait -n "$EXT_PID" "$WEB_PID"
+
+push:
+  desc: Push to GitHub
+  color: cyan
+  args:
+  - "tag:str?"
+  script: |
+    if [ -n "$tag" ]; then
+      git tag -f $tag
+      git push origin main
+      git push origin $tag --force
+    else
+      git push origin main
+    fi
+
+build:
+  desc: Build vsix package
+  color: cyan
+  script: |
+    set -euo pipefail
+    npm run package
+    ls -lh ./*.vsix
