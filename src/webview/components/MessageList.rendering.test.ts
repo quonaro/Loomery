@@ -2916,6 +2916,7 @@ describe('MessageList empty state', () => {
       },
     ]);
     setState('activeSessionId', 'session-1');
+    setState('messagesLoading', true);
     const previousFocusKey = composerFocusKey();
 
     cleanup = render(() => MessageList(), container!);
@@ -3012,11 +3013,33 @@ describe('MessageList empty state', () => {
       },
     ]);
     setState('activeSessionId', 'session-1');
+    setState('messagesLoading', true);
 
     cleanup = render(() => MessageList(), container!);
 
     expect(container?.querySelector('.chat-empty-state')).toBeNull();
     expect(container?.querySelector('.chat-empty-logo')).toBeNull();
+  });
+
+  it('shows the starter logo for an existing chat emptied by a revert', () => {
+    setState('emptyStateLogoUri', 'https://example.test/logo.svg');
+    setState('sessions', [
+      {
+        id: 'session-1',
+        projectID: 'project-1',
+        directory: '/workspace',
+        title: 'Reverted session',
+        version: '1',
+        time: { created: 100, updated: 200 },
+      },
+    ]);
+    setState('activeSessionId', 'session-1');
+    replaceMessages([]);
+
+    cleanup = render(() => MessageList(), container!);
+
+    expect(container?.querySelector('.chat-empty-state')).toBeInstanceOf(HTMLDivElement);
+    expect(container?.querySelector('.chat-empty-wordmark')?.textContent).toBe('LOOMERY');
   });
 
   it('shows the parent starter state when only a hidden child message is retained', () => {

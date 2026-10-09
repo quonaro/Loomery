@@ -13,11 +13,26 @@ import {
   openSessionTab,
   reorderSessionTabs,
 } from '../../lib/session-tabs';
-import { xmarkIcon } from '../../lib/ui-icons';
+import {
+  chatBubbleQuestionIcon,
+  checkIcon,
+  pauseSolidIcon,
+  refreshIcon,
+  xmarkCircleIcon,
+  xmarkIcon,
+} from '../../lib/ui-icons';
 import { UiIcon } from '../UiIcon';
 import { NewChatButton } from './ChatHeader';
 
-type TabStatusKind = 'failed' | 'awaiting' | 'running' | 'idle';
+type TabStatusKind = 'failed' | 'awaiting' | 'running' | 'paused' | 'idle';
+
+const TAB_STATUS_ICON: Record<TabStatusKind, string> = {
+  failed: xmarkCircleIcon,
+  awaiting: chatBubbleQuestionIcon,
+  running: refreshIcon,
+  paused: pauseSolidIcon,
+  idle: checkIcon,
+};
 
 const DRAG_MIME = 'text/loomery-session-tab';
 
@@ -28,7 +43,7 @@ const DRAG_MIME = 'text/loomery-session-tab';
  * New chat draft also shows up as a tab until its first message creates the
  * real session.
  */
-export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive?: boolean }) {
+export function SessionTabs(props: { onCreateSession: () => void }) {
   let draggedId: string | null = null;
 
   const sessionsById = createMemo(
@@ -54,17 +69,29 @@ export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive
     return ids;
   });
 
+  // A paused queue entry means the user parked follow-up work for this session.
+  // Surface it only while nothing else is happening (see `tabStatus`).
+  const pausedSessionIds = createMemo(() => {
+    const ids = new Set<string>();
+    for (const queued of state.queuedMessages) {
+      if (queued.paused !== true) continue;
+      ids.add(queued.sessionId);
+      ids.add(getSessionTreeRootId(queued.sessionId) || queued.sessionId);
+    }
+    return ids;
+  });
+
   // Keep whatever session is active visible in the strip and retire the draft
-  // tab once a real session takes over. The writes are untracked so closing the
-  // active tab does not immediately reopen it when the tab list changes before
-  // the session switch lands. The sessions list view skips opening the active
-  // session (it is not necessarily one the user opened, and auto-tabbing it
-  // would defeat empty-session pruning) but still retires the draft tab.
+  // tab once a real session takes over. Opening the sessions list does not clear
+  // the active session, so this also surfaces a session the user opened from the
+  // list (or one restored as active) as a tab. The writes are untracked so
+  // closing the active tab does not immediately reopen it when the tab list
+  // changes before the session switch lands.
   createEffect(() => {
     const active = state.activeSessionId;
     untrack(() => {
       if (!active) return;
-      if (props.autoOpenActive !== false) openSessionTab(active);
+      openSessionTab(active);
       closeSessionTab(NEW_SESSION_TAB_ID);
     });
   });
@@ -88,6 +115,7 @@ export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive
     if (awaitingSessionIds().has(id)) return 'awaiting';
     const type = state.sessionStatus[id]?.type;
     if (type === 'busy' || type === 'retry') return 'running';
+    if (pausedSessionIds().has(id)) return 'paused';
     return 'idle';
   };
 
@@ -99,6 +127,8 @@ export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive
         return 'Waiting for input';
       case 'running':
         return 'Running';
+      case 'paused':
+        return 'Queue paused';
       default:
         return 'Idle';
     }
@@ -225,7 +255,13 @@ export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive
               onDragOver={(event) => onDragOver(event, id)}
               onDrop={(event) => onDrop(event, id)}
             >
-              <span class={`session-tab-dot is-${kind()}`} aria-hidden="true" />
+              <UiIcon
+                source={TAB_STATUS_ICON[kind()]}
+                class={`session-tab-dot is-${kind()}`}
+                width={12}
+                height={12}
+                aria-hidden="true"
+              />
               <span class="session-tab-title">{tabTitle(id)}</span>
               <button
                 type="button"

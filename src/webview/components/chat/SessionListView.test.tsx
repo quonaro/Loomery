@@ -325,7 +325,7 @@ describe('SessionListView model details', () => {
       .mockResolvedValue({ scope: 'project', git: true });
     const setScope = vi
       .spyOn(client.loomery.sessionHistoryScope, 'set')
-      .mockResolvedValue({ scope: 'descendants', git: true });
+      .mockResolvedValue({ scope: 'all', git: true });
     setState('editorContext', {
       workspacePath: '/repo',
       workspaceFolders: [{ name: 'Repo', path: '/repo' }],
@@ -342,14 +342,14 @@ describe('SessionListView model details', () => {
     expect(trigger.textContent).toContain('Project');
     reloadSessionsMock.mockClear();
     trigger.click();
-    const below = Array.from(
+    const all = Array.from(
       container.querySelectorAll<HTMLButtonElement>('.session-history-scope-option')
-    ).find((option) => option.textContent?.includes('Nested'))!;
-    below.click();
+    ).find((option) => option.textContent?.includes('All'))!;
+    all.click();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(setScope).toHaveBeenCalledWith('/repo', 'descendants');
+    expect(setScope).toHaveBeenCalledWith('/repo', 'all');
     expect(reloadSessionsMock).toHaveBeenCalledOnce();
 
     const search = container.querySelector<HTMLInputElement>('.session-list-search-input')!;
@@ -358,9 +358,7 @@ describe('SessionListView model details', () => {
     expect(container.querySelector('.session-history-scope-picker')).toBeNull();
 
     container.querySelector<HTMLButtonElement>('.session-list-search-clear')!.click();
-    expect(container.querySelector('.session-history-scope-trigger')?.textContent).toContain(
-      'Nested'
-    );
+    expect(container.querySelector('.session-history-scope-trigger')?.textContent).toContain('All');
     expect(getScope).toHaveBeenCalledOnce();
     expect(reloadSessionsMock).toHaveBeenCalledOnce();
   });
@@ -370,8 +368,8 @@ describe('SessionListView model details', () => {
       scope: 'directory',
       git: true,
     });
-    let resolveSet!: (result: { scope: 'descendants'; git: true }) => void;
-    const setRequest = new Promise<{ scope: 'descendants'; git: true }>((resolve) => {
+    let resolveSet!: (result: { scope: 'all'; git: true }) => void;
+    const setRequest = new Promise<{ scope: 'all'; git: true }>((resolve) => {
       resolveSet = resolve;
     });
     vi.spyOn(client.loomery.sessionHistoryScope, 'set').mockReturnValue(setRequest);
@@ -386,21 +384,21 @@ describe('SessionListView model details', () => {
     cleanup = render(() => <SessionListView />, container);
     await vi.waitFor(() => {
       expect(container.querySelector('.session-history-scope-trigger')?.textContent).toContain(
-        'Folder'
+        'Project'
       );
     });
     const trigger = container.querySelector<HTMLButtonElement>('.session-history-scope-trigger')!;
     trigger.click();
-    const nested = Array.from(
+    const all = Array.from(
       container.querySelectorAll<HTMLButtonElement>('.session-history-scope-option')
-    ).find((option) => option.textContent?.includes('Nested'))!;
-    nested.click();
+    ).find((option) => option.textContent?.includes('All'))!;
+    all.click();
 
-    expect(trigger.textContent).toContain('Nested');
+    expect(trigger.textContent).toContain('All');
     expect(container.querySelector('.session-history-scope-menu')).toBeNull();
     expect(reloadSessionsMock).not.toHaveBeenCalled();
 
-    resolveSet({ scope: 'descendants', git: true });
+    resolveSet({ scope: 'all', git: true });
     await vi.waitFor(() => expect(reloadSessionsMock).toHaveBeenCalledOnce());
   });
 
@@ -425,14 +423,14 @@ describe('SessionListView model details', () => {
     cleanup = render(() => <SessionListView />, container);
     await vi.waitFor(() => {
       expect(container.querySelector('.session-history-scope-trigger')?.textContent).toContain(
-        'Folder'
+        'Project'
       );
     });
     container.querySelector<HTMLButtonElement>('.session-history-scope-trigger')!.click();
     Array.from(container.querySelectorAll<HTMLButtonElement>('.session-history-scope-option'))
-      .find((option) => option.textContent?.includes('Nested'))!
+      .find((option) => option.textContent?.includes('All'))!
       .click();
-    expect(setScope).toHaveBeenCalledWith('/repo-a', 'descendants');
+    expect(setScope).toHaveBeenCalledWith('/repo-a', 'all');
 
     setState('editorContext', {
       workspacePath: '/repo-b',
@@ -465,7 +463,7 @@ describe('SessionListView model details', () => {
   });
 
   it('ignores a scope save error after unmount', async () => {
-    const save = deferred<{ scope: 'descendants'; git: true }>();
+    const save = deferred<{ scope: 'all'; git: true }>();
     vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({
       scope: 'directory',
       git: true,
@@ -482,12 +480,12 @@ describe('SessionListView model details', () => {
     cleanup = render(() => <SessionListView />, container);
     await vi.waitFor(() => {
       expect(container.querySelector('.session-history-scope-trigger')?.textContent).toContain(
-        'Folder'
+        'Project'
       );
     });
     container.querySelector<HTMLButtonElement>('.session-history-scope-trigger')!.click();
     Array.from(container.querySelectorAll<HTMLButtonElement>('.session-history-scope-option'))
-      .find((option) => option.textContent?.includes('Nested'))!
+      .find((option) => option.textContent?.includes('All'))!
       .click();
 
     cleanup();
@@ -500,7 +498,7 @@ describe('SessionListView model details', () => {
     expect(reloadSessionsMock).not.toHaveBeenCalled();
   });
 
-  it.each(['descendants', 'project'] as const)(
+  it.each(['descendants', 'project', 'all'] as const)(
     'shows compact folder names for sessions outside the current folder in %s scope',
     async (scope) => {
       vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({ scope, git: true });

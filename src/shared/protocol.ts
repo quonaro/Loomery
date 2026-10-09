@@ -174,7 +174,7 @@ export function isPermissionMode<T>(value: T): value is T & PermissionMode {
 }
 
 export function isSessionHistoryScope<T>(value: T): value is T & SessionHistoryScope {
-  return value === 'directory' || value === 'descendants' || value === 'project';
+  return value === 'directory' || value === 'descendants' || value === 'project' || value === 'all';
 }
 
 export function isSessionWorkspaceScope<T>(value: T): value is T & SessionWorkspaceScope {
@@ -761,7 +761,7 @@ export type WindowChatTheme = {
 };
 
 export type DesktopSessionPaneSide = 'left' | 'right';
-export type SessionHistoryScope = 'directory' | 'descendants' | 'project';
+export type SessionHistoryScope = 'directory' | 'descendants' | 'project' | 'all';
 
 export type WebviewRoute =
   | {

@@ -5675,6 +5675,44 @@ describe('RestProxy handleRequest', () => {
     );
   });
 
+  it('loads sessions from every directory in all scope', async () => {
+    const serverRequest = vi.fn(async (_method: string, path: string) => {
+      if (path === '/experimental/session?limit=1000000') {
+        return [
+          { id: 'nested', directory: '/repo/packages/app/src', title: 'Nested session' },
+          { id: 'foreign', directory: '/elsewhere/other', title: 'Foreign session' },
+        ];
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    });
+    const callbacks = createCallbacks({
+      server: { ...createCallbacks().server, request: serverRequest } as never,
+      getSessionHistoryScope: () => 'all',
+    });
+    callbacks.contextProvider.context.workspacePath = '/repo';
+    callbacks.contextProvider.context.workspaceFolders = [{ name: 'repo', path: '/repo' }];
+    callbacks.contextProvider.getOpenWorkspaceRoot = vi.fn((path: string) =>
+      path === '/repo' ? path : null
+    );
+    const { proxy } = createProxy(callbacks);
+
+    await proxy.handleRequest(makePayload(22413, 'GET', '/session'));
+
+    expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
+      id: 22413,
+      data: expect.arrayContaining([
+        expect.objectContaining({ id: 'nested', directory: '/repo/packages/app/src' }),
+        expect.objectContaining({ id: 'foreign', directory: '/elsewhere/other' }),
+      ]),
+    });
+    expect(serverRequest).toHaveBeenCalledWith(
+      'GET',
+      '/experimental/session?limit=1000000',
+      undefined,
+      expect.objectContaining({ unscoped: true })
+    );
+  });
+
   it('applies descendants scope before slicing a machine-wide page', async () => {
     const rows = [
       { id: 'foreign', directory: '/other' },
@@ -5951,6 +5989,18 @@ describe('RestProxy handleRequest', () => {
     await expect(
       proxy.authorizeSessionDirectory('nested-session', '/worktrees/other')
     ).resolves.toBe(false);
+  });
+
+  it('authorizes any directory and catalog event when session history scope is all', async () => {
+    const { proxy } = createProxy({
+      getSessionHistoryScope: () => 'all',
+    });
+
+    await expect(proxy.authorizeSessionDirectory('foreign', '/elsewhere/other')).resolves.toBe(
+      true
+    );
+    expect(proxy.isSessionCatalogEventAuthorized('foreign', '/elsewhere/other')).toBe(true);
+    expect(proxy.isSessionCatalogEventAuthorized('foreign')).toBe(true);
   });
 
   it.each(['invalidation', 'expiry', 'event authorization'])(

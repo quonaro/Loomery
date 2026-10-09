@@ -1002,7 +1002,10 @@ export function MessageList() {
     const statusType = state.sessionStatus[sessionId]?.type;
     if (statusType === 'busy' || statusType === 'retry') return false;
 
-    return session.time.created === session.time.updated;
+    // Any session left with no visible messages shows the starter state, including
+    // one emptied by a revert. `messagesLoading` above guards the window in which an
+    // existing session's messages have not been fetched yet.
+    return true;
   });
   const latestPlanImplementationMessageId = createMemo(() => {
     messageInfoVersion();

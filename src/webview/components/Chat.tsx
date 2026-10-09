@@ -1097,7 +1097,12 @@ function shouldHideSessionFromList(
     needsAttention: (sessionId) => indicators.attentionIds.has(sessionId),
     isFailed: (sessionId) => indicators.failedIds.has(sessionId),
     isPlanReady: (item) => indicators.planReadyIds.has(item.id),
-    preserve: ralphStore.isRalphSession(session.id) || getOpenSessionTabs().includes(session.id),
+    // An open tab keeps an empty session visible, but the active session's tab
+    // may have been auto-opened just because it is open in the workspace, so it
+    // must not un-hide the empty active session here.
+    preserve:
+      ralphStore.isRalphSession(session.id) ||
+      (session.id !== state.activeSessionId && getOpenSessionTabs().includes(session.id)),
     statusType: state.sessionStatus[session.id]?.type,
   });
 }

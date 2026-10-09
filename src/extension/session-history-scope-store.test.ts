@@ -34,6 +34,26 @@ describe('SessionHistoryScopeStore', () => {
     });
   });
 
+  it('restores and persists the all scope', async () => {
+    const saved = new Map<string, unknown>([
+      ['loomery.sessionHistoryScopes', { 'directory:/repo': 'all' }],
+    ]);
+    const persistence: Persistence = {
+      get<T>(key: string) {
+        return saved.get(key) as T | undefined;
+      },
+      set: vi.fn<Persistence['set']>(async (key, value) => {
+        saved.set(key, value);
+      }),
+      remove: vi.fn(),
+    };
+    const store = new SessionHistoryScopeStore(persistence);
+
+    expect(store.get('directory:/repo')).toBe('all');
+    await store.set('directory:/repo', 'all');
+    expect(new SessionHistoryScopeStore(persistence).get('directory:/repo')).toBe('all');
+  });
+
   it('persists root-to-project associations', async () => {
     const persistence: Persistence = {
       get: vi.fn(),

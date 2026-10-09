@@ -638,10 +638,10 @@ The judge uses `loomery.chat.autoApproveModel` first, then OpenCode's `small_mod
 Loomery integrates commit-message generation directly into VS Code Source Control.
 
 1. Stage the exact changes you intend to commit.
-2. Select the wand next to the commit message input, or run `Loomery: Generate Commit Message` from the Command Palette.
+2. Select the wand in the Source Control view title or next to the commit message input, or run `Loomery: Generate Commit Message` from the Command Palette.
 3. Review or edit the generated text in Git's commit input, then commit normally.
 
-While Loomery generates, the wand control becomes a Cancel action; select it to stop without writing anything. The input action uses the proposed `contribSourceControlInputBoxMenu` API, so it is visible only when Loomery is enabled for proposed APIs (add `quonaro.loomery` to `enable-proposed-api` in `argv.json`). `Loomery: Generate Commit Message` from the Command Palette works without that opt-in.
+While Loomery generates, the wand control becomes a Cancel action; select it to stop without writing anything. The view title action is always available. The input action uses the proposed `contribSourceControlInputBoxMenu` API, so it is visible only when Loomery is enabled for proposed APIs (add `quonaro.loomery` to `enable-proposed-api` in `argv.json`). `Loomery: Generate Commit Message` from the Command Palette works without that opt-in.
 
 Loomery uses staged changes when the index is non-empty. If nothing is staged, it uses tracked unstaged changes and untracked files instead. It never mixes the two scopes. Loomery rejects unresolved merge changes and reports when neither scope has usable changes.
 
@@ -735,7 +735,7 @@ Chat view:
 - `loomery.chat.showChangedFiles` - show the changed-files panel above the composer; defaults to `false`
 - `loomery.chat.showTurnTimer` - show the elapsed duration of the active turn beside the composer status controls; defaults to `true`
 - `loomery.chat.desktopSessionPaneSide` - on large screens, show the sessions pane on the `left` or `right`; defaults to `right`
-- Use the scope picker inside the session search field to choose which OpenCode sessions appear. **Folder** shows exact working-directory matches, **Nested** includes folders beneath it in the same OpenCode project, and **Project** shows the entire containing Git project. Loomery remembers the choice for each project; non-Git folders offer Folder and Nested independently.
+- Use the scope picker inside the session search field to choose which OpenCode sessions appear. **Project** shows sessions in the current workspace folder, and **All** shows every saved OpenCode dialog from all directories. Loomery remembers the choice for each project.
 - `loomery.chat.autoRenameUntitledSessions` - generate a fallback title when OpenCode leaves a session untitled; defaults to `false`
 
 Commit messages:

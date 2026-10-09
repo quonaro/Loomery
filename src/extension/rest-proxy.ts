@@ -263,7 +263,8 @@ type WorkspaceSession = Record<string, unknown> & {
 type ResolvedSessionCatalogScope =
   | { kind: 'exact'; root: string }
   | { kind: 'descendants'; root: string }
-  | { kind: 'project'; root: string; projectID: string };
+  | { kind: 'project'; root: string; projectID: string }
+  | { kind: 'all'; root: string };
 
 type SessionCatalogProject = {
   id: string;
@@ -536,9 +537,15 @@ export class RestProxy {
     if (authorized) {
       return !directory || isSameWorkspacePath(authorized.directory, directory);
     }
-    if (!directory) return false;
     for (const root of this.getOpenWorkspaceRoots()) {
       const mode = this.callbacks.getSessionHistoryScope?.(root) ?? 'directory';
+      if (mode === 'all') {
+        if (directory) {
+          this.authorizedSessionDirectories.set(sessionID, { directory, catalogRoot: root });
+        }
+        return true;
+      }
+      if (!directory) continue;
       if (mode === 'directory' && isSameWorkspacePath(directory, root)) return true;
       if (mode !== 'descendants' || getRelativePathWithinWorkspace(directory, root) === null) {
         continue;
@@ -568,6 +575,7 @@ export class RestProxy {
     const scopes = await Promise.all(
       this.getOpenWorkspaceRoots().map((root) => this.resolveSessionCatalogScope(root))
     );
+    if (scopes.some((scope) => scope.kind === 'all')) return true;
     const candidateScopes = scopes.filter(
       (scope): scope is Extract<ResolvedSessionCatalogScope, { kind: 'descendants' | 'project' }> =>
         scope.kind === 'project' ||
@@ -2411,6 +2419,7 @@ export class RestProxy {
     session: { directory: string; projectID?: unknown },
     scope: ResolvedSessionCatalogScope
   ): boolean {
+    if (scope.kind === 'all') return true;
     if (scope.kind === 'exact') return isSameWorkspacePath(session.directory, scope.root);
     if (scope.kind === 'descendants') {
       return getRelativePathWithinWorkspace(session.directory, scope.root) !== null;
@@ -2425,6 +2434,7 @@ export class RestProxy {
     const mode = this.callbacks.getSessionHistoryScope?.(root) ?? 'directory';
     if (mode === 'directory') return { kind: 'exact', root };
     if (mode === 'descendants') return { kind: 'descendants', root };
+    if (mode === 'all') return { kind: 'all', root };
     const project = await this.loadSessionCatalogProject(root, signal);
     if (mode === 'project' && project.vcs === 'git') {
       return { kind: 'project', root, projectID: project.id };
@@ -2500,7 +2510,7 @@ export class RestProxy {
   }
 
   private applySessionCatalogScope(url: URL, scope: ResolvedSessionCatalogScope) {
-    if (scope.kind === 'descendants') {
+    if (scope.kind === 'descendants' || scope.kind === 'all') {
       url.pathname = '/experimental/session';
       url.searchParams.delete('scope');
       url.searchParams.delete('path');
@@ -2525,7 +2535,7 @@ export class RestProxy {
   ): ReturnType<OpenCodeServer['request']> {
     const options: OpenCodeRequestOptions = {};
     if (signal) options.signal = signal;
-    if (scope.kind === 'descendants') {
+    if (scope.kind === 'descendants' || scope.kind === 'all') {
       options.unscoped = true;
       return this.callbacks.server.request('GET', path, undefined, options);
     }
@@ -2538,6 +2548,7 @@ export class RestProxy {
     if (!identity) return null;
     if (!scope)
       return `${identity}\0${this.callbacks.getSessionHistoryScope?.(root) ?? 'directory'}`;
+    if (scope.kind === 'all') return 'all';
     return scope.kind === 'project'
       ? `${identity}\0project\0${scope.projectID}`
       : `${identity}\0${scope.kind}`;

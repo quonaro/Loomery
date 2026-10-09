@@ -307,6 +307,13 @@
           "group": "z_loomery"
         }
       ],
+      "scm/title": [
+        {
+          "command": "loomery.generateCommitMessage",
+          "when": "scmProvider == git",
+          "group": "navigation@1"
+        }
+      ],
       "scm/inputBox": [
         {
           "command": "loomery.generateCommitMessage",

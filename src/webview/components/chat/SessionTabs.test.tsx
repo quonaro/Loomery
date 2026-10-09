@@ -50,6 +50,7 @@ beforeEach(() => {
   setState('failedSessionIds', []);
   setState('permissions', []);
   setState('questions', []);
+  setState('queuedMessages', []);
   setOpenSessionTabsForTest([]);
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -65,6 +66,7 @@ afterEach(() => {
   setState('failedSessionIds', []);
   setState('permissions', []);
   setState('questions', []);
+  setState('queuedMessages', []);
   setOpenSessionTabsForTest([]);
   vi.restoreAllMocks();
 });
@@ -95,19 +97,18 @@ describe('SessionTabs', () => {
     expect(container.querySelector('.session-tab-title')?.textContent).toBe('New Session');
   });
 
-  it('retires the draft tab without opening the active session when autoOpenActive is false', async () => {
+  it('opens the active session as a tab even while the sessions list is shown', async () => {
     setSessions([session('a', 3)]);
     setOpenSessionTabsForTest([NEW_SESSION_TAB_ID]);
 
-    cleanup = render(
-      () => <SessionTabs onCreateSession={() => {}} autoOpenActive={false} />,
-      container
-    );
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
 
     setState('activeSessionId', 'a');
 
-    await vi.waitFor(() => expect(getOpenSessionTabs()).toEqual([]));
-    expect(container.querySelectorAll('.session-tab')).toHaveLength(0);
+    await vi.waitFor(() => expect(getOpenSessionTabs()).toEqual(['a']));
+    expect(container.querySelector('.session-tab.is-active .session-tab-title')?.textContent).toBe(
+      'Session a'
+    );
   });
 
   it('shows the running dot while a session is generating', () => {
@@ -164,6 +165,43 @@ describe('SessionTabs', () => {
     cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
 
     expect(container.querySelector('.session-tab-dot.is-idle')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('shows the paused dot when the session has a paused queue and is idle', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('queuedMessages', [{ id: 'q1', sessionId: 'a', text: 'follow up', paused: true }]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-paused')).toBeInstanceOf(HTMLElement);
+    expect(container.querySelector('.session-tab-dot.is-idle')).toBeNull();
+  });
+
+  it('ignores an unpaused queue entry', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('queuedMessages', [{ id: 'q1', sessionId: 'a', text: 'follow up' }]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-paused')).toBeNull();
+    expect(container.querySelector('.session-tab-dot.is-idle')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('prefers running over a paused queue while generating', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('sessionStatus', 'a', { type: 'busy' });
+    setState('queuedMessages', [{ id: 'q1', sessionId: 'a', text: 'follow up', paused: true }]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-running')).toBeInstanceOf(HTMLElement);
+    expect(container.querySelector('.session-tab-dot.is-paused')).toBeNull();
   });
 
   it('shows the failed dot for a failed session', () => {

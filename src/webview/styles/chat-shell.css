@@ -282,10 +282,6 @@ input:focus-visible {
     top: calc(12px + (30px / 2));
   }
 
-  .chat-header-chat-layout {
-    display: none;
-  }
-
   .chat-header-chat-desktop {
     display: block;
   }

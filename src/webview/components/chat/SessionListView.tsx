@@ -72,12 +72,11 @@ import {
   navArrowRightIcon,
   cableTagIcon,
   folderIcon,
-  folderPlusIcon,
   folderSettingsIcon,
-  gitIcon,
   hourglassIcon,
   navArrowDownIcon,
   pinIcon,
+  taskListIcon,
   trashIcon,
   xmarkIcon,
 } from '../../lib/ui-icons';
@@ -123,21 +122,15 @@ type SessionGroups = {
 const SESSION_HISTORY_SCOPE_OPTIONS = [
   {
     scope: 'directory',
-    label: 'Folder',
-    description: 'Sessions in this folder only',
+    label: 'Project',
+    description: 'Sessions in this project folder',
     icon: folderIcon,
   },
   {
-    scope: 'descendants',
-    label: 'Nested',
-    description: 'Sessions in this folder and folders below it',
-    icon: folderPlusIcon,
-  },
-  {
-    scope: 'project',
-    label: 'Project',
-    description: 'All sessions in this Git project',
-    icon: gitIcon,
+    scope: 'all',
+    label: 'All',
+    description: 'All saved OpenCode dialogs from every directory',
+    icon: taskListIcon,
   },
 ] as const;
 
@@ -154,19 +147,16 @@ function SessionHistoryScopePicker(props: {
   onScopeChange: (scope: SessionHistoryScope) => void;
 }) {
   const [scope, setScope] = createSignal<SessionHistoryScope>('directory');
-  const [isGit, setIsGit] = createSignal(false);
   const [open, setOpen] = createSignal(false);
   let root: HTMLDivElement | undefined;
   let requestKey = 0;
   let saveKey = 0;
 
-  const options = createMemo(() =>
-    isGit()
-      ? SESSION_HISTORY_SCOPE_OPTIONS
-      : SESSION_HISTORY_SCOPE_OPTIONS.filter((option) => option.scope !== 'project')
+  const displayedScope = createMemo<SessionHistoryScope>(() =>
+    scope() === 'all' ? 'all' : 'directory'
   );
   const selected = createMemo(() =>
-    SESSION_HISTORY_SCOPE_OPTIONS.find((option) => option.scope === scope())!
+    SESSION_HISTORY_SCOPE_OPTIONS.find((option) => option.scope === displayedScope())!
   );
 
   createEffect(() => {
@@ -182,7 +172,6 @@ function SessionHistoryScopePicker(props: {
         if (key !== requestKey || directory !== props.directory) return;
         setScope(result.scope);
         props.onScopeChange(result.scope);
-        setIsGit(result.git);
         if (result.scope !== 'directory') await reloadSessions();
       } catch (error: unknown) {
         if (key === requestKey && directory === props.directory) {
@@ -223,7 +212,6 @@ function SessionHistoryScopePicker(props: {
       if (key !== saveKey || directory !== props.directory) return;
       setScope(result.scope);
       props.onScopeChange(result.scope);
-      setIsGit(result.git);
       void reloadSessions();
     } catch (error: unknown) {
       if (key !== saveKey || directory !== props.directory) return;
@@ -260,13 +248,13 @@ function SessionHistoryScopePicker(props: {
         </Tooltip>
         <Show when={open()}>
           <div class="session-history-scope-menu" role="menu">
-            <For each={options()}>
+            <For each={SESSION_HISTORY_SCOPE_OPTIONS}>
               {(option) => (
                 <Tooltip content={option.description} placement="left" delay={500}>
                   <button
                     type="button"
                     role="menuitemradio"
-                    aria-checked={scope() === option.scope}
+                    aria-checked={displayedScope() === option.scope}
                     class="session-history-scope-option"
                     onClick={() => void selectScope(option.scope)}
                   >
@@ -1311,7 +1299,12 @@ export function SessionListView(props: {
       needsAttention: (sessionId) => sessionIndicators().attentionIds.has(sessionId),
       isFailed: (sessionId) => sessionIndicators().failedIds.has(sessionId),
       isPlanReady: (item) => sessionIndicators().planReadyIds.has(item.id),
-      preserve: ralphStore.isRalphSession(session.id) || getOpenSessionTabs().includes(session.id),
+      // An open tab keeps an empty session visible, but the active session's tab
+      // may have been auto-opened just because it is open in the workspace, so it
+      // must not un-hide the empty active session here.
+      preserve:
+        ralphStore.isRalphSession(session.id) ||
+        (session.id !== state.activeSessionId && getOpenSessionTabs().includes(session.id)),
       statusType: state.sessionStatus[session.id]?.type,
     });
   };

@@ -71,31 +71,31 @@
   font-style: italic;
 }
 
+/* Status glyph on each tab: the icon shape and colour encode the session
+   action. The 8px circles became 12px mask icons via the UiIcon size props. */
 .session-tab-dot {
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-vscode-fg) 35%, transparent);
+  color: color-mix(in srgb, var(--color-vscode-fg) 80%, transparent);
 }
 
-/* Dot semantics: green = generating, yellow = waiting on the user (permission
-   or question), white = generation finished/idle, red = failed. */
 .session-tab-dot.is-running {
-  background: var(--color-vscode-success);
-  animation: pulse-soft 1.5s ease-in-out infinite;
+  color: var(--color-vscode-success);
+  animation: spin 0.9s linear infinite;
 }
 
 .session-tab-dot.is-awaiting {
-  background: var(--color-vscode-warning);
+  color: var(--color-vscode-warning);
+}
+
+.session-tab-dot.is-paused {
+  color: var(--color-vscode-info);
 }
 
 .session-tab-dot.is-failed {
-  background: var(--color-vscode-error);
+  color: var(--color-vscode-error);
 }
 
 .session-tab-dot.is-idle {
-  background: color-mix(in srgb, var(--color-vscode-fg) 80%, transparent);
+  color: color-mix(in srgb, var(--color-vscode-fg) 80%, transparent);
 }
 
 .session-tab-close {

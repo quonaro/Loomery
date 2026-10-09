@@ -153,61 +153,30 @@ export function ChatWorkspace(props: {
     props.showSessionPicker ? props.sessionListFilterPrefix : 'Viewing:';
   const sidebarFilterTitle = () =>
     props.showSessionPicker ? props.sessionListFilterTitle : props.sidebarSessionListFilterTitle;
-  // The top-level picker header only earns its row when it actually carries
-  // controls (back button, filter chip, badges, sibling workspace alerts). With
-  // the title removed and the new-chat button living in the tab strip, an empty
-  // header would otherwise be a bare divider.
-  const hasTopLevelSessionHeaderContent = () =>
-    !!props.subagentParentId ||
-    !!props.sessionListFilterLabel ||
-    state.siblingWorkspaceAlerts.length > 0 ||
-    (props.shouldShowFailedBadge && props.failedSessionsCount > 0) ||
-    (props.shouldShowAttentionBadge && props.attentionSessionsCount > 0) ||
-    (props.shouldShowPlanReadyBadge && props.planReadySessionsCount > 0) ||
-    (props.shouldShowCompletedBadge && props.completedSessionsCount > 0) ||
-    (props.shouldShowRunningBadge && props.runningSessionsCount > 0) ||
-    (props.shouldShowPendingBadge && props.pendingSessionsCount > 0);
-  const sessionPickerHeader = (
-    useSidebarCounts = false,
-    showTitle = true,
-    showNewChatButton = true
-  ) => (
+  const sessionPickerHeader = () => (
     <SessionPickerHeader
-      showTitle={showTitle}
-      filterLabel={useSidebarCounts ? sidebarFilterLabel() : props.sessionListFilterLabel}
-      filterPrefix={useSidebarCounts ? sidebarFilterPrefix() : props.sessionListFilterPrefix}
-      filterTitle={useSidebarCounts ? sidebarFilterTitle() : props.sessionListFilterTitle}
+      filterLabel={sidebarFilterLabel()}
+      filterPrefix={sidebarFilterPrefix()}
+      filterTitle={sidebarFilterTitle()}
       primarySessionsCount={visiblePrimarySessionsCount()}
-      showBackButton={!!(useSidebarCounts ? sidebarSubagentParentId() : props.subagentParentId)}
-      backTitle={useSidebarCounts ? 'Back to sessions' : undefined}
+      showBackButton={!!sidebarSubagentParentId()}
+      backTitle="Back to sessions"
       showFailedBadge={props.shouldShowFailedBadge}
       showAttentionBadge={props.shouldShowAttentionBadge}
       showPlanReadyBadge={props.shouldShowPlanReadyBadge}
       showCompletedBadge={props.shouldShowCompletedBadge}
       showRunningBadge={props.shouldShowRunningBadge}
       showPendingBadge={props.shouldShowPendingBadge}
-      failedCount={useSidebarCounts ? props.sessionSidebarFailedCount : props.failedSessionsCount}
-      attentionCount={
-        useSidebarCounts ? props.sessionSidebarAttentionCount : props.attentionSessionsCount
-      }
-      planReadyCount={
-        useSidebarCounts ? props.sessionSidebarPlanReadyCount : props.planReadySessionsCount
-      }
-      completedCount={
-        useSidebarCounts ? props.sessionSidebarCompletedCount : props.completedSessionsCount
-      }
-      runningCount={
-        useSidebarCounts ? props.sessionSidebarRunningCount : props.runningSessionsCount
-      }
-      pendingCount={
-        useSidebarCounts ? props.sessionSidebarPendingCount : props.pendingSessionsCount
-      }
-      showNewChatButton={showNewChatButton}
+      failedCount={props.sessionSidebarFailedCount}
+      attentionCount={props.sessionSidebarAttentionCount}
+      planReadyCount={props.sessionSidebarPlanReadyCount}
+      completedCount={props.sessionSidebarCompletedCount}
+      runningCount={props.sessionSidebarRunningCount}
+      pendingCount={props.sessionSidebarPendingCount}
+      showNewChatButton
       onMarkAllRead={markAllReadAction()}
-      onBack={useSidebarCounts ? props.onOpenTopLevelSidebarSessions : props.onOpenParentSession}
-      onClearFilter={
-        useSidebarCounts ? props.onOpenTopLevelSidebarSessions : props.onClearSessionListView
-      }
+      onBack={props.onOpenTopLevelSidebarSessions}
+      onClearFilter={props.onOpenTopLevelSidebarSessions}
       onOpenFailedSessions={props.onOpenFailedSessions}
       onOpenAttentionSessions={props.onOpenAttentionSessions}
       onOpenPlanReadySessions={props.onOpenPlanReadySessions}
@@ -249,7 +218,7 @@ export function ChatWorkspace(props: {
     <aside class="chat-session-sidebar" aria-label="Sessions">
       <div class="chat-header chat-session-sidebar-header">
         <div class="chat-header-inner chat-session-sidebar-header-inner">
-          {sessionPickerHeader(true)}
+          {sessionPickerHeader()}
         </div>
       </div>
       <SessionListView
@@ -318,22 +287,7 @@ export function ChatWorkspace(props: {
       class={`interactive-session${props.showModels ? ' interactive-session-showing-models' : ''}`}
     >
       <WindowChatThemeToggle />
-      <Show
-        when={
-          props.showSessionHeader && props.showSessionPicker && hasTopLevelSessionHeaderContent()
-        }
-      >
-        <div
-          class={`chat-header ${props.shouldRenderWorkspace ? 'chat-header-centered chat-header-chat-layout' : ''}`}
-        >
-          <div class="chat-header-inner">{sessionPickerHeader(false, false, false)}</div>
-        </div>
-      </Show>
-
-      <SessionTabs
-        onCreateSession={props.onCreateSession}
-        autoOpenActive={props.shouldRenderWorkspace}
-      />
+      <SessionTabs onCreateSession={props.onCreateSession} />
 
       <Show when={props.showReconnectBanner}>
         <div

@@ -317,7 +317,7 @@ test('centers the session history scope in the desktop search field', async ({ p
 
   const sessionsPane = page.getByRole('complementary', { name: 'Sessions' });
   const search = sessionsPane.getByLabel('Search sessions');
-  const scope = sessionsPane.getByLabel('Session history: Folder');
+  const scope = sessionsPane.getByLabel('Session history: Project');
   await expect(scope).toBeVisible();
 
   const centers = await Promise.all([

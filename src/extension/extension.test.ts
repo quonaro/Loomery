@@ -1146,13 +1146,20 @@ describe('extension manifest', () => {
     ]);
   });
 
-  it('contributes commit-message generation to the command palette and Source Control input', () => {
+  it('contributes commit-message generation to the command palette, Source Control title, and input', () => {
     expect(packageJson.contributes.commands).toContainEqual({
       command: 'loomery.generateCommitMessage',
       title: 'Loomery: Generate Commit Message',
       icon: '$(wand)',
     });
     expect(packageJson.enabledApiProposals).toEqual(['contribSourceControlInputBoxMenu']);
+    expect(packageJson.contributes.menus['scm/title']).toEqual([
+      {
+        command: 'loomery.generateCommitMessage',
+        when: 'scmProvider == git',
+        group: 'navigation@1',
+      },
+    ]);
     expect(packageJson.contributes.menus['scm/inputBox']).toEqual([
       {
         command: 'loomery.generateCommitMessage',
@@ -1160,7 +1167,6 @@ describe('extension manifest', () => {
         group: 'navigation@1',
       },
     ]);
-    expect(Object.keys(packageJson.contributes.menus)).not.toContain('scm/title');
   });
 
   it('constrains the server port setting to valid TCP ports', () => {
