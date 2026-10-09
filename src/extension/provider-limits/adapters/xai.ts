@@ -15,7 +15,7 @@ import {
   readBoundedResponseJson,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const XAI_BILLING_ENDPOINT = 'https://cli-chat-proxy.grok.com/v1/billing?format=credits';
@@ -83,7 +83,7 @@ export function createXaiAdapter(): ProviderLimitAdapter {
               Accept: 'application/json',
               Authorization: `Bearer ${accessToken}`,
               'x-xai-token-auth': 'xai-grok-cli',
-              'User-Agent': VARRO_USER_AGENT,
+              'User-Agent': LOOMERY_USER_AGENT,
             },
             signal: AbortSignal.timeout(10_000),
           });
@@ -151,7 +151,7 @@ export function createXaiAdapter(): ProviderLimitAdapter {
               'Content-Type': 'application/grpc-web+proto',
               Origin: 'https://grok.com',
               Referer: 'https://grok.com/?_s=usage',
-              'User-Agent': VARRO_USER_AGENT,
+              'User-Agent': LOOMERY_USER_AGENT,
               'x-grpc-web': '1',
               'x-user-agent': 'connect-es/2.1.1',
             },
@@ -245,7 +245,7 @@ async function fetchXaiResetCredits(
         'x-user-agent': 'connect-es/2.1.1',
         Origin: 'https://grok.com',
         Referer: 'https://grok.com/?_s=usage',
-        'User-Agent': VARRO_USER_AGENT,
+        'User-Agent': LOOMERY_USER_AGENT,
       },
       body: EMPTY_GRPC_FRAME,
       signal: AbortSignal.timeout(10_000),

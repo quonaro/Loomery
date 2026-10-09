@@ -7,6 +7,7 @@ import {
   showModels,
   openAttentionSessionsKey,
   openCompletedSessionsKey,
+  openAllSessionsKey,
   sessionSearchFocusKey,
   isLoading,
   isSessionAwaitingInput,
@@ -21,11 +22,11 @@ import {
   setShowPermissionSettings,
 } from '../lib/state';
 import { Show, createSignal, onMount, onCleanup, createEffect, createMemo, on } from 'solid-js';
-import { selectSession, deleteSessionImmediately } from '../hooks/useOpenCode';
+import { selectSession, deleteSessionImmediately, startNewSession } from '../hooks/useOpenCode';
 import { normalizeSessionTitle } from '../../shared/session-title';
 import { ChatWorkspace } from './chat/ChatWorkspace';
 import { ralphStore } from '../lib/stores/ralph-store';
-import { getDiscardableActiveBlankSessionId, startNewChatDraft } from '../lib/new-chat-draft';
+import { getOpenSessionTabs } from '../lib/session-tabs';
 import {
   shouldHideEmptySessionFromList,
   isEmptySession as isEmptySessionMetadata,
@@ -444,6 +445,9 @@ export function Chat() {
     const indicators = sessionIndicators();
     const candidateIds = new Set<string>();
     for (const session of state.sessions) {
+      // An empty session with an open tab is one the user explicitly created
+      // and wants to keep, so never prune it while its tab is open.
+      if (getOpenSessionTabs().includes(session.id)) continue;
       if (!shouldAutoDeleteEmptySession(session, state.activeSessionId, indicators)) continue;
       candidateIds.add(session.id);
       if (pendingEmptySessionDeleteTimers.has(session.id)) continue;
@@ -452,6 +456,7 @@ export function Chat() {
         pendingEmptySessionDeleteTimers.delete(session.id);
         const latestSession = state.sessions.find((item) => item.id === session.id);
         if (!latestSession) return;
+        if (getOpenSessionTabs().includes(session.id)) return;
         if (
           !shouldAutoDeleteEmptySession(latestSession, state.activeSessionId, sessionIndicators())
         ) {
@@ -602,6 +607,16 @@ export function Chat() {
     )
   );
 
+  createEffect(
+    on(
+      openAllSessionsKey,
+      () => {
+        void openAllSessions();
+      },
+      { defer: true }
+    )
+  );
+
   const openAllSessions = async () => {
     setSessionFilter(null);
     setSubagentParentId(null);
@@ -631,12 +646,6 @@ export function Chat() {
       }
       setSubagentParentId(rootSessionId);
       setShowSessionPicker(true);
-      return;
-    }
-    const discardableActiveBlankSessionId = getDiscardableActiveBlankSessionId();
-    if (sessionId && discardableActiveBlankSessionId) {
-      setShowSessionPicker(true);
-      await deleteEmptySession(discardableActiveBlankSessionId);
       return;
     }
     setShowSessionPicker(true);
@@ -685,7 +694,7 @@ export function Chat() {
           wasHandled ||
           event.defaultPrevented ||
           // SAFETY: The surrounding shape or discriminator check establishes the KeyboardEvent contract used below.
-          (event as KeyboardEvent & { varroHandled?: boolean }).varroHandled
+          (event as KeyboardEvent & { loomeryHandled?: boolean }).loomeryHandled
         ) {
           return;
         }
@@ -805,6 +814,12 @@ export function Chat() {
     }
     return activeSession()?.parentID ? 'Back to sub-agent sessions' : 'Back to sessions';
   });
+  // The header keeps a back button only when it returns somewhere concrete
+  // (parent session, direct-return link, Ralph manager). Opening the sessions
+  // list itself moved to the host view-title toolbar.
+  const showActiveBackButton = createMemo(
+    () => !!activeSession()?.parentID || !!getDirectSessionReturnId(state.activeSessionId)
+  );
   createEffect(
     on(
       [
@@ -918,10 +933,7 @@ export function Chat() {
         sessionSidebarPendingCount={pendingSessionCounts().sidebarRunning}
         activeTitle={activeTitle()}
         activeBackTitle={activeBackTitle()}
-        showDesktopBackButton={
-          isDesktopSessionLayout() &&
-          (!!activeSession()?.parentID || !!getDirectSessionReturnId(state.activeSessionId))
-        }
+        showDesktopBackButton={isDesktopSessionLayout() && showActiveBackButton()}
         activeSubagentRootId={activeSubagentCount() > 0 ? activeSubagentRootId() : null}
         activeSubagentCount={activeSubagentCount()}
         activeSubagentLabel={activeSubagentLabel()}
@@ -943,7 +955,7 @@ export function Chat() {
         onOpenRunningSessions={openRunningSessions}
         onOpenPendingSessions={openPendingSessions}
         onSendFromPicker={() => setShowSessionPicker(false)}
-        onCreateSession={startNewChatDraft}
+        onCreateSession={() => startNewSession()}
       />
       <Show when={providerConnectionData()}>
         {(data) => (
@@ -1078,7 +1090,7 @@ function shouldHideSessionFromList(
     needsAttention: (sessionId) => indicators.attentionIds.has(sessionId),
     isFailed: (sessionId) => indicators.failedIds.has(sessionId),
     isPlanReady: (item) => indicators.planReadyIds.has(item.id),
-    preserve: ralphStore.isRalphSession(session.id),
+    preserve: ralphStore.isRalphSession(session.id) || getOpenSessionTabs().includes(session.id),
     statusType: state.sessionStatus[session.id]?.type,
   });
 }

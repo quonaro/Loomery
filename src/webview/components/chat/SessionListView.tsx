@@ -61,6 +61,7 @@ import { setManualWorkspaceSelection } from '../../lib/app-state';
 import { requestWorkspaceSelection } from '../../lib/workspace-selection';
 import { ralphStore } from '../../lib/stores/ralph-store';
 import { isEmptySession, shouldHideEmptySessionFromList } from '../../lib/empty-session';
+import { getOpenSessionTabs } from '../../lib/session-tabs';
 import { formatEditCount, formatVariantLabel } from '../../lib/format';
 import { formatDuration, formatRelativeAge, formatTurnCost } from '../../lib/message-metrics';
 import { getProviderIcon } from '../../lib/provider-icons';
@@ -140,7 +141,7 @@ const SESSION_HISTORY_SCOPE_OPTIONS = [
   },
 ] as const;
 
-const PINNED_SESSION_DRAG_TYPE = 'application/x-varro-pinned-session';
+const PINNED_SESSION_DRAG_TYPE = 'application/x-loomery-pinned-session';
 
 function getDirectoryName(directory: string) {
   const normalized = directory.replace(/\\/g, '/').replace(/\/+$/, '');
@@ -177,7 +178,7 @@ function SessionHistoryScopePicker(props: {
     props.onScopeChange('directory');
     void (async () => {
       try {
-        const result = await client.varro.sessionHistoryScope.get(directory);
+        const result = await client.loomery.sessionHistoryScope.get(directory);
         if (key !== requestKey || directory !== props.directory) return;
         setScope(result.scope);
         props.onScopeChange(result.scope);
@@ -218,7 +219,7 @@ function SessionHistoryScopePicker(props: {
     props.onScopeChange(next);
     setOpen(false);
     try {
-      const result = await client.varro.sessionHistoryScope.set(directory, next);
+      const result = await client.loomery.sessionHistoryScope.set(directory, next);
       if (key !== saveKey || directory !== props.directory) return;
       setScope(result.scope);
       props.onScopeChange(result.scope);
@@ -803,7 +804,7 @@ async function reorderPinnedSession(sourceSessionId: string, targetSessionId: st
   const sourceSession = state.sessions.find((session) => session.id === sourceSessionId);
   const targetSession = state.sessions.find((session) => session.id === targetSessionId);
   try {
-    const pinnedSessionIds = await client.varro.session.reorderPinned(
+    const pinnedSessionIds = await client.loomery.session.reorderPinned(
       sourceSessionId,
       targetSessionId,
       {
@@ -1310,7 +1311,7 @@ export function SessionListView(props: {
       needsAttention: (sessionId) => sessionIndicators().attentionIds.has(sessionId),
       isFailed: (sessionId) => sessionIndicators().failedIds.has(sessionId),
       isPlanReady: (item) => sessionIndicators().planReadyIds.has(item.id),
-      preserve: ralphStore.isRalphSession(session.id),
+      preserve: ralphStore.isRalphSession(session.id) || getOpenSessionTabs().includes(session.id),
       statusType: state.sessionStatus[session.id]?.type,
     });
   };
@@ -1725,7 +1726,7 @@ export function SessionListView(props: {
               folderLabel={getSessionFolderLabel(session())}
               onTogglePinned={async () => {
                 try {
-                  const pinnedSessionIds = await client.varro.session.setPinned(
+                  const pinnedSessionIds = await client.loomery.session.setPinned(
                     sessionId,
                     !state.pinnedSessionIds.includes(sessionId),
                     { directory: session().directory }

@@ -148,7 +148,7 @@ export class MacOSTray {
       homedir(),
       'Library',
       'Application Support',
-      'Varro',
+      'Loomery',
       'tray',
       'tray.sock'
     ),

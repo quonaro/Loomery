@@ -298,8 +298,8 @@ describe('SessionTrashManager', () => {
   });
 
   it.each([
-    ['Windows drive', 'C:\\Projects\\Varro', 'c:/projects/VARRO/'],
-    ['UNC share', '\\\\BuildServer\\Projects\\Varro', '//buildserver/PROJECTS/varro/'],
+    ['Windows drive', 'C:\\Projects\\Loomery', 'c:/projects/LOOMERY/'],
+    ['UNC share', '\\\\BuildServer\\Projects\\Loomery', '//buildserver/PROJECTS/loomery/'],
   ])('scopes trash operations using normalized %s identity', async (_label, stored, selected) => {
     const manager = new SessionTrashManager(workspaceState as never);
     await manager.moveToTrash('root', [session('root', 1_000, { directory: stored })], 5_000);

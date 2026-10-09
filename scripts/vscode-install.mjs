@@ -22,7 +22,7 @@ export function createVscodeInstallPlan(options) {
     `${options.packageName}-${options.packageVersion}.vsix`
   );
   const vscodeCli =
-    options.env.VARRO_VSCODE_CLI?.trim() || (options.platform === 'win32' ? 'code.cmd' : 'code');
+    options.env.LOOMERY_VSCODE_CLI?.trim() || (options.platform === 'win32' ? 'code.cmd' : 'code');
 
   return {
     vsixPath,

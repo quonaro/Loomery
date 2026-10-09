@@ -55,7 +55,7 @@ for (const expandable of [false, true]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: Only the isolated E2E harness consumes this fixture.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       { session, initialMessages: [user, assistant] }
@@ -86,9 +86,9 @@ for (const expandable of [false, true]) {
       // SAFETY: This page owns the isolated E2E event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+          __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       for (const event of batch) harness.replayServerEvent(event);
     }, events);
 

@@ -145,12 +145,16 @@ export class CommitMessageService {
     private readonly getConfiguredModel: () => unknown = () => null
   ) {}
 
-  async generate(sourceControl?: vscode.SourceControl): Promise<void> {
+  async generate(
+    sourceControl?: vscode.SourceControl,
+    token?: vscode.CancellationToken,
+    rootUri?: vscode.Uri
+  ): Promise<void> {
     try {
       const api = await this.resolveGitApi();
       if (!api) return;
 
-      const repository = await this.resolveRepository(api, sourceControl);
+      const repository = await this.resolveRepository(api, sourceControl, rootUri);
       if (!repository) return;
 
       const root = repository.rootUri.fsPath;
@@ -162,7 +166,7 @@ export class CommitMessageService {
       }
       this.inFlightRoots.add(root);
       try {
-        await this.generateForRepository(repository);
+        await this.generateForRepository(repository, token);
       } finally {
         this.inFlightRoots.delete(root);
       }
@@ -172,7 +176,7 @@ export class CommitMessageService {
         logger.warn(err.message);
         await vscode.window.showErrorMessage(
           err.phase === 'preparation'
-            ? 'Preparing commit message timed out. Check the Varro connection.'
+            ? 'Preparing commit message timed out. Check the Loomery connection.'
             : 'Generating commit message timed out.'
         );
         return;
@@ -224,10 +228,16 @@ export class CommitMessageService {
 
   private async resolveRepository(
     api: GitApi,
-    sourceControl?: vscode.SourceControl
+    sourceControl?: vscode.SourceControl,
+    rootUri?: vscode.Uri
   ): Promise<GitRepository | null> {
     if (sourceControl?.rootUri) {
       const repository = findRepository(api, sourceControl.rootUri);
+      if (repository) return repository;
+    }
+
+    if (rootUri) {
+      const repository = findRepository(api, rootUri);
       if (repository) return repository;
     }
 
@@ -262,7 +272,10 @@ export class CommitMessageService {
     return selectedItem?.repository || null;
   }
 
-  private async generateForRepository(repository: GitRepository): Promise<void> {
+  private async generateForRepository(
+    repository: GitRepository,
+    externalToken?: vscode.CancellationToken
+  ): Promise<void> {
     await repository.status();
     if ((repository.state.mergeChanges?.length ?? 0) > 0) {
       await vscode.window.showWarningMessage(
@@ -301,7 +314,7 @@ export class CommitMessageService {
         cancellable: true,
       },
       async (_progress, token) =>
-        this.generateWithHelper(repository, changePatch, changePaths, scope, token)
+        this.generateWithHelper(repository, changePatch, changePaths, scope, token, externalToken)
     );
 
     await repository.status();
@@ -336,7 +349,8 @@ export class CommitMessageService {
     changePatch: string,
     changePaths: string[],
     scope: ChangeScope,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
+    externalToken?: vscode.CancellationToken
   ): Promise<string> {
     const attempt: GenerationAttempt = {
       controller: new AbortController(),
@@ -357,7 +371,8 @@ export class CommitMessageService {
       rejectInterruption(new GenerationCancelledError());
     };
     const cancellation = token.onCancellationRequested(cancel);
-    if (token.isCancellationRequested) cancel();
+    const externalCancellation = externalToken?.onCancellationRequested(cancel);
+    if (token.isCancellationRequested || externalToken?.isCancellationRequested) cancel();
 
     let timeout: ReturnType<typeof setTimeout> | undefined;
     const setDeadline = (phase: 'preparation' | 'generation') => {
@@ -383,6 +398,7 @@ export class CommitMessageService {
     } finally {
       clearTimeout(timeout);
       cancellation.dispose();
+      externalCancellation?.dispose();
     }
   }
 

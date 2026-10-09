@@ -6,7 +6,7 @@ import { getE2EState } from './helpers';
 
 async function openRalphForm(page: Page) {
   await expect(page.locator('.chat-workspace')).toBeVisible();
-  await page.getByRole('button', { name: 'New chat', exact: true }).click();
+  await page.locator('.session-tabs-new [aria-label="New chat"]').click();
   const composer = page.locator('[role="textbox"][aria-multiline="true"]').first();
   await composer.click();
   await composer.fill('/ralph');
@@ -211,7 +211,7 @@ test('verification distinguishes skipped checks and command discrepancies after 
   await page.setViewportSize({ width: 600, height: 800 });
   await page.goto('/e2e/harness/index.html?scenario=ralph-dashboard');
   await page.evaluate(() => {
-    const runs = JSON.parse(localStorage.getItem('varro.ralph.runs')!);
+    const runs = JSON.parse(localStorage.getItem('loomery.ralph.runs')!);
     const run = runs['session-ralph-1'];
     run.status = 'incomplete';
     run.stopReason = 'iteration_limit_with_gap';
@@ -230,7 +230,7 @@ test('verification distinguishes skipped checks and command discrepancies after 
         reportedVerdict: 'pass',
       },
     };
-    localStorage.setItem('varro.ralph.runs', JSON.stringify(runs));
+    localStorage.setItem('loomery.ralph.runs', JSON.stringify(runs));
   });
   await page.reload();
   await expect(page.locator('.ralph-iter-status-unverified')).toHaveText('Unverified');
@@ -255,7 +255,7 @@ test('stop button transitions run to stopped with manual_stop reason', async ({ 
   await expect
     .poll(() =>
       getE2EState(page, () => {
-        const raw = localStorage.getItem('varro.ralph.runs');
+        const raw = localStorage.getItem('loomery.ralph.runs');
         const runs = raw ? JSON.parse(raw) : {};
         const run = runs['session-ralph-1'];
         return { status: run?.status, stopReason: run?.stopReason };
@@ -278,7 +278,7 @@ test('incomplete runs show add-runs-and-continue action', async ({ page }) => {
   await page.goto('/e2e/harness/index.html?scenario=ralph-dashboard');
 
   await page.evaluate(() => {
-    const raw = window.localStorage.getItem('varro.ralph.runs');
+    const raw = window.localStorage.getItem('loomery.ralph.runs');
     const runs = raw ? JSON.parse(raw) : {};
     const run = runs['session-ralph-1'];
     runs['session-ralph-1'] = {
@@ -296,7 +296,7 @@ test('incomplete runs show add-runs-and-continue action', async ({ page }) => {
         verification: { lint: 'pass', typecheck: 'pass', test: 'pass' },
       })),
     };
-    window.localStorage.setItem('varro.ralph.runs', JSON.stringify(runs));
+    window.localStorage.setItem('loomery.ralph.runs', JSON.stringify(runs));
   });
 
   await page.reload();

@@ -39,9 +39,15 @@
     --vscode-chat-list-background,
     var(--vscode-sideBar-background, #252526)
   );
-  --color-vscode-request-border: var(--vscode-chat-requestBorder, #474747);
-  --color-vscode-request-bubble: var(--vscode-chat-requestBubbleBackground, #2a2d2e);
-  --color-vscode-request-bubble-hover: var(--vscode-chat-requestBubbleHoverBackground, #2f3233);
+  /* User request bubble follows OmniACP: a translucent tint of the theme's
+     button/accent color rather than VS Code's request bubble. */
+  --color-vscode-request-border: color-mix(in srgb, var(--color-vscode-button-bg) 22%, transparent);
+  --color-vscode-request-bubble: color-mix(in srgb, var(--color-vscode-button-bg) 25%, transparent);
+  --color-vscode-request-bubble-hover: color-mix(
+    in srgb,
+    var(--color-vscode-button-bg) 32%,
+    transparent
+  );
   --color-vscode-result-editor-bg: var(
     --vscode-interactive-result-editor-background-color,
     var(--color-vscode-widget-bg)
@@ -61,9 +67,8 @@
   --color-vscode-widget-shadow: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.24));
   /* Shared popover/menu shadow. Global so Portal-rendered menus (which mount
      outside `.interactive-session`) can use it; `--chat-shadow-popover`
-     aliases this inside the chat tree. */
-  --shadow-popover: 0 12px 28px
-    color-mix(in srgb, var(--color-vscode-widget-shadow) 92%, transparent);
+     aliases this inside the chat tree. Soft, diffuse - OmniACP style. */
+  --shadow-popover: 0 6px 20px color-mix(in srgb, black 26%, transparent);
   --color-vscode-lines-add: var(--vscode-chat-linesAddedForeground, #73c991);
   --color-vscode-lines-del: var(--vscode-chat-linesRemovedForeground, #c74e39);
   --color-vscode-thinking-shimmer: var(--vscode-chat-thinkingShimmer, rgba(255, 255, 255, 0.6));
@@ -212,20 +217,22 @@
     'Segoe UI',
     sans-serif
   );
-  --font-chat: var(--varro-chat-font-family, var(--font-sans));
+  --font-chat: var(--loomery-chat-font-family, var(--font-sans));
   --animate-fade-in: fade-in 0.12s ease-out;
   --animate-pulse-soft: pulse-soft 1.5s ease-in-out infinite;
   --animate-status-pulse: status-pulse 2s infinite;
   /* Geometry scale. Every corner in the webview snaps to one of these steps so
      sibling surfaces can't drift a pixel apart; `pill` and `50%` circles are
-     the only shapes that opt out. Also exposed as Tailwind `rounded-*`. */
-  --radius-xs: 2px;
-  --radius-inset: 3px;
-  --radius-chip: 4px;
-  --radius-control: 6px;
-  --radius-card: 8px;
+     the only shapes that opt out. Also exposed as Tailwind `rounded-*`.
+     Values follow the OmniACP design language: 6px controls, 10px cards and
+     bubbles, fully rounded pills. */
+  --radius-xs: 3px;
+  --radius-inset: 5px;
+  --radius-chip: 6px;
+  --radius-control: 8px;
+  --radius-card: 10px;
   --radius-bubble: 10px;
-  --radius-pill: 999px;
+  --radius-pill: 9999px;
   /* Padding scale for card-like surfaces (prompts, banners, tool cards). */
   --space-1: 2px;
   --space-2: 4px;
@@ -382,23 +389,23 @@ body,
   overflow: hidden;
   font-family: var(--font-sans);
   font-size: var(--vscode-font-size, 13px);
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--color-vscode-fg);
   background: var(--color-vscode-sidebar);
 }
 
-html.varro-editor-surface {
+html.loomery-editor-surface {
   --color-vscode-sidebar: var(--vscode-editor-background, #1e1e1e);
   --color-vscode-list-bg: var(--vscode-editor-background, #1e1e1e);
 }
 
-html.varro-editor-surface,
-html.varro-editor-surface body,
-html.varro-editor-surface #root {
+html.loomery-editor-surface,
+html.loomery-editor-surface body,
+html.loomery-editor-surface #root {
   background: var(--vscode-editor-background, #1e1e1e);
 }
 
-html.varro-editor-surface.varro-editor-layout-pending #root {
+html.loomery-editor-surface.loomery-editor-layout-pending #root {
   visibility: hidden;
 }
 
@@ -413,13 +420,11 @@ body.vscode-high-contrast-light {
   --color-vscode-prose-fg: color-mix(in srgb, var(--color-vscode-fg) 92%, black);
   --color-vscode-preformat-fg: var(--vscode-textPreformat-foreground, #a31515);
   --color-vscode-preformat-bg: var(--vscode-textPreformat-background, #0000001a);
-  --color-vscode-request-bubble: var(
-    --vscode-chat-requestBubbleBackground,
-    color-mix(in srgb, var(--color-vscode-accent) 10%, var(--color-vscode-widget-bg))
-  );
-  --color-vscode-request-bubble-hover: var(
-    --vscode-chat-requestBubbleHoverBackground,
-    color-mix(in srgb, var(--color-vscode-accent) 14%, var(--color-vscode-widget-bg))
+  --color-vscode-request-bubble: color-mix(in srgb, var(--color-vscode-button-bg) 22%, transparent);
+  --color-vscode-request-bubble-hover: color-mix(
+    in srgb,
+    var(--color-vscode-button-bg) 30%,
+    transparent
   );
   --color-vscode-surface-soft: color-mix(
     in srgb,
@@ -575,7 +580,7 @@ body.vscode-light {
   --color-vscode-fg-soft: color-mix(in srgb, var(--color-vscode-fg) 93%, transparent);
 }
 
-body.vscode-dark.varro-flat-dark {
+body.vscode-dark.loomery-flat-dark {
   --color-vscode-input-surface: color-mix(
     in srgb,
     var(--color-vscode-fg) 10%,
@@ -665,8 +670,8 @@ body.vscode-high-contrast-light
     }
 
     ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-thumb {

@@ -24,7 +24,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 
-public class VarroProcessDetails {
+public class LoomeryProcessDetails {
   public string executable;
   public string birthIdentity;
   public string listenerSid;
@@ -32,7 +32,7 @@ public class VarroProcessDetails {
   public string hostBirthIdentity;
   public int ancestorPid;
 }
-public static class VarroProcessInspection {
+public static class LoomeryProcessInspection {
   [DllImport("kernel32.dll", SetLastError=true)]
   static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
   [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
@@ -81,7 +81,7 @@ public static class VarroProcessInspection {
       }
     } finally { CloseHandle(token); }
   }
-  public static VarroProcessDetails Read(int pid, int hostPid, int ancestorPid) {
+  public static LoomeryProcessDetails Read(int pid, int hostPid, int ancestorPid) {
     IntPtr process = OpenProcess(ancestorPid == 0 ? 0x1000u : 0x1400u, false, pid);
     if (process == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
     var ancestors = new List<IntPtr>();
@@ -139,7 +139,7 @@ public static class VarroProcessInspection {
       }
       VerifyAlive(process, created);
       // Existing leases use CIM's microsecond precision. Preserve their identity.
-      return new VarroProcessDetails {
+      return new LoomeryProcessDetails {
         executable = name.ToString(),
         birthIdentity = Birth(created),
         listenerSid = listenerSid,
@@ -166,7 +166,7 @@ while ($null -ne ($line = [Console]::In.ReadLine())) {
       -not [int]::TryParse($fields[2], [ref]$hostId) -or
       -not [int]::TryParse($fields[3], [ref]$ancestorId)) { exit 1 }
   try {
-    $details = [VarroProcessInspection]::Read($processId, $hostId, $ancestorId)
+    $details = [LoomeryProcessInspection]::Read($processId, $hostId, $ancestorId)
     $response = @{ id = $id; details = $details }
   } catch { $response = @{ id = $id; error = $_.Exception.Message } }
   [Console]::Out.WriteLine(($response | ConvertTo-Json -Compress -Depth 3))

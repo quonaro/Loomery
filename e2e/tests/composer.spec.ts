@@ -15,7 +15,7 @@ async function delayPromptRequest(page: Page, delayMs: number) {
       if (
         request.type === 'api/request' &&
         request.payload?.path &&
-        new URL(request.payload.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+        new URL(request.payload.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
       ) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -42,12 +42,12 @@ test('creates a session and sends a prompt through the mocked bridge', async ({ 
       page.evaluate(() => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ path: string }> };
+            __loomeryE2E?: { requests: Array<{ path: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (
           value?.requests.filter((request) =>
-            new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+            new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
           ).length || 0
         );
       })
@@ -166,7 +166,7 @@ for (const platform of [
       await page.goto('/e2e/harness/index.html?scenario=blank');
 
       const composer = page.locator('.rich-composer').first();
-      const href = 'https://github.com/koltyakov/varro/issues/36';
+      const href = 'https://github.com/quonaro/loomery/issues/36';
       for (const prefix of ['', 'Previous line\n']) {
         await composer.fill('');
         await composer.evaluate((editor, text) => {
@@ -218,7 +218,7 @@ for (const platform of [
       await page.goto('/e2e/harness/index.html?scenario=blank');
 
       const composer = page.locator('.rich-composer').first();
-      const href = `https://github.com/koltyakov/varro/issues/36?details=${'abcdefghij'.repeat(12)}`;
+      const href = `https://github.com/quonaro/loomery/issues/36?details=${'abcdefghij'.repeat(12)}`;
       await composer.fill(href);
       const url = composer.locator('.composer-external-link');
       await expect(url).toHaveText(href);
@@ -259,7 +259,7 @@ for (const platform of [
     }) => {
       await page.goto('/e2e/harness/index.html?scenario=blank');
       const composer = page.locator('.rich-composer').first();
-      await composer.fill('https://github.com/koltyakov/varro/issues/36');
+      await composer.fill('https://github.com/quonaro/loomery/issues/36');
       await expect(composer.locator('.composer-external-link')).toHaveCount(1);
 
       const otherPlatform =
@@ -412,7 +412,7 @@ test('turns a terminal paste into a chip without painting the raw output first',
       const request = message as { type?: string; payload?: { id: number; path: string } };
       if (
         request.type === 'api/request' &&
-        request.payload?.path === '/varro/copied-selection/match'
+        request.payload?.path === '/loomery/copied-selection/match'
       ) {
         requestId = request.payload.id;
         return;

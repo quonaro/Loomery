@@ -18,11 +18,11 @@ test('review slash command sends the review prompt', async ({ page }) => {
   const promptBody = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests.find((request) =>
-      new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+      new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
     )?.body as { parts?: Array<{ text?: string }> } | undefined;
   });
 

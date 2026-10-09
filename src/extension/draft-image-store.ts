@@ -3,7 +3,7 @@ import type { Persistence } from '../shared/persistence';
 import type { ClipboardImageSnapshot } from '../shared/protocol';
 import { asRecord } from '../shared/type-utils';
 
-const DRAFT_IMAGES_KEY = 'varro.inputDraftImages';
+const DRAFT_IMAGES_KEY = 'loomery.inputDraftImages';
 type DraftImagePersistenceSnapshot = Record<string, Omit<ClipboardImageSnapshot, 'contextFile'>[]>;
 type PendingPersistence = {
   promise: Promise<void>;

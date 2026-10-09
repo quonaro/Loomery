@@ -1,6 +1,6 @@
 // How OpenCode was installed decides which command can actually update it.
 // `opencode upgrade` picks its own strategy internally and fails in
-// method-specific ways, so when it fails Varro must not recommend it again.
+// method-specific ways, so when it fails Loomery must not recommend it again.
 export type OpenCodeInstallMethod =
   | 'curl'
   | 'npm'
@@ -22,7 +22,7 @@ export type OpenCodeUpgradeFailureKind =
 
 export const OPENCODE_INSTALL_DOCS_URL = 'https://opencode.ai/v2/docs/';
 
-/** The command Varro offers when OpenCode is not installed at all. */
+/** The command Loomery offers when OpenCode is not installed at all. */
 export const OPENCODE_INSTALL_COMMAND = 'npm i -g @opencode/cli';
 export const OPENCODE_V1_INSTALL_COMMAND = 'npm i -g opencode-ai';
 
@@ -144,7 +144,7 @@ const ALL_INSTALL_METHODS: OpenCodeInstallMethod[] = [
 ];
 
 /**
- * Every command Varro is willing to put in the user's terminal. The host
+ * Every command Loomery is willing to put in the user's terminal. The host
  * validates against this list, so a command that is not here cannot be run no
  * matter what the webview asks for.
  */
@@ -184,7 +184,7 @@ export function describeInstallMethod(method: OpenCodeInstallMethod): string {
     case 'brew':
       return 'Homebrew';
     case 'custom':
-      return 'a path configured in varro.server.command';
+      return 'a path configured in loomery.server.command';
     case 'unknown':
       return 'an unrecognized method';
   }
@@ -266,7 +266,7 @@ export function describeUpgradeFailure(
     case 'timeout':
       return `The update did not finish in time. It may still be downloading, so running it in a terminal shows progress. ${fallback}`;
     case 'windows-file-locked':
-      return `Windows could not replace opencode.exe because it is still running. Close the OpenCode TUI and any other VS Code window using Varro, then retry. ${fallback}`;
+      return `Windows could not replace opencode.exe because it is still running. Close the OpenCode TUI and any other VS Code window using Loomery, then retry. ${fallback}`;
     case 'permission-denied':
       return command?.startsWith('npm')
         ? `The update was denied write access to the global install directory. Either re-run it with elevated permissions or switch to a user-owned prefix. ${fallback}`

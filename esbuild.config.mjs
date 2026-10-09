@@ -1,5 +1,5 @@
 import pkg from 'esbuild';
-import { copyFileSync, readFileSync, rmSync } from 'fs';
+import { readFileSync, rmSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -9,7 +9,6 @@ import {
 } from './scripts/verify-extension-bundle.mjs';
 import { thumbnailWorkerBuildOptions } from './scripts/build-thumbnail-worker.mjs';
 import { buildNotificationSound } from './scripts/build-notification-sound.mjs';
-import { verifyMacOSNotifierAsset } from './scripts/build-macos-notifier.mjs';
 
 const { build, context } = pkg;
 const projectRoot = dirname(fileURLToPath(import.meta.url));
@@ -25,13 +24,6 @@ const verifySelfContainedBundle = {
     buildContext.onEnd(async (result) => {
       if (result.errors.length > 0) return;
       buildNotificationSound(dirname(extensionOutfile));
-      await verifyMacOSNotifierAsset();
-      for (const extension of ['zip', 'json']) {
-        copyFileSync(
-          resolve(projectRoot, `assets/notifications/varro-notifier.${extension}`),
-          resolve(dirname(extensionOutfile), `macos-notifier.${extension}`)
-        );
-      }
       verifyExtensionBundleMetafile(result.metafile);
       if (!isWatch) await smokeLoadExtensionBundle(extensionOutfile);
     });
@@ -42,7 +34,7 @@ const common = {
   entryPoints: [resolve(projectRoot, 'src/extension/extension.ts')],
   outfile: extensionOutfile,
   bundle: true,
-  define: { __VARRO_VERSION__: JSON.stringify(version) },
+  define: { __LOOMERY_VERSION__: JSON.stringify(version) },
   external: ['vscode'],
   format: 'cjs',
   mainFields: ['module', 'main'],

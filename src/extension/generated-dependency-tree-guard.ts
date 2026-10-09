@@ -45,7 +45,7 @@ export class GeneratedDependencyTreeGuard {
       .join(', ');
     const remaining = trees.length - 3;
     const choice = await vscode.window.showWarningMessage(
-      `Unignored generated dependencies were found: ${preview}${remaining > 0 ? ` and ${remaining} more` : ''}. OpenCode snapshots may scan or attribute these files even when the agent did not create them. Add an appropriate Git ignore rule or remove the tree before continuing. Varro will not modify ignore files automatically.`,
+      `Unignored generated dependencies were found: ${preview}${remaining > 0 ? ` and ${remaining} more` : ''}. OpenCode snapshots may scan or attribute these files even when the agent did not create them. Add an appropriate Git ignore rule or remove the tree before continuing. Loomery will not modify ignore files automatically.`,
       { modal: true },
       SEND_ANYWAY,
       OPEN_SOURCE_CONTROL

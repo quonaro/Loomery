@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  mergeVarroSessionMetadata,
+  mergeLoomerySessionMetadata,
   readSessionAgentMetadata,
   readSessionModelMetadata,
 } from './session-selection-metadata';
@@ -11,33 +11,33 @@ describe('session selection metadata', () => {
       undefined,
       null,
       {},
-      { varro: { model: 'model' } },
-      { varro: { model: { provider: '', model: 'model' } } },
-      { varro: { model: { provider: 'provider', model: ' ' } } },
-      { varro: { model: { provider: 'provider', model: 'model', variant: 5 } } },
+      { loomery: { model: 'model' } },
+      { loomery: { model: { provider: '', model: 'model' } } },
+      { loomery: { model: { provider: 'provider', model: ' ' } } },
+      { loomery: { model: { provider: 'provider', model: 'model', variant: 5 } } },
     ]) {
       expect(readSessionModelMetadata(metadata)).toBeUndefined();
     }
     for (const agent of [undefined, null, '', ' ', 5, {}]) {
-      expect(readSessionAgentMetadata({ varro: { agent } })).toBeUndefined();
+      expect(readSessionAgentMetadata({ loomery: { agent } })).toBeUndefined();
     }
-    expect(readSessionAgentMetadata({ varro: { model: 'invalid', agent: 'custom-agent' } })).toBe(
+    expect(readSessionAgentMetadata({ loomery: { model: 'invalid', agent: 'custom-agent' } })).toBe(
       'custom-agent'
     );
     expect(
       readSessionModelMetadata({
-        varro: { model: { provider: 'provider', model: 'model', variant: 'low' } },
+        loomery: { model: { provider: 'provider', model: 'model', variant: 'low' } },
       })
     ).toEqual({ providerID: 'provider', modelID: 'model', variant: 'low' });
     expect(
-      readSessionModelMetadata({ varro: { model: { provider: 'provider', model: 'model' } } })
+      readSessionModelMetadata({ loomery: { model: { provider: 'provider', model: 'model' } } })
     ).toEqual({ providerID: 'provider', modelID: 'model' });
   });
 
   it('merges nested selections while preserving workspace scope and unrelated metadata', () => {
     const metadata = {
       other: { enabled: true },
-      varro: {
+      loomery: {
         schemaVersion: 1,
         workspaceScope: 'folder',
         custom: 'kept',
@@ -45,13 +45,13 @@ describe('session selection metadata', () => {
         model: { provider: 'old', model: 'old-model', variant: 'high' },
       },
     };
-    const next = mergeVarroSessionMetadata(metadata, {
+    const next = mergeLoomerySessionMetadata(metadata, {
       model: { providerID: 'openai', modelID: 'new-model' },
       agent: 'build',
     });
     expect(next).toEqual({
       other: { enabled: true },
-      varro: {
+      loomery: {
         schemaVersion: 1,
         workspaceScope: 'folder',
         custom: 'kept',
@@ -60,9 +60,9 @@ describe('session selection metadata', () => {
         agent: 'build',
       },
     });
-    expect(metadata.varro.model.variant).toBe('high');
-    expect(mergeVarroSessionMetadata(undefined, { permissionMode: 'full' })).toEqual({
-      varro: { schemaVersion: 1, permissionMode: 'full' },
+    expect(metadata.loomery.model.variant).toBe('high');
+    expect(mergeLoomerySessionMetadata(undefined, { permissionMode: 'full' })).toEqual({
+      loomery: { schemaVersion: 1, permissionMode: 'full' },
     });
   });
 });

@@ -401,14 +401,14 @@ async function completeResponse(page: Page, finalText: string) {
     ({ sessionID, messageID, text }) => {
       const harness = (
         window as Window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages: (id: string) => Array<{ info: Message }>;
             updateMessageInfo: (info: Message) => void;
             updateMessagePart: (part: Part) => void;
             updateSessionStatus: (id: string, status: { type: 'idle' }) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       if (!harness) throw new Error('Missing E2E harness');
       const original = harness
         .getSessionMessages(sessionID)

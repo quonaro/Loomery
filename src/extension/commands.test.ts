@@ -113,7 +113,7 @@ const MAXIMUM_TESTED_OPENCODE_VERSION = readMaximumTestedOpenCodeVersion();
 function register(
   workspacePath: string | null = '/repo',
   server: unknown = {},
-  viewContainerCommand: string | (() => Promise<unknown>) = 'workbench.view.extension.varro'
+  viewContainerCommand: string | (() => Promise<unknown>) = 'workbench.view.extension.loomery'
 ) {
   registeredCommands.clear();
   const sidebar = {
@@ -124,6 +124,7 @@ function register(
     openNewTerminalEditor: vi.fn(),
     requestInputFocus: vi.fn(),
     searchSessions: vi.fn(),
+    openSessions: vi.fn(),
     switchSession: vi.fn(),
     getStatusBarClickAction: vi.fn<() => 'focus' | 'attention' | 'sibling'>(() => 'focus'),
     openAttentionSessions: vi.fn(),
@@ -141,7 +142,7 @@ function register(
         language: 'markdown',
         content,
       });
-      return { value: `varro-tool-output:/${title}.md` };
+      return { value: `loomery-tool-output:/${title}.md` };
     }),
   };
   const contextProvider = {
@@ -196,7 +197,7 @@ describe('Problems Add to Context action', () => {
     );
     expect(actions).toHaveLength(1);
     const action = actions![0] as VSCode.CodeAction;
-    expect(action.title).toBe('Varro: Add to Context');
+    expect(action.title).toBe('Loomery: Add to Context');
     expect(action.kind).toBe(vscodeMock.CodeActionKind.QuickFix);
     diagnostic.message = 'Changed after the action was created';
     await registeredCommands.get(action.command!.command)!(...action.command!.arguments!);
@@ -218,7 +219,7 @@ describe('Problems Add to Context action', () => {
 
   it('rejects malformed diagnostic command arguments', async () => {
     const { sidebar } = register();
-    await registeredCommands.get('varro.chat.addProblemsToContext')!({ diagnostics: [{}] });
+    await registeredCommands.get('loomery.chat.addProblemsToContext')!({ diagnostics: [{}] });
     expect(sidebar.postProblems).not.toHaveBeenCalled();
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
       'No valid problem details were provided'
@@ -265,7 +266,7 @@ describe('About command', () => {
     };
     const readServerInfo = vi.fn().mockResolvedValue(info);
     const { sidebar } = register('/repo', { readServerInfo });
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)!.value;
     const receive = panel.webview.onDidReceiveMessage.mock.calls[0]![0];
     const html = panel.webview.html;
@@ -287,7 +288,7 @@ describe('About command', () => {
     );
     expect(sidebar.openMarkdownDocument).toHaveBeenCalledWith(
       expect.stringContaining(`  - **Installed on:** ${installedOn} (CLI file creation date)`),
-      'Varro About',
+      'Loomery About',
       false
     );
     readServerInfo.mockResolvedValue({
@@ -340,7 +341,7 @@ describe('About command', () => {
           cliInstalledAt,
         }),
       });
-      await runCommand('varro.about');
+      await runCommand('loomery.about');
       const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)!.value;
       const root = document.createElement('div');
       root.innerHTML = panel.webview.html;
@@ -357,7 +358,7 @@ describe('About command', () => {
     };
     const readServerInfo = vi.fn().mockResolvedValue(info);
     register('/repo', { readServerInfo });
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)!.value;
     const receive = panel.webview.onDidReceiveMessage.mock.calls[0]![0];
     panel.visible = false;
@@ -394,13 +395,13 @@ describe('About command', () => {
     };
     const readServerInfo = vi.fn().mockResolvedValue(info);
     register('/repo', { readServerInfo });
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)!.value;
     const receive = panel.webview.onDidReceiveMessage.mock.calls[0]![0];
     readServerInfo.mockRejectedValueOnce(new Error('server unreachable'));
     await receive({ action: 'refresh' });
     expect(loggerMock.warn).toHaveBeenLastCalledWith(
-      'Failed to refresh Varro about: server unreachable'
+      'Failed to refresh Loomery about: server unreachable'
     );
     expect(vscodeMock.window.showErrorMessage).not.toHaveBeenCalled();
     expect(panel.webview.postMessage).not.toHaveBeenCalled();
@@ -427,7 +428,7 @@ describe('About command', () => {
         activeAgentError: 'api_key=secret-credential',
       }),
     });
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)!.value;
     const receive = panel.webview.onDidReceiveMessage.mock.calls[0]![0];
     const root = document.createElement('div');
@@ -446,7 +447,7 @@ describe('About command', () => {
     expect(vscodeMock.env.clipboard.writeText).toHaveBeenLastCalledWith(
       expect.stringContaining('/Users/alex/opencode')
     );
-    const destination = { fsPath: '/tmp/varro-diagnostics.md' };
+    const destination = { fsPath: '/tmp/loomery-diagnostics.md' };
     vscodeMock.window.showSaveDialog.mockResolvedValueOnce(destination);
     await receive({ action: 'saveDiagnostics' });
     expect(vscodeMock.workspace.fs.writeFile).toHaveBeenLastCalledWith(
@@ -487,19 +488,19 @@ describe('About command', () => {
       }),
     });
 
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
 
     expect(sidebar.openMarkdownDocument).toHaveBeenCalledWith(
       expect.stringContaining('  - **Active sessions:** `1`'),
-      'Varro About',
+      'Loomery About',
       false
     );
     const aboutMarkdown = sidebar.openMarkdownDocument.mock.calls[0]?.[0] ?? '';
-    expect(aboutMarkdown).toMatch(/^# Varro\n/);
-    expect(aboutMarkdown).not.toContain('# Varro About');
+    expect(aboutMarkdown).toMatch(/^# Loomery\n/);
+    expect(aboutMarkdown).not.toContain('# Loomery About');
     expect(aboutMarkdown).toContain('> An OpenCode agent workbench built for Visual Studio Code.');
     expect(aboutMarkdown).toContain(
-      '| Varro | OpenCode CLI | Server |\n| :--- | :--- | :--- |\n| `unknown` | `1.18.4` | **Healthy** |'
+      '| Loomery | OpenCode CLI | Server |\n| :--- | :--- | :--- |\n| `unknown` | `1.18.4` | **Healthy** |'
     );
     expect(aboutMarkdown).not.toMatch(
       /SDK version|Minimum supported version|Maximum tested version|CLI command/
@@ -508,31 +509,31 @@ describe('About command', () => {
       '- **CLI:**\n  - **Version:** `1.18.4`\n  - **Install method:** bun\n  - **Binary:** `/home/me/.bun/bin/opencode`'
     );
     expect(aboutMarkdown).toContain(
-      '- **Server:**\n  - **Version:** `1.18.4`\n  - **URL:** [http://127.0.0.1:4096](http://127.0.0.1:4096)\n  - **Ownership:** managed by Varro\n  - **Status:** `running, event stream unknown`\n  - **Health:** healthy\n  - **Active sessions:** `1`\n  - **Started on:** Unknown\n  - **VS Code clients:** Unknown (local connected processes)\n  - **Other clients:** Unknown (local connected processes)\n- **Auto updates:** enabled'
+      '- **Server:**\n  - **Version:** `1.18.4`\n  - **URL:** [http://127.0.0.1:4096](http://127.0.0.1:4096)\n  - **Ownership:** managed by Loomery\n  - **Status:** `running, event stream unknown`\n  - **Health:** healthy\n  - **Active sessions:** `1`\n  - **Started on:** Unknown\n  - **VS Code clients:** Unknown (local connected processes)\n  - **Other clients:** Unknown (local connected processes)\n- **Auto updates:** enabled'
     );
     expect(aboutMarkdown).not.toContain('## Diagnostics');
     expect(sidebar.openMarkdownDocument).toHaveBeenCalledWith(
-      expect.stringContaining('[GitHub](https://github.com/koltyakov/varro)'),
-      'Varro About',
+      expect.stringContaining('[GitHub](https://github.com/quonaro/loomery)'),
+      'Loomery About',
       false
     );
     expect(sidebar.openMarkdownDocument).toHaveBeenCalledWith(
       expect.stringContaining(
-        '[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=koltyakov.varro)'
+        '[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=quonaro.loomery)'
       ),
-      'Varro About',
+      'Loomery About',
       false
     );
     expect(sidebar.openMarkdownDocument).toHaveBeenCalledWith(
       expect.stringContaining(
-        '[Open VSX Registry](https://open-vsx.org/extension/koltyakov/varro)'
+        '[Open VSX Registry](https://open-vsx.org/extension/quonaro/loomery)'
       ),
-      'Varro About',
+      'Loomery About',
       false
     );
     expect(vscodeMock.window.createWebviewPanel).toHaveBeenCalledWith(
-      'varro.about',
-      'About Varro',
+      'loomery.about',
+      'About Loomery',
       vscodeMock.ViewColumn.Active,
       {
         enableScripts: true,
@@ -540,7 +541,7 @@ describe('About command', () => {
       }
     );
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)?.value;
-    expect(panel?.webview.html).toContain('<h1>Varro</h1>');
+    expect(panel?.webview.html).toContain('<h1>Loomery</h1>');
     expect(panel?.webview.html).toContain('src="webview:/extension/assets/icon.png"');
     expect(panel?.webview.html).toContain('System ready');
     expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith(
@@ -562,7 +563,7 @@ describe('About command', () => {
     const updateInstruction =
       process.platform === 'win32'
         ? 'Run this command to install the update:'
-        : 'Varro installs it automatically and restarts the server when no sessions are active. To update now, run:';
+        : 'Loomery installs it automatically and restarts the server when no sessions are active. To update now, run:';
     expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.stringContaining(
@@ -578,7 +579,7 @@ describe('About command', () => {
     );
   });
 
-  it('shows the manual update command for a server Varro does not manage', async () => {
+  it('shows the manual update command for a server Loomery does not manage', async () => {
     const { sidebar } = register('/repo', {
       readServerInfo: vi.fn().mockResolvedValue({
         status: { state: 'running', url: 'http://127.0.0.1:4096' },
@@ -599,13 +600,13 @@ describe('About command', () => {
       }),
     });
 
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
 
     const aboutMarkdown = sidebar.openMarkdownDocument.mock.calls[0]?.[0] ?? '';
     expect(aboutMarkdown).toContain(
       `**OpenCode ${MAXIMUM_TESTED_OPENCODE_VERSION} is available.**\n\nRun this command to install the update:`
     );
-    expect(aboutMarkdown).not.toContain('Varro installs it automatically');
+    expect(aboutMarkdown).not.toContain('Loomery installs it automatically');
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)?.value;
     expect(panel?.webview.html).toContain(
       `OpenCode ${MAXIMUM_TESTED_OPENCODE_VERSION} is available. Install it with: bun add -g opencode-ai@latest`
@@ -633,18 +634,18 @@ describe('About command', () => {
       }),
     });
 
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
 
     const aboutMarkdown = sidebar.openMarkdownDocument.mock.calls[0]?.[0] ?? '';
     expect(aboutMarkdown).toContain(
-      '**OpenCode 2.0.99 is installed.**\n\nVarro restarts the server on it when no sessions are active.'
+      '**OpenCode 2.0.99 is installed.**\n\nLoomery restarts the server on it when no sessions are active.'
     );
     const panel = vscodeMock.window.createWebviewPanel.mock.results.at(-1)?.value;
     expect(panel?.webview.html).toContain('OpenCode update installed');
     expect(panel?.webview.html).not.toContain('Install it with');
   });
 
-  it('does not distinguish which Varro window manages the server', async () => {
+  it('does not distinguish which Loomery window manages the server', async () => {
     register('/repo', {
       readServerInfo: vi.fn().mockResolvedValue({
         status: { state: 'running', url: 'http://127.0.0.1:4096' },
@@ -665,11 +666,11 @@ describe('About command', () => {
       }),
     });
 
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
 
     expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: expect.stringContaining('  - **Ownership:** managed by Varro'),
+        content: expect.stringContaining('  - **Ownership:** managed by Loomery'),
       })
     );
   });
@@ -697,7 +698,7 @@ describe('About command', () => {
         }),
       });
 
-      await runCommand('varro.about');
+      await runCommand('loomery.about');
 
       expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -721,7 +722,7 @@ async function runCommand(id: string, ...args: unknown[]) {
 describe('AGENTS.md commands', () => {
   it('explains external global configuration without touching local files', async () => {
     register('/repo', { isAttachOnly: true });
-    await expect(runCommand('varro.agents.openGlobal')).resolves.toBeUndefined();
+    await expect(runCommand('loomery.agents.openGlobal')).resolves.toBeUndefined();
     expect(vscodeMock.window.showInformationMessage).toHaveBeenCalledWith(
       expect.stringContaining('attach-only mode')
     );
@@ -739,7 +740,7 @@ describe('AGENTS.md commands', () => {
     vscodeMock.workspace.fs.stat.mockRejectedValueOnce({ code: 'FileNotFound' });
     register();
 
-    await runCommand('varro.agents.openGlobal');
+    await runCommand('loomery.agents.openGlobal');
 
     expect(vscodeMock.workspace.fs.createDirectory).toHaveBeenCalledWith({
       fsPath: '/config/opencode',
@@ -759,14 +760,14 @@ describe('AGENTS.md commands', () => {
   it('opens an existing project AGENTS.md without overwriting it and prefills /init', async () => {
     const { sidebar } = register('/repo');
 
-    await runCommand('varro.agents.initializeProject');
+    await runCommand('loomery.agents.initializeProject');
 
     expect(vscodeMock.workspace.fs.writeFile).not.toHaveBeenCalled();
     expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith({
       fsPath: '/repo/AGENTS.md',
     });
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
     expect(sidebar.postCommand).toHaveBeenCalledWith('new-session', { prefill: '/init' });
     expect(sidebar.requestInputFocus).toHaveBeenCalledOnce();
@@ -776,7 +777,7 @@ describe('AGENTS.md commands', () => {
     vscodeMock.workspace.fs.stat.mockRejectedValueOnce({ code: 'FileNotFound' });
     register('/repo');
 
-    await runCommand('varro.agents.initializeProject');
+    await runCommand('loomery.agents.initializeProject');
 
     const [, content] = vscodeMock.workspace.fs.writeFile.mock.calls[0] ?? [];
     expect(content).toBeInstanceOf(Uint8Array);
@@ -786,21 +787,21 @@ describe('AGENTS.md commands', () => {
   it('requires an open project before initializing project AGENTS.md', async () => {
     const { sidebar } = register(null);
 
-    await runCommand('varro.agents.initializeProject');
+    await runCommand('loomery.agents.initializeProject');
 
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      'Varro: Open a project before initializing AGENTS.md.'
+      'Loomery: Open a project before initializing AGENTS.md.'
     );
     expect(vscodeMock.workspace.fs.createDirectory).not.toHaveBeenCalled();
     expect(sidebar.post).not.toHaveBeenCalled();
   });
 
   it('does not initialize project AGENTS.md in the no-project scratch folder', async () => {
-    const { contextProvider, sidebar } = register('/varro/scratch');
+    const { contextProvider, sidebar } = register('/loomery/scratch');
     contextProvider.context.workspaceFolders = [];
-    await runCommand('varro.agents.initializeProject');
+    await runCommand('loomery.agents.initializeProject');
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      'Varro: Open a project before initializing AGENTS.md.'
+      'Loomery: Open a project before initializing AGENTS.md.'
     );
     expect(vscodeMock.workspace.openTextDocument).not.toHaveBeenCalled();
     expect(sidebar.postCommand).not.toHaveBeenCalled();
@@ -813,19 +814,19 @@ describe('terminal selection command', () => {
   });
 
   it.each([
-    ['no-terminal', 'Varro: Open and focus a terminal first.'],
-    ['empty-selection', 'Varro: Select text in the terminal first.'],
+    ['no-terminal', 'Loomery: Open and focus a terminal first.'],
+    ['empty-selection', 'Loomery: Select text in the terminal first.'],
   ] as const)('clears the webview after a %s recapture', async (reason, warning) => {
     const { contextProvider, sidebar } = register();
     contextProvider.terminalSelection = { text: 'stale output', terminalName: 'Terminal 1' };
     contextProvider.captureTerminalSelection.mockResolvedValue({ ok: false, reason });
 
-    await runCommand('varro.chat.addTerminalSelectionToContext');
+    await runCommand('loomery.chat.addTerminalSelectionToContext');
 
     expect(sidebar.postTerminalSelection).toHaveBeenCalledWith(null);
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(warning);
     expect(vscodeMock.commands.executeCommand).not.toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
   });
 
@@ -834,12 +835,12 @@ describe('terminal selection command', () => {
     contextProvider.terminalSelection = { text: 'stale output', terminalName: 'Terminal 1' };
     contextProvider.captureTerminalSelection.mockRejectedValue(new Error('copy failed'));
 
-    await runCommand('varro.chat.addTerminalSelectionToContext');
+    await runCommand('loomery.chat.addTerminalSelectionToContext');
 
     expect(sidebar.postTerminalSelection).toHaveBeenCalledWith(null);
     expect(vscodeMock.window.showWarningMessage).not.toHaveBeenCalled();
     expect(vscodeMock.commands.executeCommand).not.toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
   });
 
@@ -853,7 +854,7 @@ describe('terminal selection command', () => {
       terminalName: 'Terminal 1',
     });
 
-    await runCommand('varro.chat.addTerminalSelectionToContext');
+    await runCommand('loomery.chat.addTerminalSelectionToContext');
 
     expect(sidebar.postTerminalSelection).toHaveBeenCalledWith(
       { text: 'npm test', terminalName: 'Terminal 1' },
@@ -863,12 +864,12 @@ describe('terminal selection command', () => {
   });
 });
 
-describe('varro.chat.addToContext', () => {
+describe('loomery.chat.addToContext', () => {
   const FILE = 1;
   const DIRECTORY = 2;
 
   async function addToContext(...args: unknown[]) {
-    const handler = registeredCommands.get('varro.chat.addToContext');
+    const handler = registeredCommands.get('loomery.chat.addToContext');
     expect(handler).toBeTypeOf('function');
     await handler?.(...args);
   }
@@ -891,7 +892,7 @@ describe('varro.chat.addToContext', () => {
       { path: '/repo/b.ts', relativePath: 'b.ts', type: 'file' },
     ]);
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
   });
 
@@ -908,7 +909,7 @@ describe('varro.chat.addToContext', () => {
     );
     expect(sidebar.revealContextTarget).toHaveBeenCalledWith('editor-1', expect.any(Function));
     expect(vscodeMock.commands.executeCommand).not.toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
   });
 
@@ -1015,51 +1016,51 @@ describe('sidebar navigation commands', () => {
   it('reveals the view and focuses the composer', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.focus');
+    await runCommand('loomery.chat.focus');
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
     expect(sidebar.requestInputFocus).toHaveBeenCalledOnce();
   });
 
   it('reveals the primary container for every direct navigation path in fork hosts', async () => {
-    const primaryContainer = 'workbench.view.extension.varro-primary';
+    const primaryContainer = 'workbench.view.extension.loomery-primary';
     register('/repo', {}, primaryContainer);
 
     for (const command of [
-      'varro.chat.focus',
-      'varro.chat.statusBarClick',
-      'varro.chat.newSession',
-      'varro.chat.searchSessions',
-      'varro.chat.abort',
-      'varro.chat.previousSession',
-      'varro.chat.nextSession',
+      'loomery.chat.focus',
+      'loomery.chat.statusBarClick',
+      'loomery.chat.newSession',
+      'loomery.chat.searchSessions',
+      'loomery.chat.abort',
+      'loomery.chat.previousSession',
+      'loomery.chat.nextSession',
     ]) {
       await runCommand(command);
     }
 
     const revealCalls = vscodeMock.commands.executeCommand.mock.calls.filter(([command]) =>
-      String(command).startsWith('workbench.view.extension.varro')
+      String(command).startsWith('workbench.view.extension.loomery')
     );
     expect(revealCalls).toHaveLength(7);
     expect(revealCalls.every(([command]) => command === primaryContainer)).toBe(true);
   });
 
   it('reveals the primary container for project and context paths in fork hosts', async () => {
-    const primaryContainer = 'workbench.view.extension.varro-primary';
+    const primaryContainer = 'workbench.view.extension.loomery-primary';
     const { contextProvider } = register('/repo', {}, primaryContainer);
     contextProvider.terminalSelection = { text: 'selected output', terminalName: 'Terminal 1' };
     contextProvider.captureTerminalSelection.mockResolvedValue({ ok: true });
     vscodeMock.window.activeTextEditor = editorWithSelection('/repo/a.ts', 0, 1) as never;
 
-    await runCommand('varro.agents.initializeProject');
-    await runCommand('varro.chat.addTerminalSelectionToContext');
-    await runCommand('varro.chat.addSelectionToContext');
-    await runCommand('varro.chat.addToContext', fileUri('/repo/a.ts'));
+    await runCommand('loomery.agents.initializeProject');
+    await runCommand('loomery.chat.addTerminalSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addToContext', fileUri('/repo/a.ts'));
 
     const revealCalls = vscodeMock.commands.executeCommand.mock.calls.filter(([command]) =>
-      String(command).startsWith('workbench.view.extension.varro')
+      String(command).startsWith('workbench.view.extension.loomery')
     );
     expect(revealCalls).toHaveLength(4);
     expect(revealCalls.every(([command]) => command === primaryContainer)).toBe(true);
@@ -1069,7 +1070,7 @@ describe('sidebar navigation commands', () => {
     const { sidebar } = register();
     vscodeMock.commands.executeCommand.mockRejectedValueOnce(new Error('no such view'));
 
-    await expect(runCommand('varro.chat.focus')).resolves.toBeUndefined();
+    await expect(runCommand('loomery.chat.focus')).resolves.toBeUndefined();
 
     expect(sidebar.requestInputFocus).not.toHaveBeenCalled();
     expect(vscodeMock.window.showErrorMessage).not.toHaveBeenCalled();
@@ -1079,7 +1080,7 @@ describe('sidebar navigation commands', () => {
     const { sidebar } = register();
     sidebar.getStatusBarClickAction.mockReturnValue('attention');
 
-    await runCommand('varro.chat.statusBarClick');
+    await runCommand('loomery.chat.statusBarClick');
 
     expect(sidebar.openAttentionSessions).toHaveBeenCalledOnce();
     expect(sidebar.requestInputFocus).not.toHaveBeenCalled();
@@ -1089,7 +1090,7 @@ describe('sidebar navigation commands', () => {
     const { sidebar } = register();
     sidebar.getStatusBarClickAction.mockReturnValue('sibling');
 
-    await runCommand('varro.chat.statusBarClick');
+    await runCommand('loomery.chat.statusBarClick');
 
     expect(sidebar.openSiblingWorkspaceSessions).toHaveBeenCalledOnce();
     expect(sidebar.requestInputFocus).not.toHaveBeenCalled();
@@ -1098,7 +1099,7 @@ describe('sidebar navigation commands', () => {
   it('focuses the composer from the status bar when nothing needs attention', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.statusBarClick');
+    await runCommand('loomery.chat.statusBarClick');
 
     expect(sidebar.openAttentionSessions).not.toHaveBeenCalled();
     expect(sidebar.requestInputFocus).toHaveBeenCalledOnce();
@@ -1107,29 +1108,40 @@ describe('sidebar navigation commands', () => {
   it('reveals the view before opening session search', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.searchSessions');
+    await runCommand('loomery.chat.searchSessions');
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
     expect(sidebar.searchSessions).toHaveBeenCalledOnce();
   });
 
-  it('opens the same Varro settings search as the settings slash command', async () => {
+  it('reveals the view before opening the sessions list', async () => {
+    const { sidebar } = register();
+
+    await runCommand('loomery.chat.openSessions');
+
+    expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
+      'workbench.view.extension.loomery'
+    );
+    expect(sidebar.openSessions).toHaveBeenCalledOnce();
+  });
+
+  it('opens the same Loomery settings search as the settings slash command', async () => {
     register();
 
-    await runCommand('varro.chat.openSettings');
+    await runCommand('loomery.chat.openSettings');
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
       'workbench.action.openSettings',
-      'Varro >'
+      'Loomery >'
     );
   });
 
   it('shows inline file changes in the user setting by default', async () => {
     register();
 
-    await runCommand('varro.chat.showFileDiffs');
+    await runCommand('loomery.chat.showFileDiffs');
 
     expect(configUpdateMock).toHaveBeenCalledWith('chat.showFileDiffs', true, 1);
   });
@@ -1138,7 +1150,7 @@ describe('sidebar navigation commands', () => {
     configInspectMock.mockReturnValue({ workspaceValue: true });
     register();
 
-    await runCommand('varro.chat.hideFileDiffs');
+    await runCommand('loomery.chat.hideFileDiffs');
 
     expect(configUpdateMock).toHaveBeenCalledWith('chat.showFileDiffs', false, 2);
   });
@@ -1146,7 +1158,7 @@ describe('sidebar navigation commands', () => {
   it('opens the same usage report as the stats slash command', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.openStats');
+    await runCommand('loomery.chat.openStats');
 
     expect(sidebar.generateUsageReport).toHaveBeenCalledOnce();
   });
@@ -1154,18 +1166,18 @@ describe('sidebar navigation commands', () => {
   it('contains a usage-report rejection after the service displays its error', async () => {
     const { sidebar } = register();
     sidebar.generateUsageReport.mockRejectedValueOnce(new Error('API report limit exceeded'));
-    await expect(runCommand('varro.chat.openStats')).resolves.toBeUndefined();
+    await expect(runCommand('loomery.chat.openStats')).resolves.toBeUndefined();
     expect(loggerMock.warn).toHaveBeenCalledWith('Usage report failed: API report limit exceeded');
   });
 
-  it('opens the Varro GitHub repository', async () => {
+  it('opens the Loomery GitHub repository', async () => {
     register();
 
-    await runCommand('varro.openGitHub');
+    await runCommand('loomery.openGitHub');
 
-    expect(vscodeMock.Uri.parse).toHaveBeenCalledWith('https://github.com/koltyakov/varro');
+    expect(vscodeMock.Uri.parse).toHaveBeenCalledWith('https://github.com/quonaro/loomery');
     expect(vscodeMock.env.openExternal).toHaveBeenCalledWith({
-      value: 'https://github.com/koltyakov/varro',
+      value: 'https://github.com/quonaro/loomery',
     });
   });
 
@@ -1173,7 +1185,7 @@ describe('sidebar navigation commands', () => {
     const { sidebar } = register();
     vscodeMock.commands.executeCommand.mockRejectedValueOnce(new Error('no such view'));
 
-    await runCommand('varro.chat.searchSessions');
+    await runCommand('loomery.chat.searchSessions');
 
     expect(sidebar.searchSessions).not.toHaveBeenCalled();
   });
@@ -1181,8 +1193,8 @@ describe('sidebar navigation commands', () => {
   it('forwards new-session and abort to the webview as commands', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.newSession');
-    await runCommand('varro.chat.abort');
+    await runCommand('loomery.chat.newSession');
+    await runCommand('loomery.chat.abort');
 
     expect(sidebar.postCommand).toHaveBeenNthCalledWith(1, 'new-session');
     expect(sidebar.postCommand).toHaveBeenNthCalledWith(2, 'abort');
@@ -1191,7 +1203,7 @@ describe('sidebar navigation commands', () => {
   it('opens a new editor chat from the editor-title action', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.newEditor');
+    await runCommand('loomery.chat.newEditor');
 
     expect(sidebar.openNewEditor).toHaveBeenCalledOnce();
   });
@@ -1199,22 +1211,22 @@ describe('sidebar navigation commands', () => {
   it('opens a new terminal from the editor-title action', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.newTerminalEditor');
+    await runCommand('loomery.chat.newTerminalEditor');
 
     expect(sidebar.openNewTerminalEditor).toHaveBeenCalledOnce();
   });
 
   it('opens a compact chat window from the command palette', async () => {
     const { sidebar } = register();
-    await runCommand('varro.chat.newWindow');
+    await runCommand('loomery.chat.newWindow');
     expect(sidebar.openNewWindow).toHaveBeenCalledOnce();
   });
 
   it('switches sessions in both directions', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.previousSession');
-    await runCommand('varro.chat.nextSession');
+    await runCommand('loomery.chat.previousSession');
+    await runCommand('loomery.chat.nextSession');
 
     expect(sidebar.switchSession).toHaveBeenNthCalledWith(1, 'previous');
     expect(sidebar.switchSession).toHaveBeenNthCalledWith(2, 'next');
@@ -1223,31 +1235,32 @@ describe('sidebar navigation commands', () => {
   it('opens the source control view', async () => {
     register();
 
-    await runCommand('varro.openSourceControl');
+    await runCommand('loomery.openSourceControl');
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith('workbench.view.scm');
   });
 
-  it('forwards the selected source control to commit-message generation', async () => {
+  it('forwards the Source Control input root and cancellation token to commit-message generation', async () => {
     const { sidebar } = register();
-    const sourceControl = { id: 'git', rootUri: fileUri('/repo') };
+    const rootUri = fileUri('/repo');
+    const token = { isCancellationRequested: false, onCancellationRequested: vi.fn() };
 
-    await runCommand('varro.generateCommitMessage', sourceControl);
+    await runCommand('loomery.generateCommitMessage', rootUri, undefined, token);
 
-    expect(sidebar.generateCommitMessage).toHaveBeenCalledWith(sourceControl);
+    expect(sidebar.generateCommitMessage).toHaveBeenCalledWith(rootUri, token);
   });
 
   it.each([
     [
-      'varro.chat.explainSelection',
+      'loomery.chat.explainSelection',
       'Explain the selected code clearly, including its purpose, control flow, important assumptions, and any non-obvious behavior.',
     ],
     [
-      'varro.chat.reviewSelection',
+      'loomery.chat.reviewSelection',
       'Review the selected code for correctness, regressions, security, maintainability, and missing tests. Lead with concrete findings ordered by severity.',
     ],
     [
-      'varro.chat.improveSelection',
+      'loomery.chat.improveSelection',
       'Improve the selected code. Preserve its intended behavior unless a change is needed to fix a concrete problem, and verify the result.',
     ],
   ])('starts a focused session for %s', async (command, prompt) => {
@@ -1259,7 +1272,7 @@ describe('sidebar navigation commands', () => {
     await runCommand(command);
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
     expect(sidebar.postCommand).toHaveBeenCalledWith('new-session', { prefill: prompt });
     expect(sidebar.postDroppedFiles).toHaveBeenCalledWith([
@@ -1277,10 +1290,10 @@ describe('sidebar navigation commands', () => {
     const { sidebar } = register();
     vscodeMock.window.activeTextEditor = undefined;
 
-    await runCommand('varro.chat.explainSelection');
+    await runCommand('loomery.chat.explainSelection');
 
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      'Varro: Select text in a saved workspace file first.'
+      'Loomery: Select text in a saved workspace file first.'
     );
     expect(sidebar.postCommand).not.toHaveBeenCalled();
   });
@@ -1304,7 +1317,7 @@ describe('context reveal completion', () => {
           })
       );
       const { contextProvider } = register('/repo', {}, revealSidebar);
-      let command = 'varro.chat.addTerminalSelectionToContext';
+      let command = 'loomery.chat.addTerminalSelectionToContext';
       let args: unknown[] = [];
       if (source === 'terminal') {
         contextProvider.terminalSelection = {
@@ -1313,10 +1326,10 @@ describe('context reveal completion', () => {
         };
         contextProvider.captureTerminalSelection.mockResolvedValue({ ok: true });
       } else if (source === 'selection') {
-        command = 'varro.chat.addSelectionToContext';
+        command = 'loomery.chat.addSelectionToContext';
         vscodeMock.window.activeTextEditor = editorWithSelection('/repo/a.ts', 0, 1) as never;
       } else {
-        command = 'varro.chat.addToContext';
+        command = 'loomery.chat.addToContext';
         args = [fileUri('/repo/a.ts')];
       }
       let settled = false;
@@ -1334,7 +1347,7 @@ describe('context reveal completion', () => {
   );
 });
 
-describe('varro.server.restart', () => {
+describe('loomery.server.restart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -1345,7 +1358,7 @@ describe('varro.server.restart', () => {
       status: { state: 'running' },
     });
 
-    await runCommand('varro.server.restart');
+    await runCommand('loomery.server.restart');
 
     expect(sidebar.post).toHaveBeenCalledWith({ type: 'providers/refresh' });
   });
@@ -1361,13 +1374,13 @@ describe('varro.server.restart', () => {
         restart: vi.fn().mockRejectedValue(new RestartBlockedError(blockers)),
         status: { state: 'running' },
       },
-      'workbench.view.extension.varro-primary'
+      'workbench.view.extension.loomery-primary'
     );
 
-    await runCommand('varro.server.restart');
+    await runCommand('loomery.server.restart');
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro-primary'
+      'workbench.view.extension.loomery-primary'
     );
     expect(sidebar.post).toHaveBeenCalledWith({
       type: 'server/restart-blocked',
@@ -1381,7 +1394,7 @@ describe('varro.server.restart', () => {
     const restart = vi.fn().mockResolvedValue('http://127.0.0.1:4096');
     register('/repo', { restart, status: { state: 'running' } });
 
-    await runCommand('varro.server.restart', { force: true });
+    await runCommand('loomery.server.restart', { force: true });
 
     expect(restart).toHaveBeenCalledWith({ force: true });
   });
@@ -1392,7 +1405,7 @@ describe('varro.server.restart', () => {
       status: { state: 'running' },
     });
 
-    await runCommand('varro.server.restart');
+    await runCommand('loomery.server.restart');
 
     expect(errorHubMock.report).toHaveBeenCalledWith({
       code: 'server-start',
@@ -1408,7 +1421,7 @@ describe('varro.server.restart', () => {
       status: { state: 'error' },
     });
 
-    await runCommand('varro.server.restart');
+    await runCommand('loomery.server.restart');
 
     expect(errorHubMock.report).toHaveBeenCalledExactlyOnceWith({
       code: 'server-start',
@@ -1421,18 +1434,18 @@ describe('varro.server.restart', () => {
   });
 });
 
-describe('varro.showOutput', () => {
+describe('loomery.showOutput', () => {
   it('shows the extension output channel', async () => {
     vi.clearAllMocks();
     register();
 
-    await runCommand('varro.showOutput');
+    await runCommand('loomery.showOutput');
 
     expect(loggerMock.show).toHaveBeenCalledOnce();
   });
 });
 
-describe('varro.about', () => {
+describe('loomery.about', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -1442,10 +1455,10 @@ describe('varro.about', () => {
       readServerInfo: vi.fn().mockRejectedValue(new Error('server unreachable')),
     });
 
-    await runCommand('varro.about');
+    await runCommand('loomery.about');
 
     expect(vscodeMock.window.showErrorMessage).toHaveBeenCalledWith(
-      'Failed to open Varro about: server unreachable'
+      'Failed to open Loomery about: server unreachable'
     );
     expect(vscodeMock.window.showTextDocument).not.toHaveBeenCalled();
   });
@@ -1470,7 +1483,7 @@ function editorWithSelection(
   };
 }
 
-describe('varro.chat.addSelectionToContext', () => {
+describe('loomery.chat.addSelectionToContext', () => {
   const FILE = 1;
   const DIRECTORY = 2;
 
@@ -1490,7 +1503,7 @@ describe('varro.chat.addSelectionToContext', () => {
       selection: { ...editor.selection, end: { line: 4, character } },
     } as never;
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -1503,7 +1516,7 @@ describe('varro.chat.addSelectionToContext', () => {
     const { sidebar } = register();
     vscodeMock.window.activeTextEditor = editorWithSelection('/repo/a.ts', 11, 19) as never;
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -1514,14 +1527,14 @@ describe('varro.chat.addSelectionToContext', () => {
       }),
     ]);
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
-      'workbench.view.extension.varro'
+      'workbench.view.extension.loomery'
     );
   });
 
   it('does nothing without an active editor', async () => {
     const { sidebar } = register();
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
     expect(vscodeMock.commands.executeCommand).not.toHaveBeenCalled();
@@ -1533,7 +1546,7 @@ describe('varro.chat.addSelectionToContext', () => {
       isEmpty: true,
     }) as never;
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
   });
@@ -1544,7 +1557,7 @@ describe('varro.chat.addSelectionToContext', () => {
       isUntitled: true,
     }) as never;
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
   });
@@ -1555,7 +1568,7 @@ describe('varro.chat.addSelectionToContext', () => {
       scheme: 'untitled',
     }) as never;
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
   });
@@ -1565,7 +1578,7 @@ describe('varro.chat.addSelectionToContext', () => {
     vscodeMock.window.activeTextEditor = editorWithSelection('/repo/src', 0, 2) as never;
     vscodeMock.workspace.fs.stat.mockResolvedValue({ type: DIRECTORY });
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
   });
@@ -1575,7 +1588,7 @@ describe('varro.chat.addSelectionToContext', () => {
     vscodeMock.window.activeTextEditor = editorWithSelection('/repo/a.ts', 0, 2) as never;
     vscodeMock.workspace.fs.stat.mockRejectedValue(new Error('ENOENT'));
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).not.toHaveBeenCalled();
   });
@@ -1586,7 +1599,7 @@ describe('varro.chat.addSelectionToContext', () => {
     vscodeMock.workspace.workspaceFolders = [{ name: 'repo' }, { name: 'other' }];
     vscodeMock.workspace.getWorkspaceFolder.mockReturnValue({ name: 'repo' } as never);
 
-    await runCommand('varro.chat.addSelectionToContext');
+    await runCommand('loomery.chat.addSelectionToContext');
 
     expect(sidebar.postDroppedFiles).toHaveBeenCalledWith([
       expect.objectContaining({ relativePath: 'repo/a.ts' }),

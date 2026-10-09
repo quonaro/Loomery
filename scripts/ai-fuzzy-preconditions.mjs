@@ -311,7 +311,7 @@ async function prepareRun(options) {
   if (!Number.isInteger(turns) || turns < 110)
     throw new Error('--turns must be an integer of at least 110');
   const isolation = await requireIsolatedTestServer(
-    options.server ?? process.env.VARRO_AI_SERVER_URL,
+    options.server ?? process.env.LOOMERY_AI_SERVER_URL,
     workspace
   );
   const client = new OpenCodeClient(isolation.serverUrl, workspace);
@@ -377,7 +377,7 @@ async function inspect(options) {
     options.workspace ?? path.join(projectRoot, 'tmp/opencode')
   );
   const isolation = await requireIsolatedTestServer(
-    options.server ?? process.env.VARRO_AI_SERVER_URL,
+    options.server ?? process.env.LOOMERY_AI_SERVER_URL,
     workspace
   );
   const client = new OpenCodeClient(isolation.serverUrl, workspace);

@@ -52,20 +52,20 @@ function createStorage(initial: TestRuntimeRecord = {}) {
 describe('state session markers', () => {
   it('normalizes workspace scopes and migrates legacy marker storage', () => {
     const storage = createStorage({
-      'varro.lastSeenSessions': { legacy: 123 },
+      'loomery.lastSeenSessions': { legacy: 123 },
     });
 
     expect(getSessionMarkerWorkspaceScope('/repo//')).toBe('/repo');
-    expect(getSessionMarkerWorkspaceScope(null)).toBe('__varro.no-workspace__');
-    expect(readInitialSessionMarkerScope(storage, 'varro.lastSeenSessions', '/repo')).toEqual({
+    expect(getSessionMarkerWorkspaceScope(null)).toBe('__loomery.no-workspace__');
+    expect(readInitialSessionMarkerScope(storage, 'loomery.lastSeenSessions', '/repo')).toEqual({
       legacy: 123,
     });
-    expect(storage.get('varro.lastSeenSessions')).toEqual({ '/repo': { legacy: 123 } });
+    expect(storage.get('loomery.lastSeenSessions')).toEqual({ '/repo': { legacy: 123 } });
   });
 
   it('uses one marker scope for equivalent Windows workspace paths', () => {
     const storage = createStorage({
-      'varro.lastSeenSessions': {
+      'loomery.lastSeenSessions': {
         'c:/users/andrew/repo': { 'session-1': 100 },
       },
     });
@@ -76,7 +76,7 @@ describe('state session markers', () => {
     expect(
       readScopedSessionMarkerState(
         storage,
-        'varro.lastSeenSessions',
+        'loomery.lastSeenSessions',
         getSessionMarkerWorkspaceScope('C:\\Users\\Andrew\\Repo\\')
       )
     ).toEqual({ 'session-1': 100 });
@@ -84,19 +84,19 @@ describe('state session markers', () => {
 
   it('reads and writes markers by workspace scope', () => {
     const storage = createStorage({
-      'varro.lastSeenSessions': {
+      'loomery.lastSeenSessions': {
         '/repo-a': { 'session-a': 100 },
         '/repo-b': { 'session-b': 200 },
       },
     });
 
-    expect(readScopedSessionMarkerState(storage, 'varro.lastSeenSessions', '/repo-b')).toEqual({
+    expect(readScopedSessionMarkerState(storage, 'loomery.lastSeenSessions', '/repo-b')).toEqual({
       'session-b': 200,
     });
 
-    writeScopedSessionMarkerState(storage, 'varro.lastSeenSessions', '/repo-a', {});
+    writeScopedSessionMarkerState(storage, 'loomery.lastSeenSessions', '/repo-a', {});
 
-    expect(storage.get('varro.lastSeenSessions')).toEqual({
+    expect(storage.get('loomery.lastSeenSessions')).toEqual({
       '/repo-b': { 'session-b': 200 },
     });
   });
@@ -147,7 +147,7 @@ describe('state session markers', () => {
 
   it('merges markers from open workspace roots using the latest timestamp', () => {
     const storage = createStorage({
-      'varro.lastSeenSessions': {
+      'loomery.lastSeenSessions': {
         '/repo-a': { shared: 100, 'session-a': 150 },
         '/repo-b': { shared: 200, 'session-b': 250 },
         '/closed': { closed: 300 },
@@ -155,7 +155,7 @@ describe('state session markers', () => {
     });
 
     expect(
-      readMergedSessionMarkerState(storage, 'varro.lastSeenSessions', ['/repo-a', '/repo-b'])
+      readMergedSessionMarkerState(storage, 'loomery.lastSeenSessions', ['/repo-a', '/repo-b'])
     ).toEqual({ shared: 200, 'session-a': 150, 'session-b': 250 });
   });
 

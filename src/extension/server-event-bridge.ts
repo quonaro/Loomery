@@ -92,19 +92,19 @@ export class ServerEventBridge {
     private readonly streamingText?: StreamingTextCache
   ) {
     this.openCodeStatusBarItem = vscode.window.createStatusBarItem(
-      'varro.opencode-version',
+      'loomery.opencode-version',
       vscode.StatusBarAlignment.Right,
       1000
     );
     this.openCodeStatusBarItem.name = 'OpenCode Version';
 
     this.attentionStatusBarItem = vscode.window.createStatusBarItem(
-      'varro.session-status',
+      'loomery.session-status',
       vscode.StatusBarAlignment.Left,
       1000
     );
-    this.attentionStatusBarItem.name = 'Varro Attention';
-    this.attentionStatusBarItem.command = 'varro.chat.statusBarClick';
+    this.attentionStatusBarItem.name = 'Loomery Attention';
+    this.attentionStatusBarItem.command = 'loomery.chat.statusBarClick';
   }
 
   getStatus() {

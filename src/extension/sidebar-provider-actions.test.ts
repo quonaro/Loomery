@@ -129,7 +129,7 @@ function createActionFixture() {
 
   const deps = {
     contextProvider: contextProvider as unknown as SidebarProviderActionDeps['contextProvider'],
-    extensionId: 'koltyakov.varro',
+    extensionId: 'quonaro.loomery',
     webviewSession,
     contextFilesState:
       contextFilesState as unknown as SidebarProviderActionDeps['contextFilesState'],
@@ -400,7 +400,7 @@ describe('createSidebarProviderActions', () => {
   it('opens generated Markdown directly in the preview editor', async () => {
     const { actions, deps } = createActionFixture();
     const uri = {
-      scheme: 'varro-tool-output',
+      scheme: 'loomery-tool-output',
       path: '/id/Review implementation (task_result).md',
     } as vscode.Uri;
     deps.toolOutputProvider.open.mockResolvedValueOnce(uri);
@@ -568,7 +568,7 @@ describe('createSidebarProviderActions', () => {
       directories: [],
     });
     await actions.checkServerRestart(5);
-    expect(mocks.vscode.commands.executeCommand).toHaveBeenCalledWith('varro.server.restart');
+    expect(mocks.vscode.commands.executeCommand).toHaveBeenCalledWith('loomery.server.restart');
   });
 
   it('forwards host-backed actions to the injected dependencies', async () => {
@@ -676,7 +676,7 @@ describe('createSidebarProviderActions', () => {
     expect(mocks.vscode.commands.executeCommand).toHaveBeenNthCalledWith(
       2,
       'workbench.action.openSettings',
-      '@ext:koltyakov.varro'
+      '@ext:quonaro.loomery'
     );
   });
 
@@ -727,7 +727,7 @@ describe('createSidebarProviderActions', () => {
     });
 
     expect(mocks.vscode.workspace.getConfiguration).toHaveBeenCalledTimes(2);
-    expect(mocks.vscode.workspace.getConfiguration).toHaveBeenNthCalledWith(1, 'varro');
+    expect(mocks.vscode.workspace.getConfiguration).toHaveBeenNthCalledWith(1, 'loomery');
     expect(mocks.config.update).toHaveBeenNthCalledWith(
       1,
       'chat.desktopSessionPaneSide',

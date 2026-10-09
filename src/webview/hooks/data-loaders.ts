@@ -97,7 +97,7 @@ export function createStateBoundDataLoaderOperations(deps: {
     setSessionsHasMore: (value) => appStore.setState('sessionsHasMore', value),
     setSessionsLoadingMore: (value) => appStore.setState('sessionsLoadingMore', value),
     setSessionsPaginationError: (message) => appStore.setState('sessionsPaginationError', message),
-    listRecycleBin: () => client.varro.recycleBin.list(),
+    listRecycleBin: () => client.loomery.recycleBin.list(),
     setRecycleBinEntries: sessionStore.setRecycleBinEntries,
     setRecycleBinLoadError: (message) => appStore.setState('recycleBinLoadError', message),
     loadSessionStatuses: () => client.session.status(),

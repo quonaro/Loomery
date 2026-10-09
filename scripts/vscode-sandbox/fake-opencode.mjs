@@ -4,8 +4,8 @@ import http from 'node:http';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const args = process.argv.slice(2);
-const mode = process.env.VARRO_SANDBOX_FAKE_MODE || 'healthy';
-const version = process.env.VARRO_SANDBOX_FAKE_VERSION || '1.18.15';
+const mode = process.env.LOOMERY_SANDBOX_FAKE_MODE || 'healthy';
+const version = process.env.LOOMERY_SANDBOX_FAKE_VERSION || '1.18.15';
 
 if (args.includes('--version') && mode === 'version-error') {
   process.stderr.write('Simulated OpenCode version lookup failure.\n');
@@ -33,7 +33,7 @@ if (args[0] !== 'serve') {
   process.exit(2);
 }
 
-const launchFile = process.env.VARRO_SANDBOX_LAUNCH_FILE;
+const launchFile = process.env.LOOMERY_SANDBOX_LAUNCH_FILE;
 if (launchFile) appendFileSync(launchFile, `${String(process.pid)}\n`);
 const launchCount = launchFile
   ? readFileSync(launchFile, 'utf8').trim().split(/\r?\n/).filter(Boolean).length
@@ -51,7 +51,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   process.exit(2);
 }
 
-const pidFile = process.env.VARRO_SANDBOX_PID_FILE;
+const pidFile = process.env.LOOMERY_SANDBOX_PID_FILE;
 if (pidFile) writeFileSync(pidFile, `${String(process.pid)}\n`);
 
 function sendJson(response, value, statusCode = 200) {

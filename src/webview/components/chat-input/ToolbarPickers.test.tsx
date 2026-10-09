@@ -231,8 +231,8 @@ describe('ToolbarPickers', () => {
     cleanup = render(
       () => (
         <WorkspacePicker
-          folders={[{ name: 'Varro', path: '\\\\BuildServer\\Projects\\Varro' }]}
-          selectedPath="//buildserver/PROJECTS/varro/"
+          folders={[{ name: 'Loomery', path: '\\\\BuildServer\\Projects\\Loomery' }]}
+          selectedPath="//buildserver/PROJECTS/loomery/"
           showPicker={true}
           onToggle={vi.fn()}
           onSelect={vi.fn()}
@@ -242,7 +242,7 @@ describe('ToolbarPickers', () => {
     );
 
     expect(container?.querySelector('.workspace-picker-button')?.getAttribute('aria-label')).toBe(
-      'Selected workspace: Varro'
+      'Selected workspace: Loomery'
     );
     expect(container?.querySelector('.toolbar-popover-item')?.getAttribute('aria-current')).toBe(
       'true'
@@ -454,7 +454,7 @@ describe('ToolbarPickers', () => {
 
     expect(send).toHaveBeenCalledWith({
       type: 'vscode/open-external',
-      payload: { url: 'https://github.com/koltyakov/varro/blob/main/docs/permissions.md' },
+      payload: { url: 'https://github.com/quonaro/loomery/blob/main/docs/permissions.md' },
     });
   });
 

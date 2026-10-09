@@ -5,6 +5,7 @@ import { ChatInput } from '../ChatInput';
 import { ActiveChatHeader, SessionPickerHeader } from './ChatHeader';
 import { WindowChatThemeToggle } from './WindowChatThemeToggle';
 import { SessionListView } from './SessionListView';
+import { SessionTabs } from './SessionTabs';
 import type { SessionIndicatorSets, SessionListFilter } from './SessionListView';
 import type { SlowApiRequest } from '../../lib/bridge';
 import { onMessage } from '../../lib/bridge';
@@ -222,7 +223,6 @@ export function ChatWorkspace(props: {
       onOpenCompletedSessions={props.onOpenCompletedSessions}
       onOpenRunningSessions={props.onOpenRunningSessions}
       onOpenPendingSessions={props.onOpenPendingSessions}
-      onCreateSession={props.onCreateSession}
     />
   );
 
@@ -299,19 +299,16 @@ export function ChatWorkspace(props: {
       class={`interactive-session${props.showModels ? ' interactive-session-showing-models' : ''}`}
     >
       <WindowChatThemeToggle />
-      <Show when={props.showSessionHeader}>
+      <Show when={props.showSessionHeader && props.showSessionPicker}>
         <div
           class={`chat-header ${props.shouldRenderWorkspace ? 'chat-header-centered chat-header-chat-layout' : ''}`}
         >
-          <div class="chat-header-inner">
-            <Show
-              when={props.showSessionPicker}
-              fallback={activeChatHeader(!props.showDesktopBackButton)}
-            >
-              {sessionPickerHeader()}
-            </Show>
-          </div>
+          <div class="chat-header-inner">{sessionPickerHeader()}</div>
         </div>
+      </Show>
+
+      <Show when={props.shouldRenderWorkspace}>
+        <SessionTabs onCreateSession={props.onCreateSession} />
       </Show>
 
       <Show when={props.showReconnectBanner}>

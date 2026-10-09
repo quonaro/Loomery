@@ -14,7 +14,7 @@ test('Problems picker hides added entries and restores them when their attachmen
         payload: {
           diagnostics: [
             {
-              path: '/workspace/varro/playwright.config.ts',
+              path: '/workspace/loomery/playwright.config.ts',
               line: 1,
               severity: 'error',
               message: 'Missing playwright dependency',
@@ -49,7 +49,7 @@ test('Problems picker hides added entries and restores them when their attachmen
         payload: {
           diagnostics: [
             {
-              path: '/workspace/varro/src/other.ts',
+              path: '/workspace/loomery/src/other.ts',
               line: 9,
               severity: 'warning',
               message: 'Unused workspace variable',
@@ -98,7 +98,7 @@ test('Problems search filters locally across words and selects the first match o
   await composer.fill('/problems no_such_problem');
   await expect(choices).toHaveCount(0);
   await expect(page.locator('.composer-completion-empty')).toHaveText('No matching problems');
-  await composer.fill('/problems warning /workspace/varro/src/other.ts unused');
+  await composer.fill('/problems warning /workspace/loomery/src/other.ts unused');
   await expect(choices).toHaveCount(2);
   await expect(choices.nth(1)).toHaveClass(/selected/);
   expect(
@@ -106,9 +106,9 @@ test('Problems search filters locally across words and selects the first match o
       () =>
         (
           window as Window & {
-            __varroE2E?: { requests: Array<{ path: string }> };
+            __loomeryE2E?: { requests: Array<{ path: string }> };
           }
-        ).__varroE2E?.requests.filter((request) => request.path === '/varro/workspace-problems')
+        ).__loomeryE2E?.requests.filter((request) => request.path === '/loomery/workspace-problems')
           .length
     )
   ).toBe(1);
@@ -136,7 +136,7 @@ test('VS Code Add to Context accumulates attachments without changing the draft 
         payload: {
           diagnostics: [
             {
-              path: '/workspace/varro/oxlint.config.mts',
+              path: '/workspace/loomery/oxlint.config.mts',
               line: 1,
               column: 30,
               severity: 'error',
@@ -167,7 +167,7 @@ test('VS Code Add to Context accumulates attachments without changing the draft 
         payload: {
           diagnostics: [
             {
-              path: '/workspace/varro/other.ts',
+              path: '/workspace/loomery/other.ts',
               line: 9,
               severity: 'warning',
               message: 'Unused variable',
@@ -185,9 +185,9 @@ test('VS Code Add to Context accumulates attachments without changing the draft 
       () =>
         (
           window as Window & {
-            __varroE2E?: { requests: Array<{ path: string }> };
+            __loomeryE2E?: { requests: Array<{ path: string }> };
           }
-        ).__varroE2E?.requests.some((request) => request.path.includes('prompt_async')) ?? false
+        ).__loomeryE2E?.requests.some((request) => request.path.includes('prompt_async')) ?? false
     )
   ).toBe(false);
 });
@@ -265,11 +265,11 @@ for (const selection of ['All', 'Unused workspace variable']) {
         page.evaluate(() => {
           const requests = (
             window as Window & {
-              __varroE2E?: {
+              __loomeryE2E?: {
                 requests: Array<{ path: string; body?: { parts?: Array<{ text?: string }> } }>;
               };
             }
-          ).__varroE2E?.requests;
+          ).__loomeryE2E?.requests;
           return (
             requests
               ?.find((request) => request.path.includes('prompt_async'))
@@ -283,11 +283,11 @@ for (const selection of ['All', 'Unused workspace variable']) {
       () =>
         (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               requests: Array<{ path: string; body?: { parts?: Array<{ text?: string }> } }>;
             };
           }
-        ).__varroE2E?.requests
+        ).__loomeryE2E?.requests
           .find((request) => request.path.includes('prompt_async'))
           ?.body?.parts?.map((part) => part.text ?? '')
           .join('\n') ?? ''
@@ -322,9 +322,9 @@ for (const enabled of [true, false]) {
         {
           type: 'context/update',
           payload: {
-            workspacePath: '/workspace/varro',
+            workspacePath: '/workspace/loomery',
             activeFile: {
-              path: '/workspace/varro/playwright.config.ts',
+              path: '/workspace/loomery/playwright.config.ts',
               relativePath: 'playwright.config.ts',
               language: 'typescript',
             },
@@ -332,7 +332,7 @@ for (const enabled of [true, false]) {
             diagnosticCounts: { errors: 1, warnings: 0 },
             diagnostics: [
               {
-                path: '/workspace/varro/playwright.config.ts',
+                path: '/workspace/loomery/playwright.config.ts',
                 line: 1,
                 column: 39,
                 severity: 'error',
@@ -403,9 +403,9 @@ for (const enabled of [true, false]) {
         page.evaluate(() =>
           (
             window as Window & {
-              __varroE2E?: { requests: Array<{ path: string }> };
+              __loomeryE2E?: { requests: Array<{ path: string }> };
             }
-          ).__varroE2E?.requests.some((request) => request.path.includes('prompt_async'))
+          ).__loomeryE2E?.requests.some((request) => request.path.includes('prompt_async'))
         )
       )
       .toBe(true);
@@ -413,11 +413,11 @@ for (const enabled of [true, false]) {
       () =>
         (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               requests: Array<{ path: string; body?: { parts?: Array<{ text?: string }> } }>;
             };
           }
-        ).__varroE2E?.requests
+        ).__loomeryE2E?.requests
           .find((request) => request.path.includes('prompt_async'))
           ?.body?.parts?.some((part) =>
             part.text?.includes("Cannot find module '@playwright/test'")

@@ -2,8 +2,8 @@ import type { Persistence } from '../shared/persistence';
 import { isSafePersistedSessionId } from '../shared/protocol';
 import { asRecord, isNumber, isString } from '../shared/type-utils';
 
-const SESSION_PLAN_STATE_KEY = 'varro.sessionPlanState';
-const SESSION_PLAN_AGENT_STATE_KEY = 'varro.sessionPlanAgentState';
+const SESSION_PLAN_STATE_KEY = 'loomery.sessionPlanState';
+const SESSION_PLAN_AGENT_STATE_KEY = 'loomery.sessionPlanAgentState';
 
 export type SessionPlanState = Record<string, number | null>;
 

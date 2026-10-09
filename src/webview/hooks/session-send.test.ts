@@ -147,6 +147,25 @@ describe('session-send helpers', () => {
     ).toThrow('Selected model openai/gpt-6.1-sol is unavailable');
   });
 
+  it('does not auto-attach a bare open file but still sends an explicit selection', () => {
+    const composer = createState({
+      editorContext: createEditorContext({
+        activeFile: { path: '/repo/lota.yml', relativePath: 'lota.yml', language: 'yaml' },
+      }),
+    });
+    const bare = buildSessionSendBody(composer, 'session-1', 'Deploy', () => true)!;
+    expect(bare.body.parts).toEqual([{ type: 'text', text: 'Deploy' }]);
+
+    composer.editorContext = createEditorContext({
+      activeFile: { path: '/repo/lota.yml', relativePath: 'lota.yml', language: 'yaml' },
+      selection: { startLine: 2, endLine: 4 },
+    });
+    const selected = buildSessionSendBody(composer, 'session-1', 'Deploy', () => true)!;
+    const texts = selected.body.parts.flatMap((part) => (part.text ? [part.text] : []));
+    expect(texts.some((text) => text.includes('[Selection from lota.yml lines 2-4]'))).toBe(true);
+    expect(texts.some((text) => text.startsWith('[Active file:'))).toBe(false);
+  });
+
   it('sends text snapshots once and restores their exact contents for queueing and inline edits', () => {
     const text = '  Unicode 雪\r\n'.repeat(25);
     const file = createPastedText(text);
@@ -1039,7 +1058,7 @@ describe('session-send helpers', () => {
             filename: 'Image 1',
             size: 5,
             contextFile: {
-              path: '/tmp/varro-drops/drop-1/Image 1.png',
+              path: '/tmp/loomery-drops/drop-1/Image 1.png',
               relativePath: 'Image 1.png',
               type: 'file',
             },
@@ -1056,8 +1075,8 @@ describe('session-send helpers', () => {
       {
         type: 'text',
         text:
-          '[Image for @vision: /tmp/varro-drops/drop-1/Image 1.png]\n' +
-          'When calling the vision subagent, include {file:/tmp/varro-drops/drop-1/Image 1.png} in its task prompt.',
+          '[Image for @vision: /tmp/loomery-drops/drop-1/Image 1.png]\n' +
+          'When calling the vision subagent, include {file:/tmp/loomery-drops/drop-1/Image 1.png} in its task prompt.',
       },
     ]);
     expect(result?.optimisticImages).toEqual([
@@ -1109,7 +1128,7 @@ describe('session-send helpers', () => {
             filename: 'Image 1',
             size: 5,
             contextFile: {
-              path: '/tmp/varro-drops/drop-1/Image 1.png',
+              path: '/tmp/loomery-drops/drop-1/Image 1.png',
               relativePath: 'Image 1.png',
               type: 'file',
             },
@@ -1124,8 +1143,8 @@ describe('session-send helpers', () => {
     expect(result?.body.parts).toContainEqual({
       type: 'text',
       text:
-        '[Image for @vision: /tmp/varro-drops/drop-1/Image 1.png]\n' +
-        'When calling the vision subagent, include {file:/tmp/varro-drops/drop-1/Image 1.png} in its task prompt.',
+        '[Image for @vision: /tmp/loomery-drops/drop-1/Image 1.png]\n' +
+        'When calling the vision subagent, include {file:/tmp/loomery-drops/drop-1/Image 1.png} in its task prompt.',
     });
   });
 

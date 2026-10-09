@@ -168,7 +168,7 @@ export function ManagedSubagentFooter(props: {
       if (event.key !== 'Escape' || (!showContextPopup() && !showProviderLimitPopup())) return;
       event.preventDefault();
       // SAFETY: The surrounding shape or discriminator check establishes the KeyboardEvent contract used below.
-      (event as KeyboardEvent & { varroHandled?: boolean }).varroHandled = true;
+      (event as KeyboardEvent & { loomeryHandled?: boolean }).loomeryHandled = true;
       closePopups();
     };
     document.addEventListener('pointerdown', handlePointerDown);

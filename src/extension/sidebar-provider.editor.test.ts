@@ -105,7 +105,7 @@ describe('SidebarProvider editor panels', () => {
       const handler = vscode.window.registerUriHandler.mock.calls.at(-1)?.[0];
       if (!handler) throw new Error('Missing notification URI handler');
       await handler.handleUri({
-        authority: 'koltyakov.varro',
+        authority: 'quonaro.loomery',
         path: '/notification',
         query: 'session=child&root=root&directory=%2Frepo',
       } as never);
@@ -150,8 +150,8 @@ describe('SidebarProvider editor panels', () => {
         )
       );
       editor.receive({ type: 'window-chat-theme/set-reversed', payload: { reversed: !reversed } });
-      expect(values.get('varro.windowChatThemeReversed')).toBe(!reversed);
-      expect(globalState.update).toHaveBeenCalledWith('varro.windowChatThemeReversed', !reversed);
+      expect(values.get('loomery.windowChatThemeReversed')).toBe(!reversed);
+      expect(globalState.update).toHaveBeenCalledWith('loomery.windowChatThemeReversed', !reversed);
       editor.panel.dispose();
       await provider.dispose();
     }
@@ -427,7 +427,7 @@ describe('SidebarProvider editor panels', () => {
     expect(lastSiblingWorkspaceAlerts(posted)).toEqual([]);
   });
 
-  it('alerts only for requested sibling events while Varro is hidden', async () => {
+  it('alerts only for requested sibling events while Loomery is hidden', async () => {
     const contextProvider = createContextProvider();
     contextProvider.context.workspacePath = '/repo-a';
     contextProvider.context.workspaceFolders = [
@@ -471,11 +471,11 @@ describe('SidebarProvider editor panels', () => {
       { name: 'Repo B', path: '/repo-b', kinds: ['attention'], count: 1 },
     ]);
     const statusItemIndex = getVscodeMock().window.createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.session-status'
+      ([id]) => id === 'loomery.session-status'
     );
     const statusItem =
       getVscodeMock().window.createStatusBarItem.mock.results[statusItemIndex]?.value;
-    expect(statusItem?.text).toBe('$(bell-dot) Varro: 1 workspace event');
+    expect(statusItem?.text).toBe('$(bell-dot) Loomery: 1 workspace event');
     expect(statusItem?.tooltip).toContain('Repo B: 1');
     expect(statusItem?.show).toHaveBeenCalled();
 
@@ -871,7 +871,7 @@ describe('SidebarProvider editor panels', () => {
         info: {
           id: 'workspace-a',
           directory: '/repo-a',
-          metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+          metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
         },
       },
     });
@@ -1015,7 +1015,7 @@ describe('SidebarProvider editor panels', () => {
         payload: {
           id: 301,
           method: 'POST',
-          path: '/varro/session/nested/activate',
+          path: '/loomery/session/nested/activate',
           body: { directory: '/repo/packages/app' },
         },
       });
@@ -1029,7 +1029,7 @@ describe('SidebarProvider editor panels', () => {
         payload: {
           id: 302,
           method: 'POST',
-          path: '/varro/session/outside/activate',
+          path: '/loomery/session/outside/activate',
           body: { directory: '/outside' },
         },
       });
@@ -1891,9 +1891,9 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.editorViewId': 'editor-repo-b',
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-b' },
-      'varro.workspacePath': '/repo-b',
+      'loomery.editorViewId': 'editor-repo-b',
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-b' },
+      'loomery.workspacePath': '/repo-b',
     });
     restored.receive({ type: 'ready' });
 
@@ -1914,8 +1914,8 @@ describe('SidebarProvider editor panels', () => {
     await provider.openNewEditor();
 
     expect(getVscodeMock().window.createWebviewPanel).toHaveBeenCalledWith(
-      'varro.editor',
-      'Varro: New Session',
+      'loomery.editor',
+      'Loomery: New Session',
       expect.anything(),
       { enableScripts: true, retainContextWhenHidden: false }
     );
@@ -1924,7 +1924,7 @@ describe('SidebarProvider editor panels', () => {
       payload: { open: true, sessionIds: [], openSessionIds: [] },
     });
 
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     const visibleHtml = editor.panel.webview.html;
 
     editor.setVisible(false);
@@ -1994,7 +1994,7 @@ describe('SidebarProvider editor panels', () => {
     await provider.openSessionInEditor('session-1');
     await provider.openSessionInSidebar('session-1');
 
-    expect(getVscodeMock().commands.executeCommand).toHaveBeenCalledWith('varro.chat.focus');
+    expect(getVscodeMock().commands.executeCommand).toHaveBeenCalledWith('loomery.chat.focus');
     expect(editor.panel.dispose).toHaveBeenCalledOnce();
     await provider.handleMessage({ type: 'ready' });
     await provider.handleMessage({
@@ -2012,13 +2012,13 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const duplicate = createPanel();
     const state = {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     };
 
     await provider.deserializeWebviewPanel(first.panel as never, state);
     await provider.deserializeWebviewPanel(duplicate.panel as never, state);
 
-    expect(first.panel.title).toBe('Varro: Session');
+    expect(first.panel.title).toBe('Loomery: Session');
     expect(first.panel.iconPath).toEqual({ id: 'chat-sparkle' });
     expect(first.panel.reveal).toHaveBeenCalledOnce();
     expect(duplicate.panel.dispose).toHaveBeenCalledOnce();
@@ -2035,7 +2035,7 @@ describe('SidebarProvider editor panels', () => {
     };
     const storage = new Map<string, unknown>([
       [
-        'varro.sessionTrash',
+        'loomery.sessionTrash',
         [
           {
             rootID: trashedSession.id,
@@ -2057,7 +2057,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: trashedSession.id, timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: trashedSession.id, timestamp: 1 },
     });
     restored.receive({
       type: 'editor/route-changed',
@@ -2065,7 +2065,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: New Session');
+    expect(restored.panel.title).toBe('Loomery: New Session');
     expect(restored.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'command/open-session' })
     );
@@ -2077,12 +2077,12 @@ describe('SidebarProvider editor panels', () => {
     const duplicate = createPanel();
 
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-shared',
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.editorViewId': 'editor-shared',
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     await provider.deserializeWebviewPanel(duplicate.panel as never, {
-      'varro.editorViewId': 'editor-shared',
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-2', timestamp: 2 },
+      'loomery.editorViewId': 'editor-shared',
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-2', timestamp: 2 },
     });
 
     expect(first.panel.reveal).toHaveBeenCalledOnce();
@@ -2094,7 +2094,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     restored.receive({
       type: 'editor/route-changed',
@@ -2102,7 +2102,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: Session');
+    expect(restored.panel.title).toBe('Loomery: Session');
     expect(restored.panel.webview.postMessage).toHaveBeenCalledWith({
       type: 'command/open-session',
       payload: { sessionId: 'session-1' },
@@ -2122,7 +2122,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     restored.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -2138,7 +2138,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: New Session');
+    expect(restored.panel.title).toBe('Loomery: New Session');
     expect(restored.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'command/open-session' })
     );
@@ -2149,7 +2149,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     restored.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -2175,7 +2175,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: New Session');
+    expect(restored.panel.title).toBe('Loomery: New Session');
     expect(restored.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'command/open-session' })
     );
@@ -2186,7 +2186,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     restored.receive({
       type: 'commands/state',
@@ -2206,7 +2206,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: New Session');
+    expect(restored.panel.title).toBe('Loomery: New Session');
     expect(restored.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'command/open-session' })
     );
@@ -2217,7 +2217,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
     restored.receive({
       type: 'commands/state',
@@ -2250,7 +2250,7 @@ describe('SidebarProvider editor panels', () => {
     const restored = createPanel();
 
     await provider.deserializeWebviewPanel(restored.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-deleted', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-deleted', timestamp: 1 },
     });
     const eventHandler = server.on.mock.calls.find(([type]) => type === 'event')?.[1];
     eventHandler?.({
@@ -2265,7 +2265,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await Promise.resolve();
 
-    expect(restored.panel.title).toBe('Varro: New Session');
+    expect(restored.panel.title).toBe('Loomery: New Session');
     expect(restored.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'command/open-session' })
     );
@@ -2337,7 +2337,7 @@ describe('SidebarProvider editor panels', () => {
     getVscodeMock().window.createWebviewPanel.mockReturnValue(editor.panel);
 
     await provider.openSessionInEditor('root-session', 'Root', undefined, 'root-session');
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     editor.receive({ type: 'ready' });
     editor.receive({
       type: 'commands/state',
@@ -2387,7 +2387,7 @@ describe('SidebarProvider editor panels', () => {
       variant: 'xhigh',
     });
 
-    expect(workspaceState.update).toHaveBeenCalledWith('varro.sessionSelectedModels', {
+    expect(workspaceState.update).toHaveBeenCalledWith('loomery.sessionSelectedModels', {
       'session-1': { providerID: 'openai', modelID: 'gpt-5.6-sol', variant: 'xhigh' },
     });
     expect(posted).toContainEqual({
@@ -2406,7 +2406,7 @@ describe('SidebarProvider editor panels', () => {
     getVscodeMock().window.createWebviewPanel.mockReturnValue(editor.panel);
 
     await provider.openSessionInEditor('session-1');
-    expect(editor.panel.title).toBe('Varro: Session');
+    expect(editor.panel.title).toBe('Loomery: Session');
 
     (
       provider as unknown as {
@@ -2512,7 +2512,7 @@ describe('SidebarProvider editor panels', () => {
     await vi.waitFor(() => expect(isVisible('session-1')).toBe(false));
   });
 
-  it('shows status attention only while every Varro chat is hidden', async () => {
+  it('shows status attention only while every Loomery chat is hidden', async () => {
     const { provider } = await createSidebarProviderInstance();
     const sidebar = createPanel();
     await provider.resolveWebviewView(sidebar.panel as never, {} as never, {} as never);
@@ -2521,7 +2521,7 @@ describe('SidebarProvider editor panels', () => {
     const sessionState = (provider as unknown as { sessionState: SessionStateManager })
       .sessionState;
     const statusItem = getVscodeMock().window.createStatusBarItem.mock.results.find(
-      (result) => result.value.name === 'Varro Attention'
+      (result) => result.value.name === 'Loomery Attention'
     )?.value;
 
     sessionState.handleServerEvent({
@@ -2563,7 +2563,7 @@ describe('SidebarProvider editor panels', () => {
     sidebar.setVisible(false);
 
     expect(statusItem?.show).toHaveBeenCalledOnce();
-    expect(statusItem?.text).toBe('$(bell-dot) Varro: 1 waiting');
+    expect(statusItem?.text).toBe('$(bell-dot) Loomery: 1 waiting');
     expect(provider.getStatusBarClickAction()).toBe('attention');
 
     statusItem?.show.mockClear();
@@ -2585,7 +2585,7 @@ describe('SidebarProvider editor panels', () => {
 
     expect(statusItem?.show).not.toHaveBeenCalled();
     expect(statusItem?.hide).not.toHaveBeenCalled();
-    expect(statusItem?.text).toBe('$(bell-dot) Varro: 1 waiting');
+    expect(statusItem?.text).toBe('$(bell-dot) Loomery: 1 waiting');
 
     sidebar.setVisible(true);
 
@@ -2624,10 +2624,10 @@ describe('SidebarProvider editor panels', () => {
     });
     sessionState.revealPermission('workspace-permission');
     const statusItem = getVscodeMock().window.createStatusBarItem.mock.results.find(
-      (result) => result.value.name === 'Varro Attention'
+      (result) => result.value.name === 'Loomery Attention'
     )?.value;
 
-    expect(statusItem?.text).toBe('$(bell-dot) Varro: 1 waiting');
+    expect(statusItem?.text).toBe('$(bell-dot) Loomery: 1 waiting');
     expect(provider.getStatusBarClickAction()).toBe('attention');
   });
 
@@ -2685,7 +2685,7 @@ describe('SidebarProvider editor panels', () => {
       properties: { requestID: 'question-1', sessionID: 'plan-1' },
     });
     const statusItem = getVscodeMock().window.createStatusBarItem.mock.results.find(
-      (result) => result.value.name === 'Varro Attention'
+      (result) => result.value.name === 'Loomery Attention'
     )?.value;
     statusItem?.show.mockClear();
     statusItem?.hide.mockClear();
@@ -2708,7 +2708,7 @@ describe('SidebarProvider editor panels', () => {
     expect(statusItem?.show).not.toHaveBeenCalled();
   });
 
-  it('shows plan notifications only when no Varro chat is visible', async () => {
+  it('shows plan notifications only when no Loomery chat is visible', async () => {
     const { provider } = await createSidebarProviderInstance();
     const { view } = attachTestView(provider);
     const sessionState = (
@@ -2741,7 +2741,7 @@ describe('SidebarProvider editor panels', () => {
     view.visible = false;
     completePlan('session-hidden', 'Hidden plan');
     expect(getVscodeMock().window.showInformationMessage).toHaveBeenCalledWith(
-      'Varro has a plan ready for review for "Hidden plan".',
+      'Loomery has a plan ready for review for "Hidden plan".',
       'Open Chat'
     );
   });
@@ -2771,7 +2771,7 @@ describe('SidebarProvider editor panels', () => {
     ]);
 
     await provider.openSessionInEditor('session-1');
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     editor.receive({ type: 'ready' });
 
     await vi.waitFor(() =>
@@ -2799,13 +2799,13 @@ describe('SidebarProvider editor panels', () => {
     const second = createPanel();
 
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
+      'loomery.editorViewId': 'editor-first',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
+      'loomery.editorViewId': 'editor-second',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -2858,13 +2858,13 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
+      'loomery.editorViewId': 'editor-first',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
+      'loomery.editorViewId': 'editor-second',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -2915,13 +2915,13 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
+      'loomery.editorViewId': 'editor-first',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
+      'loomery.editorViewId': 'editor-second',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -2958,7 +2958,7 @@ describe('SidebarProvider editor panels', () => {
 
     let rejectedOwnershipWrite = false;
     workspaceState.update.mockImplementation((key: string) => {
-      if (!rejectedOwnershipWrite && key === 'varro.queuedMessages') {
+      if (!rejectedOwnershipWrite && key === 'loomery.queuedMessages') {
         rejectedOwnershipWrite = true;
         return Promise.reject(new Error('ownership write failed'));
       }
@@ -3016,13 +3016,13 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
+      'loomery.editorViewId': 'editor-first',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
+      'loomery.editorViewId': 'editor-second',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -3059,7 +3059,7 @@ describe('SidebarProvider editor panels', () => {
 
     let ownershipWriteAttempts = 0;
     workspaceState.update.mockImplementation((key: string) => {
-      if (key !== 'varro.queuedMessages') return Promise.resolve();
+      if (key !== 'loomery.queuedMessages') return Promise.resolve();
       ownershipWriteAttempts += 1;
       return ownershipWriteAttempts <= 2
         ? Promise.reject(new Error(`ownership write ${ownershipWriteAttempts} failed`))
@@ -3085,7 +3085,7 @@ describe('SidebarProvider editor panels', () => {
   it('keeps interrupted recovery claimable until the elected view acknowledges it', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [{ id: 'session-1', title: 'Interrupted', directory: '/repo' }],
       ],
     ]);
@@ -3103,13 +3103,13 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
+      'loomery.editorViewId': 'editor-first',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
+      'loomery.editorViewId': 'editor-second',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     expect(first.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'recovery/interrupted-sessions' })
     );
@@ -3138,7 +3138,7 @@ describe('SidebarProvider editor panels', () => {
       payload: { claimId: 1, consumedSessionIds: ['session-1'] },
     });
     await Promise.resolve();
-    expect(storage.get('varro.interruptedSessions')).toEqual([
+    expect(storage.get('loomery.interruptedSessions')).toEqual([
       { id: 'session-1', title: 'Interrupted', directory: '/repo' },
     ]);
 
@@ -3146,14 +3146,14 @@ describe('SidebarProvider editor panels', () => {
       type: 'recovery/interrupted-sessions-ack',
       payload: { claimId: 2, consumedSessionIds: ['session-1'] },
     });
-    await vi.waitFor(() => expect(storage.get('varro.interruptedSessions')).toEqual([]));
+    await vi.waitFor(() => expect(storage.get('loomery.interruptedSessions')).toEqual([]));
     await provider.dispose();
 
     const restarted = await createSidebarProviderInstance({ workspaceState });
     const third = createPanel();
     getVscodeMock().window.createWebviewPanel.mockReturnValue(third.panel);
     await restarted.provider.openNewEditor();
-    await vi.waitFor(() => expect(third.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(third.panel.webview.html).toContain('loomery-editor-surface'));
     third.receive({ type: 'ready' });
     await Promise.resolve();
     expect(third.panel.webview.postMessage).not.toHaveBeenCalledWith(
@@ -3164,7 +3164,7 @@ describe('SidebarProvider editor panels', () => {
   it('partitions interrupted recovery claims by endpoint workspace', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [
           { id: 'session-a', title: 'A', directory: '/repo-a' },
           { id: 'session-b', title: 'B', directory: '/repo-b' },
@@ -3185,15 +3185,15 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
-      'varro.workspacePath': '/repo-a',
+      'loomery.editorViewId': 'editor-first',
+      'loomery.workspacePath': '/repo-a',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
-      'varro.workspacePath': '/repo-b',
+      'loomery.editorViewId': 'editor-second',
+      'loomery.workspacePath': '/repo-b',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
 
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
@@ -3231,7 +3231,7 @@ describe('SidebarProvider editor panels', () => {
   it('reassigns interrupted recovery when the claiming view changes workspace', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [{ id: 'session-a', title: 'Interrupted', directory: '/repo-a' }],
       ],
     ]);
@@ -3249,15 +3249,15 @@ describe('SidebarProvider editor panels', () => {
     const first = createPanel();
     const second = createPanel();
     await provider.deserializeWebviewPanel(first.panel as never, {
-      'varro.editorViewId': 'editor-first',
-      'varro.workspacePath': '/repo-a',
+      'loomery.editorViewId': 'editor-first',
+      'loomery.workspacePath': '/repo-a',
     });
     await provider.deserializeWebviewPanel(second.panel as never, {
-      'varro.editorViewId': 'editor-second',
-      'varro.workspacePath': '/repo-a',
+      'loomery.editorViewId': 'editor-second',
+      'loomery.workspacePath': '/repo-a',
     });
-    await vi.waitFor(() => expect(first.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(second.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(first.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() => expect(second.panel.webview.html).toContain('loomery-editor-surface'));
     first.receive({ type: 'ready' });
     second.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -3279,7 +3279,7 @@ describe('SidebarProvider editor panels', () => {
 
   it('retains legacy interrupted recovery until bootstrap resolves its workspace', async () => {
     const storage = new Map<string, unknown>([
-      ['varro.interruptedSessions', [{ id: 'session-legacy', title: 'Legacy' }]],
+      ['loomery.interruptedSessions', [{ id: 'session-legacy', title: 'Legacy' }]],
     ]);
     const workspaceState = {
       get: vi.fn((key: string, fallback?: unknown) =>
@@ -3294,16 +3294,16 @@ describe('SidebarProvider editor panels', () => {
     const { provider, server } = await createSidebarProviderInstance({ workspaceState });
     const editor = createPanel();
     await provider.deserializeWebviewPanel(editor.panel as never, {
-      'varro.editorViewId': 'editor-legacy',
-      'varro.workspacePath': '/repo-b',
+      'loomery.editorViewId': 'editor-legacy',
+      'loomery.workspacePath': '/repo-b',
     });
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     editor.receive({ type: 'ready' });
     await Promise.resolve();
     expect(editor.panel.webview.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'recovery/interrupted-sessions' })
     );
-    expect(storage.get('varro.interruptedSessions')).toEqual([
+    expect(storage.get('loomery.interruptedSessions')).toEqual([
       { id: 'session-legacy', title: 'Legacy' },
     ]);
     server.request.mockImplementation(async (_method: string, path: string) => {
@@ -3329,7 +3329,7 @@ describe('SidebarProvider editor panels', () => {
   it('redelivers an unacknowledged recovery claim after the webview reloads', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [{ id: 'session-1', title: 'Interrupted', directory: '/repo' }],
       ],
     ]);
@@ -3346,9 +3346,9 @@ describe('SidebarProvider editor panels', () => {
     const { provider } = await createSidebarProviderInstance({ workspaceState });
     const editor = createPanel();
     await provider.deserializeWebviewPanel(editor.panel as never, {
-      'varro.editorViewId': 'editor-recovery',
+      'loomery.editorViewId': 'editor-recovery',
     });
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     editor.receive({ type: 'ready' });
     await vi.waitFor(() =>
       expect(editor.panel.webview.postMessage).toHaveBeenCalledWith({
@@ -3375,7 +3375,7 @@ describe('SidebarProvider editor panels', () => {
         payload: { claimId: 2, sessionIds: ['session-1'] },
       })
     );
-    expect(storage.get('varro.interruptedSessions')).toEqual([
+    expect(storage.get('loomery.interruptedSessions')).toEqual([
       { id: 'session-1', title: 'Interrupted', directory: '/repo' },
     ]);
     await provider.dispose();
@@ -3384,7 +3384,7 @@ describe('SidebarProvider editor panels', () => {
   it('retains failed recovery work without retrying until the webview reloads', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [{ id: 'session-1', title: 'Interrupted', directory: '/repo' }],
       ],
     ]);
@@ -3401,9 +3401,9 @@ describe('SidebarProvider editor panels', () => {
     const { provider } = await createSidebarProviderInstance({ workspaceState });
     const editor = createPanel();
     await provider.deserializeWebviewPanel(editor.panel as never, {
-      'varro.editorViewId': 'editor-recovery',
+      'loomery.editorViewId': 'editor-recovery',
     });
-    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(editor.panel.webview.html).toContain('loomery-editor-surface'));
     editor.receive({ type: 'ready' });
     await vi.waitFor(() =>
       expect(editor.panel.webview.postMessage).toHaveBeenCalledWith({
@@ -3418,11 +3418,11 @@ describe('SidebarProvider editor panels', () => {
       payload: { claimId: 1, consumedSessionIds: [] },
     });
     await vi.waitFor(() =>
-      expect(workspaceState.update).toHaveBeenCalledWith('varro.interruptedSessions', [
+      expect(workspaceState.update).toHaveBeenCalledWith('loomery.interruptedSessions', [
         { id: 'session-1', title: 'Interrupted', directory: '/repo' },
       ])
     );
-    expect(storage.get('varro.interruptedSessions')).toEqual([
+    expect(storage.get('loomery.interruptedSessions')).toEqual([
       { id: 'session-1', title: 'Interrupted', directory: '/repo' },
     ]);
     expect(editor.panel.webview.postMessage).not.toHaveBeenCalledWith(
@@ -3451,7 +3451,7 @@ describe('SidebarProvider editor panels', () => {
   it('releases failed recovery only when its claimant endpoint becomes unready', async () => {
     const storage = new Map<string, unknown>([
       [
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         [{ id: 'session-a', title: 'Interrupted', directory: '/repo-a' }],
       ],
     ]);
@@ -3468,15 +3468,17 @@ describe('SidebarProvider editor panels', () => {
     const claimant = createPanel();
     const unrelated = createPanel();
     await provider.deserializeWebviewPanel(claimant.panel as never, {
-      'varro.editorViewId': 'editor-claimant',
-      'varro.workspacePath': '/repo-a',
+      'loomery.editorViewId': 'editor-claimant',
+      'loomery.workspacePath': '/repo-a',
     });
     await provider.deserializeWebviewPanel(unrelated.panel as never, {
-      'varro.editorViewId': 'editor-unrelated',
-      'varro.workspacePath': '/repo-b',
+      'loomery.editorViewId': 'editor-unrelated',
+      'loomery.workspacePath': '/repo-b',
     });
-    await vi.waitFor(() => expect(claimant.panel.webview.html).toContain('varro-editor-surface'));
-    await vi.waitFor(() => expect(unrelated.panel.webview.html).toContain('varro-editor-surface'));
+    await vi.waitFor(() => expect(claimant.panel.webview.html).toContain('loomery-editor-surface'));
+    await vi.waitFor(() =>
+      expect(unrelated.panel.webview.html).toContain('loomery-editor-surface')
+    );
     claimant.receive({ type: 'ready' });
     unrelated.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -3491,7 +3493,7 @@ describe('SidebarProvider editor panels', () => {
     });
     await vi.waitFor(() =>
       expect(workspaceState.update).toHaveBeenCalledWith(
-        'varro.interruptedSessions',
+        'loomery.interruptedSessions',
         expect.any(Array)
       )
     );
@@ -3531,7 +3533,7 @@ describe('SidebarProvider editor panels', () => {
     const { provider } = await createSidebarProviderInstance();
     const editor = createPanel();
     await provider.deserializeWebviewPanel(editor.panel as never, {
-      'varro.editorViewId': 'editor-draft',
+      'loomery.editorViewId': 'editor-draft',
     });
     editor.receive({ type: 'ready' });
     await vi.waitFor(() =>
@@ -3551,7 +3553,7 @@ describe('SidebarProvider editor panels', () => {
     };
     vi.spyOn(internals.droppedFilesService, 'fromContent').mockResolvedValue([
       {
-        path: '/tmp/varro/image.png',
+        path: '/tmp/loomery/image.png',
         relativePath: 'image.png',
         type: 'file',
       },
@@ -3580,13 +3582,15 @@ describe('SidebarProvider editor panels', () => {
     });
     await vi.waitFor(() =>
       expect(internals.draftImages.list('editor-draft')[0]?.contextFile?.path).toBe(
-        '/tmp/varro/image.png'
+        '/tmp/loomery/image.png'
       )
     );
 
     editor.panel.dispose();
 
-    await vi.waitFor(() => expect(removeOwnedFiles).toHaveBeenCalledWith(['/tmp/varro/image.png']));
+    await vi.waitFor(() =>
+      expect(removeOwnedFiles).toHaveBeenCalledWith(['/tmp/loomery/image.png'])
+    );
     expect(internals.draftImages.list('editor-draft')).toEqual([]);
   });
 
@@ -3594,10 +3598,10 @@ describe('SidebarProvider editor panels', () => {
     const { provider } = await createSidebarProviderInstance();
     const editor = createPanel();
     await provider.deserializeWebviewPanel(editor.panel as never, {
-      'varro.editorViewId': 'editor-draft',
+      'loomery.editorViewId': 'editor-draft',
     });
     const contextFile: DroppedFile = {
-      path: '/tmp/varro/image.png',
+      path: '/tmp/loomery/image.png',
       relativePath: 'image.png',
       type: 'file',
     };
@@ -3670,10 +3674,10 @@ describe('SidebarProvider editor panels', () => {
       () => available
     );
     available = false;
-    finishStore([{ path: '/tmp/varro/late.png', relativePath: 'late.png', type: 'file' }]);
+    finishStore([{ path: '/tmp/loomery/late.png', relativePath: 'late.png', type: 'file' }]);
     await operation;
 
-    expect(removeOwnedFile).toHaveBeenCalledWith('/tmp/varro/late.png');
+    expect(removeOwnedFile).toHaveBeenCalledWith('/tmp/loomery/late.png');
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -3732,7 +3736,7 @@ describe('SidebarProvider editor panels', () => {
     await provider.openSessionInEditor('session-1');
 
     expect(getVscodeMock().window.createWebviewPanel).toHaveBeenCalledTimes(2);
-    expect(second.panel.title).toBe('Varro: Session');
+    expect(second.panel.title).toBe('Loomery: Session');
   });
 
   it('leaves panels open while the extension deactivates so VS Code can restore them', async () => {
@@ -3768,7 +3772,7 @@ describe('SidebarProvider editor panels', () => {
     panel.panel.visible = false;
 
     await provider.deserializeWebviewPanel(panel.panel as never, {
-      'varro.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
+      'loomery.lastOpenedView': { type: 'session', sessionId: 'session-1', timestamp: 1 },
     });
 
     expect(panel.panel.webview.html).toContain('--vscode-editor-background');

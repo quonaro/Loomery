@@ -4,7 +4,7 @@ import type { ServerEvent } from '../shared/protocol';
 import { asRecord } from '../shared/type-utils';
 import { logger } from './logger';
 
-const STORAGE_KEY = 'varro.streamingText';
+const STORAGE_KEY = 'loomery.streamingText';
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_CHARACTERS = 4 * 1024 * 1024;
 const MAX_PARTS = 128;

@@ -187,7 +187,7 @@ vi.mock('./logger', () => ({ logger: loggerMock }));
 vi.mock('vscode', () => vscodeMock);
 
 import { ContextProvider } from './context-provider';
-import * as varroStatePaths from './varro-state-paths';
+import * as loomeryStatePaths from './loomery-state-paths';
 
 function noop() {}
 
@@ -263,7 +263,9 @@ describe('ContextProvider', () => {
   });
 
   it('uses scratch in an empty window without claiming a project or an active file directory', () => {
-    const scratch = vscodeMock.Uri.file(varroStatePaths.getVarroStateDirectory('scratch')).fsPath;
+    const scratch = vscodeMock.Uri.file(
+      loomeryStatePaths.getLoomeryStateDirectory('scratch')
+    ).fsPath;
     vscodeMock.window.activeTextEditor = {
       document: {
         uri: { fsPath: '/other/project/file.ts' },
@@ -295,7 +297,9 @@ describe('ContextProvider', () => {
   it('returns to scratch when the last project closes and revokes scratch when a project opens', async () => {
     vi.useFakeTimers();
     const provider = new ContextProvider(noop);
-    const scratch = vscodeMock.Uri.file(varroStatePaths.getVarroStateDirectory('scratch')).fsPath;
+    const scratch = vscodeMock.Uri.file(
+      loomeryStatePaths.getLoomeryStateDirectory('scratch')
+    ).fsPath;
     const workspaceChanged =
       vscodeMock.workspace.onDidChangeWorkspaceFolders.mock.calls.at(-1)![0]!;
     try {
@@ -318,7 +322,9 @@ describe('ContextProvider', () => {
 
   it('resolves scratch files but keeps restricted reads inside scratch, including symlinks', async () => {
     const provider = new ContextProvider(noop);
-    const scratch = vscodeMock.Uri.file(varroStatePaths.getVarroStateDirectory('scratch')).fsPath;
+    const scratch = vscodeMock.Uri.file(
+      loomeryStatePaths.getLoomeryStateDirectory('scratch')
+    ).fsPath;
     const options = { restrictToWorkspace: true, workspaceDirectory: scratch };
     vscodeMock.workspace.fs.stat.mockResolvedValue({ type: 0 });
     try {
@@ -341,7 +347,9 @@ describe('ContextProvider', () => {
 
   it('opens relative scratch file links with the captured working directory', async () => {
     const provider = new ContextProvider(noop);
-    const scratch = vscodeMock.Uri.file(varroStatePaths.getVarroStateDirectory('scratch')).fsPath;
+    const scratch = vscodeMock.Uri.file(
+      loomeryStatePaths.getLoomeryStateDirectory('scratch')
+    ).fsPath;
     vscodeMock.workspace.fs.stat.mockResolvedValue({ type: 0 });
     vscodeMock.workspace.openTextDocument.mockResolvedValue({});
     vscodeMock.window.showTextDocument.mockResolvedValue({});
@@ -358,9 +366,9 @@ describe('ContextProvider', () => {
   });
 
   it('uses the URI path representation when the scratch state path has Windows separators', async () => {
-    const nativeScratch = 'C:\\Users\\runneradmin\\AppData\\Local\\Varro\\scratch';
+    const nativeScratch = 'C:\\Users\\runneradmin\\AppData\\Local\\Loomery\\scratch';
     const statePath = vi
-      .spyOn(varroStatePaths, 'getVarroStateDirectory')
+      .spyOn(loomeryStatePaths, 'getLoomeryStateDirectory')
       .mockReturnValue(nativeScratch);
     const scratch = vscodeMock.Uri.file(nativeScratch).fsPath;
     const provider = new ContextProvider(noop);
@@ -443,7 +451,7 @@ describe('ContextProvider', () => {
     const terminal = { name: 'zsh', processId: Promise.resolve(42) };
     vscodeMock.window.activeTerminal = terminal;
     async function* output() {
-      yield 'DONE  Packaged: varro-0.29.12.vsix\r\n';
+      yield 'DONE  Packaged: loomery-0.29.12.vsix\r\n';
     }
     try {
       vscodeMock.window.onDidStartTerminalShellExecution.mock.calls.at(-1)![0]!({
@@ -461,8 +469,8 @@ describe('ContextProvider', () => {
     const after = new ContextProvider(vi.fn(), workspaceState);
     try {
       await vi.advanceTimersByTimeAsync(0);
-      expect(after.findTerminalText('DONE  Packaged: varro-0.29.12.vsix')).toEqual({
-        text: 'DONE  Packaged: varro-0.29.12.vsix',
+      expect(after.findTerminalText('DONE  Packaged: loomery-0.29.12.vsix')).toEqual({
+        text: 'DONE  Packaged: loomery-0.29.12.vsix',
         terminalName: 'zsh',
       });
     } finally {
@@ -563,9 +571,9 @@ describe('ContextProvider', () => {
       expect(result).toEqual({ ok: false, reason: 'empty-selection' });
       expect(provider.terminalSelection).toBeNull();
       expect(
-        clipboardState.writes.some((value) => value.includes('varro-terminal-selection-'))
+        clipboardState.writes.some((value) => value.includes('loomery-terminal-selection-'))
       ).toBe(true);
-      expect(clipboardState.current).not.toContain('varro-terminal-selection-');
+      expect(clipboardState.current).not.toContain('loomery-terminal-selection-');
     } finally {
       provider.dispose();
     }
@@ -589,7 +597,7 @@ describe('ContextProvider', () => {
         terminalName: 'Terminal 1',
       });
       expect(clipboardState.current).toBe('existing clipboard');
-      expect(clipboardState.current).not.toContain('varro-terminal-selection-');
+      expect(clipboardState.current).not.toContain('loomery-terminal-selection-');
     } finally {
       provider.dispose();
     }
@@ -644,7 +652,7 @@ describe('ContextProvider', () => {
       await vi.advanceTimersByTimeAsync(5_000);
 
       expect(clipboardState.current).toBe('existing clipboard');
-      expect(clipboardState.current).not.toContain('varro-terminal-selection-');
+      expect(clipboardState.current).not.toContain('loomery-terminal-selection-');
     } finally {
       provider.dispose();
       vi.useRealTimers();
@@ -1290,7 +1298,7 @@ describe('ContextProvider', () => {
 
   it('opens absolute paths outside the workspace', async () => {
     const provider = new ContextProvider(vi.fn());
-    const uri = { fsPath: '/tmp/varro-drop.txt' };
+    const uri = { fsPath: '/tmp/loomery-drop.txt' };
     const document = { uri, getText: vi.fn(() => 'text') };
     const editor = {
       selection: null,
@@ -1303,7 +1311,7 @@ describe('ContextProvider', () => {
     vscodeMock.window.showTextDocument = vi.fn(() => Promise.resolve(editor));
 
     try {
-      await provider.openPath('/tmp/varro-drop.txt');
+      await provider.openPath('/tmp/loomery-drop.txt');
 
       expect(vscodeMock.workspace.openTextDocument).toHaveBeenCalledWith(uri);
       expect(vscodeMock.window.showTextDocument).toHaveBeenCalledWith(document, { preview: false });
@@ -1493,13 +1501,13 @@ describe('ContextProvider', () => {
 
   it('reveals directories instead of opening them as files', async () => {
     const provider = new ContextProvider(vi.fn());
-    const uri = { fsPath: '/tmp/varro-dir' };
+    const uri = { fsPath: '/tmp/loomery-dir' };
 
     vscodeMock.workspace.fs.stat.mockResolvedValue({ type: vscodeMock.FileType.Directory });
     vscodeMock.workspace.getWorkspaceFolder.mockReturnValue(undefined);
 
     try {
-      await provider.openPath('/tmp/varro-dir');
+      await provider.openPath('/tmp/loomery-dir');
 
       expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith('revealInExplorer', uri);
       expect(vscodeMock.workspace.openTextDocument).not.toHaveBeenCalled();
@@ -2127,7 +2135,7 @@ describe('ContextProvider', () => {
       expect(provider.context.activeWorkspacePath).toBe('/first');
       expect(provider.context.activeFile?.path).toBe('/first/app.ts');
       expect(workspaceState.update).toHaveBeenCalledWith(
-        'varro.selectedWorkspaceFolder',
+        'loomery.selectedWorkspaceFolder',
         '/second'
       );
     } finally {
@@ -2152,7 +2160,7 @@ describe('ContextProvider', () => {
 
       expect(provider.context.workspacePath).toBe(canonicalPath);
       expect(workspaceState.update).toHaveBeenCalledWith(
-        'varro.selectedWorkspaceFolder',
+        'loomery.selectedWorkspaceFolder',
         canonicalPath
       );
     } finally {

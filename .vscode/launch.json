@@ -2,12 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Varro: Extension Development Host",
+      "name": "Loomery: Extension Development Host",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}"],
+      "args": [
+        "--disable-extensions",
+        "--disable-workspace-trust",
+        "--profile=Loomery Extension Dev",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--enable-proposed-api=quonaro.loomery",
+        "${workspaceFolder}"
+      ],
       "outFiles": ["${workspaceFolder}/dist/extension/**/*.js"],
-      "preLaunchTask": "npm: build"
+      "preLaunchTask": "watch"
     }
   ]
 }

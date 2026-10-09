@@ -118,8 +118,8 @@ for (const measured of [false, true]) {
         (fixture) => {
           // SAFETY: The playback harness reads this typed fixture before mounting.
           (
-            window as typeof window & { varroPlaybackCapture: typeof fixture }
-          ).varroPlaybackCapture = fixture;
+            window as typeof window & { loomeryPlaybackCapture: typeof fixture }
+          ).loomeryPlaybackCapture = fixture;
         },
         { session, initialMessages }
       );
@@ -127,8 +127,8 @@ for (const measured of [false, true]) {
       await page.evaluate((sessionID) => {
         // SAFETY: This isolated page installs the production-event replay transport.
         const harness = (
-          window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-        ).__varroE2E;
+          window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+        ).__loomeryE2E;
         if (!harness) throw new Error('Missing playback harness');
         harness.replayServerEvent({
           type: 'session.status',
@@ -148,8 +148,8 @@ for (const measured of [false, true]) {
         async ({ sessionID, assistant: resumedFrom, split: splitNotice }) => {
           // SAFETY: This isolated page installs the production-event replay transport.
           const harness = (
-            window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-          ).__varroE2E;
+            window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+          ).__loomeryE2E;
           const list = document.querySelector<HTMLElement>('.interactive-list');
           const marker = list?.querySelector<HTMLElement>(
             '[data-msg-id="background-answer"] .rendered-markdown p:last-child'

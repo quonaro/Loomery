@@ -70,16 +70,16 @@ describe('BrowserPersistence', () => {
       },
     };
     window.localStorage.setItem(
-      'varro.lastOpenedView',
+      'loomery.lastOpenedView',
       JSON.stringify({ type: 'session', sessionId: 'sidebar-session' })
     );
     const storage = new BrowserPersistence();
 
-    expect(storage.get('varro.lastOpenedView')).toBeUndefined();
-    storage.set('varro.lastOpenedView', { type: 'new-session' });
+    expect(storage.get('loomery.lastOpenedView')).toBeUndefined();
+    storage.set('loomery.lastOpenedView', { type: 'new-session' });
 
-    expect(vscodeState['varro.lastOpenedView']).toEqual({ type: 'new-session' });
-    expect(JSON.parse(window.localStorage.getItem('varro.lastOpenedView') || 'null')).toEqual({
+    expect(vscodeState['loomery.lastOpenedView']).toEqual({ type: 'new-session' });
+    expect(JSON.parse(window.localStorage.getItem('loomery.lastOpenedView') || 'null')).toEqual({
       type: 'session',
       sessionId: 'sidebar-session',
     });
@@ -96,26 +96,26 @@ describe('BrowserPersistence', () => {
       setState,
     };
 
-    storage.set('varro.lastOpenedView', { type: 'session', sessionId: 'session-1' });
-    storage.set('varro.lastOpenedView', { type: 'session', sessionId: 'session-2' });
+    storage.set('loomery.lastOpenedView', { type: 'session', sessionId: 'session-1' });
+    storage.set('loomery.lastOpenedView', { type: 'session', sessionId: 'session-2' });
 
     expect(setState).not.toHaveBeenCalled();
     expect(vscodeState).toEqual({});
-    expect(storage.get('varro.lastOpenedView')).toEqual({
+    expect(storage.get('loomery.lastOpenedView')).toEqual({
       type: 'session',
       sessionId: 'session-2',
     });
 
-    storage.remove('varro.lastOpenedView');
+    storage.remove('loomery.lastOpenedView');
 
     expect(setState).not.toHaveBeenCalled();
     expect(vscodeState).toEqual({});
-    expect(storage.get('varro.lastOpenedView')).toBeUndefined();
+    expect(storage.get('loomery.lastOpenedView')).toBeUndefined();
   });
 
   it('cleans a stale shared mirror once without recurring VS Code writes', () => {
     let vscodeState: TestRuntimeRecord = {
-      'varro.selectedAgent': 'stale',
+      'loomery.selectedAgent': 'stale',
     };
     const setState = vi.fn((state: TestRuntimeRecord) => {
       vscodeState = state;
@@ -126,17 +126,17 @@ describe('BrowserPersistence', () => {
     };
     const storage = new BrowserPersistence();
 
-    storage.set('varro.selectedAgent', 'build');
-    storage.set('varro.selectedAgent', 'plan');
+    storage.set('loomery.selectedAgent', 'build');
+    storage.set('loomery.selectedAgent', 'plan');
 
     expect(setState).toHaveBeenCalledOnce();
     expect(vscodeState).toEqual({});
-    expect(storage.get('varro.selectedAgent')).toBe('plan');
+    expect(storage.get('loomery.selectedAgent')).toBe('plan');
   });
 
   it("loads another view's canonical shared write instead of stale private VSCode state", () => {
     let firstViewState: TestRuntimeRecord = {
-      'varro.selectedModel': {
+      'loomery.selectedModel': {
         providerID: 'openai',
         modelID: 'stale-model',
       },
@@ -148,7 +148,7 @@ describe('BrowserPersistence', () => {
         secondViewState = state;
       },
     };
-    new BrowserPersistence().set('varro.selectedModel', {
+    new BrowserPersistence().set('loomery.selectedModel', {
       providerID: 'anthropic',
       modelID: 'canonical-model',
     });
@@ -160,11 +160,11 @@ describe('BrowserPersistence', () => {
       },
     };
 
-    expect(new BrowserPersistence().get('varro.selectedModel')).toEqual({
+    expect(new BrowserPersistence().get('loomery.selectedModel')).toEqual({
       providerID: 'anthropic',
       modelID: 'canonical-model',
     });
-    expect(firstViewState['varro.selectedModel']).toEqual({
+    expect(firstViewState['loomery.selectedModel']).toEqual({
       providerID: 'openai',
       modelID: 'stale-model',
     });
@@ -185,12 +185,12 @@ describe('BrowserPersistence', () => {
         firstViewState = state;
       },
     };
-    new BrowserPersistence().set('varro.lastOpenedView', {
+    new BrowserPersistence().set('loomery.lastOpenedView', {
       type: 'session',
       sessionId: 'session-1',
     });
-    new BrowserPersistence().set('varro.workspacePath', '/repo-a');
-    new BrowserPersistence().set('varro.manualWorkspaceSelection', true);
+    new BrowserPersistence().set('loomery.workspacePath', '/repo-a');
+    new BrowserPersistence().set('loomery.manualWorkspaceSelection', true);
 
     let secondViewState: TestRuntimeRecord = {};
     window.__vscodeWebviewState = {
@@ -199,12 +199,12 @@ describe('BrowserPersistence', () => {
         secondViewState = state;
       },
     };
-    new BrowserPersistence().set('varro.lastOpenedView', {
+    new BrowserPersistence().set('loomery.lastOpenedView', {
       type: 'session',
       sessionId: 'session-2',
     });
-    new BrowserPersistence().set('varro.workspacePath', '/repo-b');
-    new BrowserPersistence().set('varro.manualWorkspaceSelection', false);
+    new BrowserPersistence().set('loomery.workspacePath', '/repo-b');
+    new BrowserPersistence().set('loomery.manualWorkspaceSelection', false);
 
     window.__vscodeWebviewState = {
       getState: () => firstViewState,
@@ -213,14 +213,14 @@ describe('BrowserPersistence', () => {
       },
     };
 
-    expect(new BrowserPersistence().get('varro.lastOpenedView')).toEqual({
+    expect(new BrowserPersistence().get('loomery.lastOpenedView')).toEqual({
       type: 'session',
       sessionId: 'session-1',
     });
-    expect(new BrowserPersistence().get('varro.workspacePath')).toBe('/repo-a');
-    expect(new BrowserPersistence().get('varro.manualWorkspaceSelection')).toBe(true);
-    expect(window.localStorage.getItem('varro.lastOpenedView')).toBeNull();
-    expect(window.localStorage.getItem('varro.workspacePath')).toBeNull();
+    expect(new BrowserPersistence().get('loomery.workspacePath')).toBe('/repo-a');
+    expect(new BrowserPersistence().get('loomery.manualWorkspaceSelection')).toBe(true);
+    expect(window.localStorage.getItem('loomery.lastOpenedView')).toBeNull();
+    expect(window.localStorage.getItem('loomery.workspacePath')).toBeNull();
   });
 
   it('keeps sidebar composer state private across two webview instances', () => {
@@ -232,16 +232,16 @@ describe('BrowserPersistence', () => {
       },
     });
     window.localStorage.setItem(
-      'varro.inputDraftFiles',
+      'loomery.inputDraftFiles',
       JSON.stringify([{ path: '/stale/file.ts', relativePath: 'file.ts', type: 'file' }])
     );
-    window.localStorage.setItem('varro.inputDraft', JSON.stringify('stale draft'));
+    window.localStorage.setItem('loomery.inputDraft', JSON.stringify('stale draft'));
     window.localStorage.setItem(
-      'varro.queuedMessageEdit',
+      'loomery.queuedMessageEdit',
       JSON.stringify({ id: 'stale-message', sessionId: 'stale-session' })
     );
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([{ id: 'stale-message', sessionId: 'stale-session', text: 'stale queue' }])
     );
     let firstViewState: TestRuntimeRecord = {};
@@ -256,14 +256,14 @@ describe('BrowserPersistence', () => {
     const firstQueue = [{ id: 'message-1', sessionId: 'session-1', text: 'queued message' }];
     const firstStorage = new BrowserPersistence();
 
-    expect(firstStorage.get('varro.inputDraft')).toBeUndefined();
-    expect(firstStorage.get('varro.inputDraftFiles')).toBeUndefined();
-    expect(firstStorage.get('varro.queuedMessageEdit')).toBeUndefined();
-    expect(firstStorage.get('varro.queuedMessages')).toBeUndefined();
-    firstStorage.set('varro.inputDraft', 'first draft');
-    firstStorage.set('varro.inputDraftFiles', firstFiles);
-    firstStorage.set('varro.queuedMessageEdit', firstEdit);
-    firstStorage.set('varro.queuedMessages', firstQueue);
+    expect(firstStorage.get('loomery.inputDraft')).toBeUndefined();
+    expect(firstStorage.get('loomery.inputDraftFiles')).toBeUndefined();
+    expect(firstStorage.get('loomery.queuedMessageEdit')).toBeUndefined();
+    expect(firstStorage.get('loomery.queuedMessages')).toBeUndefined();
+    firstStorage.set('loomery.inputDraft', 'first draft');
+    firstStorage.set('loomery.inputDraftFiles', firstFiles);
+    firstStorage.set('loomery.queuedMessageEdit', firstEdit);
+    firstStorage.set('loomery.queuedMessages', firstQueue);
 
     let secondViewState: TestRuntimeRecord = {};
     window.__vscodeWebviewState = {
@@ -273,10 +273,10 @@ describe('BrowserPersistence', () => {
       },
     };
 
-    expect(new BrowserPersistence().get('varro.inputDraft')).toBeUndefined();
-    expect(new BrowserPersistence().get('varro.inputDraftFiles')).toBeUndefined();
-    expect(new BrowserPersistence().get('varro.queuedMessageEdit')).toBeUndefined();
-    expect(new BrowserPersistence().get('varro.queuedMessages')).toBeUndefined();
+    expect(new BrowserPersistence().get('loomery.inputDraft')).toBeUndefined();
+    expect(new BrowserPersistence().get('loomery.inputDraftFiles')).toBeUndefined();
+    expect(new BrowserPersistence().get('loomery.queuedMessageEdit')).toBeUndefined();
+    expect(new BrowserPersistence().get('loomery.queuedMessages')).toBeUndefined();
 
     window.__vscodeWebviewState = {
       getState: () => firstViewState,
@@ -285,21 +285,21 @@ describe('BrowserPersistence', () => {
       },
     };
 
-    expect(new BrowserPersistence().get('varro.inputDraft')).toBe('first draft');
-    expect(new BrowserPersistence().get('varro.inputDraftFiles')).toEqual(firstFiles);
-    expect(new BrowserPersistence().get('varro.queuedMessageEdit')).toEqual(firstEdit);
-    expect(new BrowserPersistence().get('varro.queuedMessages')).toEqual(firstQueue);
-    expect(JSON.parse(window.localStorage.getItem('varro.inputDraft') || 'null')).toBe(
+    expect(new BrowserPersistence().get('loomery.inputDraft')).toBe('first draft');
+    expect(new BrowserPersistence().get('loomery.inputDraftFiles')).toEqual(firstFiles);
+    expect(new BrowserPersistence().get('loomery.queuedMessageEdit')).toEqual(firstEdit);
+    expect(new BrowserPersistence().get('loomery.queuedMessages')).toEqual(firstQueue);
+    expect(JSON.parse(window.localStorage.getItem('loomery.inputDraft') || 'null')).toBe(
       'stale draft'
     );
-    expect(JSON.parse(window.localStorage.getItem('varro.inputDraftFiles') || 'null')).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.inputDraftFiles') || 'null')).toEqual([
       { path: '/stale/file.ts', relativePath: 'file.ts', type: 'file' },
     ]);
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessageEdit') || 'null')).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessageEdit') || 'null')).toEqual({
       id: 'stale-message',
       sessionId: 'stale-session',
     });
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || 'null')).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || 'null')).toEqual([
       { id: 'stale-message', sessionId: 'stale-session', text: 'stale queue' },
     ]);
   });
@@ -322,12 +322,12 @@ describe('BrowserPersistence', () => {
 
     try {
       const storage = new BrowserPersistence();
-      storage.set('varro.lastOpenedView', { type: 'sessions-list' });
+      storage.set('loomery.lastOpenedView', { type: 'sessions-list' });
 
-      expect(storage.get('varro.lastOpenedView')).toEqual({ type: 'sessions-list' });
-      expect(vscodeState['varro.lastOpenedView']).toEqual({ type: 'sessions-list' });
-      expect(vscodeState['__varroLocalStorageFailures']).toEqual({
-        'varro.lastOpenedView': null,
+      expect(storage.get('loomery.lastOpenedView')).toEqual({ type: 'sessions-list' });
+      expect(vscodeState['loomery.lastOpenedView']).toEqual({ type: 'sessions-list' });
+      expect(vscodeState['__loomeryLocalStorageFailures']).toEqual({
+        'loomery.lastOpenedView': null,
       });
     } finally {
       if (descriptor) Object.defineProperty(window, 'localStorage', descriptor);
@@ -343,7 +343,7 @@ describe('BrowserPersistence', () => {
       getState: () => vscodeState,
       setState,
     };
-    const values = new Map([['varro.selectedModel', JSON.stringify({ modelID: 'old' })]]);
+    const values = new Map([['loomery.selectedModel', JSON.stringify({ modelID: 'old' })]]);
     const failingStorage = fixture<Storage>({
       getItem: (key) => values.get(key) ?? null,
       setItem: () => {
@@ -354,14 +354,14 @@ describe('BrowserPersistence', () => {
       },
     });
 
-    new BrowserPersistence(failingStorage).set('varro.selectedModel', { modelID: 'new' });
+    new BrowserPersistence(failingStorage).set('loomery.selectedModel', { modelID: 'new' });
 
-    expect(new BrowserPersistence(failingStorage).get('varro.selectedModel')).toEqual({
+    expect(new BrowserPersistence(failingStorage).get('loomery.selectedModel')).toEqual({
       modelID: 'new',
     });
     expect(setState).toHaveBeenCalledOnce();
-    expect(vscodeState['__varroLocalStorageFailures']).toEqual({
-      'varro.selectedModel': JSON.stringify({ modelID: 'old' }),
+    expect(vscodeState['__loomeryLocalStorageFailures']).toEqual({
+      'loomery.selectedModel': JSON.stringify({ modelID: 'old' }),
     });
   });
 
@@ -376,11 +376,11 @@ describe('BrowserPersistence', () => {
     };
     const storage = new BrowserPersistence();
 
-    storage.set('varro.unsupportedValue', 1n);
+    storage.set('loomery.unsupportedValue', 1n);
 
     expect(setState).toHaveBeenCalledOnce();
-    expect(storage.get('varro.unsupportedValue')).toBe(1n);
-    expect(window.localStorage.getItem('varro.unsupportedValue')).toBeNull();
+    expect(storage.get('loomery.unsupportedValue')).toBe(1n);
+    expect(window.localStorage.getItem('loomery.unsupportedValue')).toBeNull();
   });
 
   it('warns once when storage removal keeps failing', () => {
@@ -396,14 +396,14 @@ describe('BrowserPersistence', () => {
     });
     const storage = new BrowserPersistence(failingStorage);
 
-    storage.remove('varro.lastOpenedView');
-    storage.remove('varro.composerDraft');
+    storage.remove('loomery.lastOpenedView');
+    storage.remove('loomery.composerDraft');
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledWith({
       type: 'log',
       payload: {
-        msg: 'browser-persistence:remove:varro.lastOpenedView',
+        msg: 'browser-persistence:remove:loomery.lastOpenedView',
         error: 'quota exceeded',
         level: 'warn',
       },
@@ -428,15 +428,15 @@ describe('BrowserPersistence', () => {
     };
     const storage = new BrowserPersistence();
 
-    storage.set('varro.lastOpenedView', { type: 'sessions-list' });
-    storage.set('varro.workspacePath', '/repo-a');
-    storage.set('varro.manualWorkspaceSelection', true);
+    storage.set('loomery.lastOpenedView', { type: 'sessions-list' });
+    storage.set('loomery.workspacePath', '/repo-a');
+    storage.set('loomery.manualWorkspaceSelection', true);
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledWith({
       type: 'log',
       payload: {
-        msg: 'browser-persistence:vscode-state-write:varro.lastOpenedView',
+        msg: 'browser-persistence:vscode-state-write:loomery.lastOpenedView',
         error: 'state unavailable',
         level: 'warn',
       },
@@ -461,14 +461,14 @@ describe('BrowserPersistence', () => {
     };
     const storage = new BrowserPersistence();
 
-    storage.remove('varro.lastOpenedView');
-    storage.remove('varro.workspacePath');
+    storage.remove('loomery.lastOpenedView');
+    storage.remove('loomery.workspacePath');
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledWith({
       type: 'log',
       payload: {
-        msg: 'browser-persistence:vscode-state-remove:varro.lastOpenedView',
+        msg: 'browser-persistence:vscode-state-remove:loomery.lastOpenedView',
         error: 'state unavailable',
         level: 'warn',
       },

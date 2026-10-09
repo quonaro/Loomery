@@ -15,12 +15,12 @@ import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OpenCodeV2SessionState } from './opencode-v2-session-state';
 import {
-  getLegacyVarroStateDirectory,
-  getVarroStateDirectory,
-  getVarroStateReadDirectory,
-  prepareVarroStateDirectory,
-  prepareVarroScratchDirectory,
-} from './varro-state-paths';
+  getLegacyLoomeryStateDirectory,
+  getLoomeryStateDirectory,
+  getLoomeryStateReadDirectory,
+  prepareLoomeryStateDirectory,
+  prepareLoomeryScratchDirectory,
+} from './loomery-state-paths';
 
 vi.mock('os', async (importOriginal) => {
   const actual = await importOriginal<typeof os>();
@@ -37,11 +37,11 @@ beforeEach(async () => {
   await mkdir(parent, { recursive: true });
   root = await mkdtemp(join(parent, 'state-paths-'));
   vi.mocked(os.homedir).mockReturnValue(join(root, 'home'));
-  vi.stubEnv('VARRO_TEST_STATE_ROOT', undefined);
-  vi.stubEnv('VARRO_TEST_SERVER_URL', undefined);
+  vi.stubEnv('LOOMERY_TEST_STATE_ROOT', undefined);
+  vi.stubEnv('LOOMERY_TEST_SERVER_URL', undefined);
   vi.stubEnv('XDG_STATE_HOME', join(root, 'xdg-state'));
   vi.stubEnv('LOCALAPPDATA', join(root, 'local-appdata'));
-  for (const kind of kinds) expect(getVarroStateDirectory(kind).startsWith(root)).toBe(true);
+  for (const kind of kinds) expect(getLoomeryStateDirectory(kind).startsWith(root)).toBe(true);
 });
 
 afterEach(async () => {
@@ -51,18 +51,18 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-describe('Varro state directories', () => {
+describe('Loomery state directories', () => {
   it.each(['darwin', 'linux', 'win32'])(
     'uses one native root for all state on %s',
     (osPlatform) => {
       Object.defineProperty(process, 'platform', { value: osPlatform, configurable: true });
       const nativeRoot =
         osPlatform === 'darwin'
-          ? join(root, 'home', 'Library', 'Application Support', 'Varro')
+          ? join(root, 'home', 'Library', 'Application Support', 'Loomery')
           : osPlatform === 'win32'
-            ? join(root, 'local-appdata', 'Varro')
-            : join(root, 'xdg-state', 'varro');
-      for (const kind of kinds) expect(getVarroStateDirectory(kind)).toBe(join(nativeRoot, kind));
+            ? join(root, 'local-appdata', 'Loomery')
+            : join(root, 'xdg-state', 'loomery');
+      for (const kind of kinds) expect(getLoomeryStateDirectory(kind)).toBe(join(nativeRoot, kind));
     }
   );
 
@@ -70,12 +70,12 @@ describe('Varro state directories', () => {
     vi.stubEnv('XDG_STATE_HOME', value);
     vi.stubEnv('LOCALAPPDATA', value);
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    expect(getVarroStateDirectory('servers')).toBe(
-      join(root, 'home', '.local', 'state', 'varro', 'servers')
+    expect(getLoomeryStateDirectory('servers')).toBe(
+      join(root, 'home', '.local', 'state', 'loomery', 'servers')
     );
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    expect(getVarroStateDirectory('servers')).toBe(
-      join(root, 'home', 'AppData', 'Local', 'Varro', 'servers')
+    expect(getLoomeryStateDirectory('servers')).toBe(
+      join(root, 'home', 'AppData', 'Local', 'Loomery', 'servers')
     );
   });
 
@@ -83,37 +83,37 @@ describe('Varro state directories', () => {
     'isolates all state and disables legacy discovery on %s',
     (osPlatform) => {
       Object.defineProperty(process, 'platform', { value: osPlatform, configurable: true });
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', join(root, 'profile'));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(root, 'profile'));
       for (const kind of kinds)
-        expect(getVarroStateDirectory(kind)).toBe(join(root, 'profile', kind));
-      expect(getLegacyVarroStateDirectory('opencode-v2')).toBeUndefined();
-      expect(getLegacyVarroStateDirectory('provider-quota-v2')).toBeUndefined();
+        expect(getLoomeryStateDirectory(kind)).toBe(join(root, 'profile', kind));
+      expect(getLegacyLoomeryStateDirectory('opencode-v2')).toBeUndefined();
+      expect(getLegacyLoomeryStateDirectory('provider-quota-v2')).toBeUndefined();
     }
   );
 
   it('fails closed for every state kind when test isolation is missing or invalid', () => {
-    vi.stubEnv('VARRO_TEST_SERVER_URL', 'http://127.0.0.1:49999');
+    vi.stubEnv('LOOMERY_TEST_SERVER_URL', 'http://127.0.0.1:49999');
     for (const kind of kinds)
-      expect(() => getVarroStateDirectory(kind)).toThrow('isolation is missing');
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', 'relative/profile');
+      expect(() => getLoomeryStateDirectory(kind)).toThrow('isolation is missing');
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', 'relative/profile');
     for (const kind of kinds)
-      expect(() => getVarroStateDirectory(kind)).toThrow('absolute isolated directory');
-    expect(() => getLegacyVarroStateDirectory('opencode-v2')).toThrow(
+      expect(() => getLoomeryStateDirectory(kind)).toThrow('absolute isolated directory');
+    expect(() => getLegacyLoomeryStateDirectory('opencode-v2')).toThrow(
       'absolute isolated directory'
     );
   });
 
   it('does not treat Linux annotations already at the native path as legacy', () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    expect(getLegacyVarroStateDirectory('opencode-v2')).toBeUndefined();
-    expect(getLegacyVarroStateDirectory('provider-quota-v2')).toBe(
-      join(root, 'home', '.varro-provider-quota-v2')
+    expect(getLegacyLoomeryStateDirectory('opencode-v2')).toBeUndefined();
+    expect(getLegacyLoomeryStateDirectory('provider-quota-v2')).toBe(
+      join(root, 'home', '.loomery-provider-quota-v2')
     );
   });
 
   it('creates private native directories on a fresh installation', async () => {
     const directory = join(root, 'native', 'opencode-v2');
-    await expect(prepareVarroStateDirectory(directory, join(root, 'absent'))).resolves.toBe(
+    await expect(prepareLoomeryStateDirectory(directory, join(root, 'absent'))).resolves.toBe(
       directory
     );
     expect((await stat(directory)).isDirectory()).toBe(true);
@@ -121,41 +121,41 @@ describe('Varro state directories', () => {
   });
 
   it('creates and reuses an isolated private scratch folder without discarding files', async () => {
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', join(root, 'profile'));
-    const directory = getVarroStateDirectory('scratch');
-    await prepareVarroScratchDirectory();
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(root, 'profile'));
+    const directory = getLoomeryStateDirectory('scratch');
+    await prepareLoomeryScratchDirectory();
     await writeFile(join(directory, 'notes.txt'), 'keep me');
-    await prepareVarroScratchDirectory();
+    await prepareLoomeryScratchDirectory();
     expect(await readFile(join(directory, 'notes.txt'), 'utf8')).toBe('keep me');
     if (platform !== 'win32') expect((await stat(directory)).mode & 0o777).toBe(0o700);
   });
 
   it('refuses a scratch folder redirected to another directory', async () => {
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
     const unrelated = join(root, 'unrelated');
     await mkdir(unrelated);
     await symlink(
       unrelated,
-      getVarroStateDirectory('scratch'),
+      getLoomeryStateDirectory('scratch'),
       platform === 'win32' ? 'junction' : 'dir'
     );
-    await expect(prepareVarroScratchDirectory()).rejects.toThrow(
-      'Expected a real Varro scratch directory'
+    await expect(prepareLoomeryScratchDirectory()).rejects.toThrow(
+      'Expected a real Loomery scratch directory'
     );
   });
 
   it('reads legacy annotations without creating directories or compatibility links', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-    const directory = getVarroStateDirectory('opencode-v2');
-    expect(getVarroStateReadDirectory('opencode-v2')).toBe(directory);
+    const directory = getLoomeryStateDirectory('opencode-v2');
+    expect(getLoomeryStateReadDirectory('opencode-v2')).toBe(directory);
     await expect(stat(directory)).rejects.toMatchObject({ code: 'ENOENT' });
-    const legacy = getLegacyVarroStateDirectory('opencode-v2')!;
+    const legacy = getLegacyLoomeryStateDirectory('opencode-v2')!;
     await mkdir(legacy, { recursive: true });
-    expect(getVarroStateReadDirectory('opencode-v2')).toBe(legacy);
+    expect(getLoomeryStateReadDirectory('opencode-v2')).toBe(legacy);
     await expect(stat(directory)).rejects.toMatchObject({ code: 'ENOENT' });
     await mkdir(directory, { recursive: true });
-    expect(() => getVarroStateReadDirectory('opencode-v2')).toThrow(
-      'Conflicting Varro state directories'
+    expect(() => getLoomeryStateReadDirectory('opencode-v2')).toThrow(
+      'Conflicting Loomery state directories'
     );
   });
 
@@ -165,7 +165,7 @@ describe('Varro state directories', () => {
     await mkdir(legacy, { mode: 0o700 });
     await writeFile(join(legacy, 'ses_fixture.json'), '{"old":true}');
     await Promise.all(
-      Array.from({ length: 8 }, () => prepareVarroStateDirectory(directory, legacy))
+      Array.from({ length: 8 }, () => prepareLoomeryStateDirectory(directory, legacy))
     );
     expect(await realpath(directory)).toBe(await realpath(legacy));
     await writeFile(join(legacy, 'replacement.tmp'), '{"updated":true}');
@@ -176,7 +176,7 @@ describe('Varro state directories', () => {
   it('preserves metadata and generation timing across native and legacy annotation writers', async () => {
     // macOS has distinct native and legacy directories; operations still use this host's real filesystem.
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-    const legacy = getLegacyVarroStateDirectory('opencode-v2')!;
+    const legacy = getLegacyLoomeryStateDirectory('opencode-v2')!;
     const oldStore = new OpenCodeV2SessionState(legacy);
     const timing = { 'msg_one:text:0': { start: 100, end: 200, textHash: 'a'.repeat(64) } };
     await oldStore.update('ses_fixture', { metadata: { label: 'kept' }, generationTiming: timing });
@@ -207,8 +207,8 @@ describe('Varro state directories', () => {
     await mkdir(directory);
     await writeFile(join(legacy, 'ses_fixture.json'), '{"old":true}');
     await writeFile(join(directory, 'ses_fixture.json'), '{"new":true}');
-    await expect(prepareVarroStateDirectory(directory, legacy)).rejects.toThrow(
-      'Conflicting Varro state directories'
+    await expect(prepareLoomeryStateDirectory(directory, legacy)).rejects.toThrow(
+      'Conflicting Loomery state directories'
     );
     expect(await readFile(join(legacy, 'ses_fixture.json'), 'utf8')).toBe('{"old":true}');
     expect(await readFile(join(directory, 'ses_fixture.json'), 'utf8')).toBe('{"new":true}');
@@ -216,7 +216,7 @@ describe('Varro state directories', () => {
 
   it('preserves a live legacy lock while exposing the native annotation path', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-    const legacy = getLegacyVarroStateDirectory('opencode-v2')!;
+    const legacy = getLegacyLoomeryStateDirectory('opencode-v2')!;
     const oldStore = new OpenCodeV2SessionState(legacy);
     await oldStore.update('ses_fixture', { existing: true });
     let entered!: () => void;
@@ -262,7 +262,7 @@ describe('Varro state directories', () => {
     const legacy = join(root, 'legacy');
     await mkdir(directory);
     await symlink(directory, legacy, platform === 'win32' ? 'junction' : 'dir');
-    await expect(prepareVarroStateDirectory(directory, legacy)).resolves.toBe(
+    await expect(prepareLoomeryStateDirectory(directory, legacy)).resolves.toBe(
       await realpath(directory)
     );
   });
@@ -273,8 +273,8 @@ describe('Varro state directories', () => {
     const unrelated = join(root, 'unrelated');
     await mkdir(unrelated);
     await symlink(unrelated, legacy, platform === 'win32' ? 'junction' : 'dir');
-    await expect(prepareVarroStateDirectory(directory, legacy)).rejects.toThrow(
-      'Expected a real Varro state directory'
+    await expect(prepareLoomeryStateDirectory(directory, legacy)).rejects.toThrow(
+      'Expected a real Loomery state directory'
     );
     await expect(stat(directory)).rejects.toMatchObject({ code: 'ENOENT' });
   });

@@ -41,7 +41,7 @@ describe('SidebarProvider session message responses', () => {
         directory: '/repo',
         metadata: {
           custom: 'preserved',
-          varro: { workspaceScope: 'folder' },
+          loomery: { workspaceScope: 'folder' },
         } as Session['metadata'],
       };
       const request = vi.fn(async (method: string, path: string, body?: unknown) => {
@@ -59,7 +59,7 @@ describe('SidebarProvider session message responses', () => {
       ).updateConfirmedPermissionMode(session.id, mode);
       expect(session.metadata).toEqual({
         custom: 'preserved',
-        varro: { schemaVersion: 1, workspaceScope: 'folder', permissionMode: mode },
+        loomery: { schemaVersion: 1, workspaceScope: 'folder', permissionMode: mode },
       });
       expect(request).toHaveBeenCalledWith(
         'PATCH',
@@ -94,7 +94,7 @@ describe('SidebarProvider session message responses', () => {
             ...session,
             metadata: {
               ...session.metadata,
-              varro: { ...asRecord(session.metadata?.varro), permissionMode: changedMode },
+              loomery: { ...asRecord(session.metadata?.loomery), permissionMode: changedMode },
             },
           },
         },
@@ -110,7 +110,7 @@ describe('SidebarProvider session message responses', () => {
     const workspaceState = {
       get: vi.fn(() => undefined),
       update: vi.fn((key: string) =>
-        key === 'varro.sessionPermissionModes'
+        key === 'loomery.sessionPermissionModes'
           ? Promise.reject(new Error('disk full'))
           : Promise.resolve()
       ),
@@ -146,7 +146,7 @@ describe('SidebarProvider session message responses', () => {
     const server = createServer({
       request: vi.fn(async () => ({
         id: 'session-1',
-        metadata: { varro: { schemaVersion: 1, permissionMode: 'auto' } },
+        metadata: { loomery: { schemaVersion: 1, permissionMode: 'auto' } },
       })),
     });
     const { provider } = await createSidebarProviderInstance({ server });
@@ -194,8 +194,8 @@ describe('SidebarProvider session message responses', () => {
 
   it('keeps startup recovery read-only until the user resolves pending rules', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionPermissionModes', { 'session-1': 'full' }],
-      ['varro.sessionPermissionModeFallbacks', ['session-1']],
+      ['loomery.sessionPermissionModes', { 'session-1': 'full' }],
+      ['loomery.sessionPermissionModeFallbacks', ['session-1']],
     ]);
     const workspaceState = {
       get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -242,12 +242,12 @@ describe('SidebarProvider session message responses', () => {
       expect(internals.permissionModeFallbackReconciliation).toBeNull();
     });
 
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual(['session-1']);
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual(['session-1']);
     permission = getSafeDefaultPermissionRules();
     await internals.recoverPendingPermissionModeFallbacks();
     expect(server.request.mock.calls.every(([method]) => method === 'GET')).toBe(true);
 
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual([]);
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual([]);
     expect(posted).toContainEqual({
       type: 'permission-modes/sync',
       payload: { modes: { 'session-1': 'default' } },
@@ -286,12 +286,12 @@ describe('SidebarProvider session message responses', () => {
       'PATCH',
       '/session/fork-1',
       {
-        metadata: { custom: 'preserved', varro: { schemaVersion: 1, permissionMode: 'full' } },
+        metadata: { custom: 'preserved', loomery: { schemaVersion: 1, permissionMode: 'full' } },
       },
       { directory: '/repo' }
     );
-    expect(values.get('varro.sessionPermissionModes')).toEqual({ 'fork-1': 'full' });
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual([]);
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({ 'fork-1': 'full' });
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual([]);
     expect(posted).toContainEqual({
       type: 'permission-modes/sync',
       payload: { modes: { 'fork-1': 'full' } },
@@ -351,14 +351,14 @@ describe('SidebarProvider session message responses', () => {
     releasePatch();
     await Promise.all([newerUpdate, staleAcknowledgement]);
 
-    expect(values.get('varro.sessionPermissionModes')).toEqual({ 'fork-1': 'auto' });
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({ 'fork-1': 'auto' });
     expect(server.request).toHaveBeenCalledTimes(2);
   });
 
   it('clears fallback IDs only after every session catalog is authoritative', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionPermissionModes', { missing: 'full' }],
-      ['varro.sessionPermissionModeFallbacks', ['missing']],
+      ['loomery.sessionPermissionModes', { missing: 'full' }],
+      ['loomery.sessionPermissionModeFallbacks', ['missing']],
     ]);
     const workspaceState = {
       get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -388,19 +388,19 @@ describe('SidebarProvider session message responses', () => {
     };
 
     await internals.recoverPendingPermissionModeFallbacks();
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual(['missing']);
-    expect(values.get('varro.sessionPermissionModes')).toEqual({ missing: 'full' });
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual(['missing']);
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({ missing: 'full' });
 
     catalogState = 'malformed';
     await internals.recoverPendingPermissionModeFallbacks();
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual(['missing']);
-    expect(values.get('varro.sessionPermissionModes')).toEqual({ missing: 'full' });
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual(['missing']);
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({ missing: 'full' });
 
     catalogState = 'complete';
     await internals.recoverPendingPermissionModeFallbacks();
 
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual([]);
-    expect(values.get('varro.sessionPermissionModes')).toEqual({});
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual([]);
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({});
   });
 
   it.each([
@@ -422,10 +422,10 @@ describe('SidebarProvider session message responses', () => {
     'recovers an extant $name session from its resolved catalog scope',
     async ({ scope, scopeKey, catalogPath, directory }) => {
       const values = new Map<string, unknown>([
-        ['varro.sessionPermissionModes', { extant: 'full' }],
-        ['varro.sessionPermissionModeFallbacks', ['extant']],
-        ['varro.sessionHistoryScopes', { [scopeKey]: scope }],
-        ['varro.sessionHistoryScopeProjects', { '/repo': scopeKey }],
+        ['loomery.sessionPermissionModes', { extant: 'full' }],
+        ['loomery.sessionPermissionModeFallbacks', ['extant']],
+        ['loomery.sessionHistoryScopes', { [scopeKey]: scope }],
+        ['loomery.sessionHistoryScopeProjects', { '/repo': scopeKey }],
       ]);
       const workspaceState = {
         get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -458,8 +458,8 @@ describe('SidebarProvider session message responses', () => {
 
       await internals.recoverPendingPermissionModeFallbacks();
 
-      expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual([]);
-      expect(values.get('varro.sessionPermissionModes')).toEqual({ extant: 'default' });
+      expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual([]);
+      expect(values.get('loomery.sessionPermissionModes')).toEqual({ extant: 'default' });
       expect(server.request.mock.calls.every(([method]) => method === 'GET')).toBe(true);
     }
   );
@@ -468,8 +468,8 @@ describe('SidebarProvider session message responses', () => {
     vi.useFakeTimers();
     try {
       const values = new Map<string, unknown>([
-        ['varro.sessionPermissionModes', { missing: 'full' }],
-        ['varro.sessionPermissionModeFallbacks', ['missing']],
+        ['loomery.sessionPermissionModes', { missing: 'full' }],
+        ['loomery.sessionPermissionModeFallbacks', ['missing']],
       ]);
       const workspaceState = {
         get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -516,7 +516,7 @@ describe('SidebarProvider session message responses', () => {
 
       expect(internals.permissionModeFallbackRetryMs).toBe(5_000);
       expect(internals.permissionModeFallbackRetryTimer).toBeNull();
-      expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual([]);
+      expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual([]);
     } finally {
       vi.useRealTimers();
     }
@@ -554,7 +554,7 @@ describe('SidebarProvider session message responses', () => {
       payload: { modes: { 'session-1': 'auto', 'session-legacy': 'default' } },
     });
 
-    expect(values.get('varro.sessionPermissionModes')).toEqual({
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({
       'session-1': 'full',
       'session-legacy': 'default',
     });
@@ -797,8 +797,8 @@ describe('SidebarProvider session message responses', () => {
 
   it('activates a Project catalog session through its authorized directory', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionHistoryScopes', { 'project:project-1': 'project' }],
-      ['varro.sessionHistoryScopeProjects', { '/repo': 'project:project-1' }],
+      ['loomery.sessionHistoryScopes', { 'project:project-1': 'project' }],
+      ['loomery.sessionHistoryScopeProjects', { '/repo': 'project:project-1' }],
     ]);
     const workspaceState = {
       get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -849,7 +849,7 @@ describe('SidebarProvider session message responses', () => {
       payload: {
         id: 302,
         method: 'POST',
-        path: '/varro/session/project-session/activate',
+        path: '/loomery/session/project-session/activate',
         body: { directory: '/worktrees/feature' },
       },
     });
@@ -991,7 +991,7 @@ describe('SidebarProvider terminal commands', () => {
       const update = vi.spyOn(windowsCliUpdate, 'runWindowsCliUpdate').mockResolvedValue();
       try {
         // Windows cannot overwrite a running opencode.exe, so the one-click update
-        // needs the same prerequisite as Varro's own upgrade path.
+        // needs the same prerequisite as Loomery's own upgrade path.
         const server = createServer();
         const { provider } = await createSidebarProviderInstance({ server });
         attachTestView(provider);

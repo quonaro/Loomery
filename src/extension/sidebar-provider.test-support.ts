@@ -297,7 +297,7 @@ export async function createSidebarProviderInstance(
     globalState as never,
     contextProvider as never,
     server as never,
-    'koltyakov.varro',
+    'quonaro.loomery',
     false,
     options.providerSignatureFileSystem ?? mocks.providerSignatureFileSystem
   );
@@ -325,7 +325,7 @@ beforeEach(() => {
 
   mocks.spawn.mockReset();
   mocks.mkdtemp.mockReset();
-  mocks.mkdtemp.mockResolvedValue('/tmp/varro-opencode-export-123');
+  mocks.mkdtemp.mockResolvedValue('/tmp/loomery-opencode-export-123');
   mocks.open.mockReset();
   mocks.open.mockResolvedValue({ fd: 17, close: vi.fn(() => Promise.resolve()) });
   mocks.readFile.mockReset();

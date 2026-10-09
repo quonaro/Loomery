@@ -45,7 +45,7 @@ describe('deferred history content', () => {
       const file = { ...identity, type: 'file', url: 'data:image/png;base64,original' };
       expect(projectDeferredPart(file, directory)).toEqual({
         ...file,
-        url: `varro-content:${reference}`,
+        url: `loomery-content:${reference}`,
       });
       expect(file.url).toBe('data:image/png;base64,original');
 
@@ -120,7 +120,7 @@ describe('deferred history content', () => {
           attachments: [
             {
               ...file,
-              url: 'varro-content:/session/session-1/message/message-1/part/part-1?directory=%2Fwork%20space',
+              url: 'loomery-content:/session/session-1/message/message-1/part/part-1?directory=%2Fwork%20space',
             },
             text,
             null,
@@ -220,7 +220,7 @@ describe('deferred history content', () => {
       url: `data:image/png;base64,${'a'.repeat(100_000)}`,
     };
     const projected = projectDeferredPart(original, '/workspace');
-    expect(projected.url).toMatch(/^varro-content:/);
+    expect(projected.url).toMatch(/^loomery-content:/);
     expect(projected.filename).toBe(original.filename);
     expect(JSON.stringify(projected).length).toBeLessThan(1000);
     expect(original.url.length).toBeGreaterThan(100_000);

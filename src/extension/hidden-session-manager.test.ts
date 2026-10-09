@@ -113,7 +113,7 @@ describe('HiddenSessionManager', () => {
         info: {
           id: 'marked-judge',
           title: 'Internal helper',
-          metadata: { varroInternal: 'permission-judge' },
+          metadata: { loomeryInternal: 'permission-judge' },
         },
       },
     });
@@ -122,14 +122,14 @@ describe('HiddenSessionManager', () => {
         { id: 'visible', title: 'Visible session' },
         {
           id: 'legacy-judge',
-          title: 'Varro permission judge: per_legacy',
+          title: 'Loomery permission judge: per_legacy',
           permission: legacyJudgePermission,
           time: { updated: now - 180_000 },
         },
         {
           id: 'marked-judge',
           title: 'Internal helper',
-          metadata: { varroInternal: 'permission-judge' },
+          metadata: { loomeryInternal: 'permission-judge' },
           time: { created: now - 180_000 },
         },
       ],
@@ -143,7 +143,7 @@ describe('HiddenSessionManager', () => {
           { id: 'visible', title: 'Visible session' },
           {
             id: 'legacy-judge',
-            title: 'Varro permission judge: per_legacy',
+            title: 'Loomery permission judge: per_legacy',
             permission: legacyJudgePermission,
           },
           { id: 'marked-judge', title: 'Internal helper' },
@@ -157,29 +157,29 @@ describe('HiddenSessionManager', () => {
     const now = 1_000_000;
     const visibleSession = {
       id: 'visible',
-      title: 'Varro commit message: ordinary-session',
+      title: 'Loomery commit message: ordinary-session',
       permission: [{ permission: '*', pattern: '*', action: 'ask' as const }],
     };
     const visibleNumericSession = {
       id: 'visible-numeric',
-      title: 'Varro commit message: 2',
+      title: 'Loomery commit message: 2',
       permission: [{ permission: '*', pattern: '*', action: 'allow' as const }],
     };
     const markedHelper = {
       id: 'marked-commit-helper',
       title: 'Internal helper',
-      metadata: { varroInternal: 'commit-message' },
+      metadata: { loomeryInternal: 'commit-message' },
       time: { updated: now - 180_000 },
     };
     const legacyHelper = {
       id: 'legacy-commit-helper',
-      title: 'Varro commit message: 1',
+      title: 'Loomery commit message: 1',
       permission: legacyJudgePermission,
       time: { updated: now - 180_000 },
     };
     const titleOnlySession = {
       id: 'title-only-session',
-      title: 'Varro commit message: 3',
+      title: 'Loomery commit message: 3',
       time: { updated: now - 180_000 },
     };
 
@@ -207,7 +207,7 @@ describe('HiddenSessionManager', () => {
     const now = 1_000_000;
     const renamedSession = {
       id: 'renamed-session',
-      title: 'Varro permission judge: ordinary-session',
+      title: 'Loomery permission judge: ordinary-session',
       permission: [{ permission: '*', pattern: '*', action: 'ask' as const }],
       time: { created: now - 240_000, updated: now - 180_000 },
     };
@@ -226,7 +226,7 @@ describe('HiddenSessionManager', () => {
     const manager = new HiddenSessionManager();
     const session = {
       id: 'broader-session',
-      title: 'Varro permission judge: ordinary-session',
+      title: 'Loomery permission judge: ordinary-session',
       permission: [
         ...legacyJudgePermission,
         { permission: 'bash', pattern: '*', action: 'allow' as const },
@@ -240,7 +240,7 @@ describe('HiddenSessionManager', () => {
 
   it('does not classify an active permission judge as stale', () => {
     const manager = new HiddenSessionManager();
-    const title = 'Varro permission judge: per_active';
+    const title = 'Loomery permission judge: per_active';
     manager.registerPendingTitle(title);
 
     expect(manager.observeSessionList([{ id: 'active-judge', title }])).toEqual([]);
@@ -256,7 +256,7 @@ describe('HiddenSessionManager', () => {
         [
           {
             id: 'recent-judge',
-            title: 'Varro permission judge: per_recent',
+            title: 'Loomery permission judge: per_recent',
             permission: legacyJudgePermission,
             time: { updated: now - 30_000 },
           },

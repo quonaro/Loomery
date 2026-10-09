@@ -64,7 +64,7 @@ it('projects live file and tool attachments without changing streaming content',
     handlers.event?.({});
     const payload = JSON.stringify(post.mock.calls.at(-1));
     expect(payload).toContain(
-      'varro-content:/session/session-1/message/message-1/part/image-1?directory=%2Fworkspace'
+      'loomery-content:/session/session-1/message/message-1/part/image-1?directory=%2Fworkspace'
     );
     expect(payload).not.toContain('original-image-bytes');
     if (part.type === 'tool') expect(payload).toContain('keep full streaming output');
@@ -223,11 +223,11 @@ function useParsedEvents() {
 describe('ServerEventBridge', () => {
   it('creates separate left attention and right OpenCode status items', () => {
     const { bridge } = createMocks();
-    expect(mocks.createStatusBarItem).toHaveBeenCalledWith('varro.session-status', 1, 1000);
-    expect(mocks.createStatusBarItem).toHaveBeenCalledWith('varro.opencode-version', 2, 1000);
+    expect(mocks.createStatusBarItem).toHaveBeenCalledWith('loomery.session-status', 1, 1000);
+    expect(mocks.createStatusBarItem).toHaveBeenCalledWith('loomery.opencode-version', 2, 1000);
     expect(bridge.getStatusBarItem()).toMatchObject({
-      name: 'Varro Attention',
-      command: 'varro.chat.statusBarClick',
+      name: 'Loomery Attention',
+      command: 'loomery.chat.statusBarClick',
     });
     expect(bridge.getOpenCodeStatusBarItem()).toMatchObject({
       name: 'OpenCode Version',
@@ -251,7 +251,7 @@ describe('ServerEventBridge', () => {
     const { bridge } = createMocks();
     const item = bridge.getOpenCodeStatusBarItem();
     const openCodeCallIndex = mocks.createStatusBarItem.mock.calls.findLastIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     expect(item).toBe(mocks.createStatusBarItem.mock.results[openCodeCallIndex]!.value);
   });
@@ -1099,11 +1099,11 @@ describe('ServerEventBridge', () => {
 
   it('accepts UNC session metadata with equivalent casing and separators', () => {
     const { bridge, handlers, post, sessionState } = createMocks({
-      workspacePath: '\\\\BuildServer\\Projects\\Varro',
+      workspacePath: '\\\\BuildServer\\Projects\\Loomery',
     });
     const parsed = {
       type: 'session.updated' as const,
-      properties: { info: { id: 'unc-session', directory: '//buildserver/PROJECTS/varro/' } },
+      properties: { info: { id: 'unc-session', directory: '//buildserver/PROJECTS/loomery/' } },
     };
     mocks.parseServerEvent.mockReturnValue(parsed);
     mocks.getSessionIdsForEvent.mockReturnValue(['unc-session']);

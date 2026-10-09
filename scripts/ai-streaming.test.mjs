@@ -537,15 +537,15 @@ test('read-only observer arms, bounds samples, records gaps/duplicates/longtasks
     /already installed/
   );
   tick(0);
-  context.varroAiStreamingObserver.start();
-  assert.throws(() => context.varroAiStreamingObserver.start(), /already running/);
+  context.loomeryAiStreamingObserver.start();
+  assert.throws(() => context.loomeryAiStreamingObserver.start(), /already running/);
   tick(10);
   tick(110);
   callback({ getEntries: () => [{ startTime: 12, duration: 80 }] });
   context.document.hidden = true;
   for (let i = 0; i < 2_100; i++) tick(120 + i * 16);
   clock = 40_000;
-  const result = context.varroAiStreamingObserver.stop();
+  const result = context.loomeryAiStreamingObserver.stop();
   assert.equal(result.frames, 2_102);
   assert.equal(result.maxGapMs, 100);
   assert.equal(result.gapsOver50Ms, 1);
@@ -554,7 +554,7 @@ test('read-only observer arms, bounds samples, records gaps/duplicates/longtasks
   assert.ok(result.droppedSamples > 0);
   assert.equal(result.hiddenFrames, 2_100);
   assert.equal(result.status, 'NEEDS_AI_REVIEW');
-  assert.equal(context.varroAiStreamingObserver, undefined);
+  assert.equal(context.loomeryAiStreamingObserver, undefined);
   assert.ok(cancelled && disconnected);
 });
 
@@ -566,7 +566,7 @@ test('observer reports unavailable longtask instrumentation instead of a pass', 
     cancelAnimationFrame() {},
   });
   vm.runInContext(`(${installObserver.toString()})()`, context);
-  const result = context.varroAiStreamingObserver.stop();
+  const result = context.loomeryAiStreamingObserver.stop();
   assert.equal(result.longtasksSupported, false);
   assert.equal(result.status, 'NEEDS_AI_REVIEW');
 });

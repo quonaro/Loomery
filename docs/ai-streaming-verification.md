@@ -102,7 +102,7 @@ If discovery is unavailable or ambiguous, supply `--server-url http://127.0.0.1:
 `--server-url 'http://[::1]:<port>'`. Explicit URLs require a numeric loopback address and exactly one
 listener owner, discovered by port and address; that PID must also hold the source database open.
 An authenticated source server returns HTTP 401 until `OPENCODE_SERVER_PASSWORD` (and
-`OPENCODE_SERVER_USERNAME` when it is not `opencode`) is exported for `prepare`. A Varro-managed server
+`OPENCODE_SERVER_USERNAME` when it is not `opencode`) is exported for `prepare`. A Loomery-managed server
 keeps these in its private `.credentials` companion ([server ownership](server-ownership.md)); ask the
 user before reading it, and otherwise use retained captures. There is no operator-assertion bypass. Missing `lsof`, inaccessible process metadata, an unheld
 database, or ambiguous ownership blocks preparation before SQLite opens. Status failures also block preparation;
@@ -140,7 +140,7 @@ response coverage within that subset for reasoning, text, tools, edits, large ou
 and baseline history above 50 messages, choosing one response per session. Seeded hashes break
 response ties; richer responses in shorter sessions cannot displace the longest subset. The AI reviews these reasons and
 checks that selected content actually exercises the requested UI. Stored message counts alone do not
-prove more than 50 rendered rows, because Varro can group or hide rows.
+prove more than 50 rendered rows, because Loomery can group or hide rows.
 
 The output contains `manifest.json`, a local `playback.db`, and `capture-<id>.json` files. The manifest
 records selected/rejected IDs, coverage gaps, scan truncation, hashes, provenance, and durations.
@@ -190,7 +190,7 @@ change production session metadata. Only an explicit user request for those prod
 authorizes a separate repair or migration; a streaming-test request does not.
 
 The command prints a private `control.json` path immediately and reports `phase: armed` after it has
-opened the replay session in the exact Varro sidebar. The run's `run.json` identifies the host,
+opened the replay session in the exact Loomery sidebar. The run's `run.json` identifies the host,
 debugging endpoint, inner frame, session route, workspace, and profile. Use only those targets for
 inspection and native input. An absent or ambiguous target is a failure, not permission to use the
 production editor or a browser preview.

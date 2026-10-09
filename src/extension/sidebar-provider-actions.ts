@@ -109,7 +109,7 @@ export function createSidebarProviderActions(
     if (restartCheckOperation) return restartCheckOperation;
     const operation = (async () => {
       if (deps.server.isAttachOnly) {
-        await vscode.commands.executeCommand('varro.server.restart');
+        await vscode.commands.executeCommand('loomery.server.restart');
         return;
       }
       const blockers = await deps.server.readRestartBlockers();
@@ -117,7 +117,7 @@ export function createSidebarProviderActions(
         deps.post({ type: 'server/restart-blocked', payload: { ...blockers, checkId } });
         return;
       }
-      await vscode.commands.executeCommand('varro.server.restart');
+      await vscode.commands.executeCommand('loomery.server.restart');
     })();
     restartCheckOperation = operation;
     const finish = () => {
@@ -261,7 +261,7 @@ export function createSidebarProviderActions(
     showOutput: () => logger.show(),
     restartServer: async (force) => {
       await vscode.commands.executeCommand(
-        'varro.server.restart',
+        'loomery.server.restart',
         force ? { force: true } : undefined
       );
     },
@@ -350,14 +350,14 @@ export function createSidebarProviderActions(
     },
     updateConfig: async (payload: ConfigPayload) => {
       await vscode.workspace
-        .getConfiguration('varro')
+        .getConfiguration('loomery')
         .update(
           'chat.desktopSessionPaneSide',
           payload.desktopSessionPaneSide as 'left' | 'right',
           vscode.ConfigurationTarget.Global
         );
       await vscode.workspace
-        .getConfiguration('varro')
+        .getConfiguration('loomery')
         .update(
           'chat.defaultPermissionMode',
           payload.defaultPermissionMode,

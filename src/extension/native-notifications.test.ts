@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NativeNotifications } from './native-notifications';
-import { MacOSNotificationHelper } from './macos-notification-helper';
 
 type RunCommand = NonNullable<ConstructorParameters<typeof NativeNotifications>[3]>;
 const SOUND = '/extension with spaces/notification.wav';
@@ -16,59 +15,38 @@ const TARGET_URL = 'vscode://file/Users/test/Project%20name';
 describe('NativeNotifications', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('checks visibility for the originating macOS editor process', async () => {
-    const visible = vi
-      .spyOn(MacOSNotificationHelper.prototype, 'isEditorVisible')
-      .mockResolvedValue(true);
+  it('relies on the VS Code foreground check instead of a macOS visibility probe', async () => {
     const run = vi.fn<RunCommand>(async () => {});
-    const notifications = new NativeNotifications(
-      SOUND,
-      APP_ID,
-      'darwin',
-      run,
-      '/storage',
-      undefined,
-      1234
-    );
-    expect(await notifications.isEditorVisible()).toBe(true);
-    expect(visible).toHaveBeenCalledExactlyOnceWith(1234);
+    const notifications = new NativeNotifications(SOUND, APP_ID, 'darwin', run);
+    expect(await notifications.isEditorVisible()).toBe(false);
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('passes macOS notification text as arguments and plays the bundled sound separately', async () => {
+  it('passes macOS notification text as osascript arguments and plays the bundled sound separately', async () => {
     const run = vi.fn<RunCommand>(async () => {});
-    const executable = '/storage with spaces/Varro.app/Contents/MacOS/varro-notifier';
-    vi.spyOn(MacOSNotificationHelper.prototype, 'executable').mockResolvedValue(executable);
     const notifications = new NativeNotifications(
       SOUND,
       APP_ID,
       'darwin',
       run,
-      '/storage with spaces',
       async () => TARGET_URL
     );
     const message = '" & do shell script "touch /bad"\n$HOME';
     await notifications.show({ ...NOTIFICATION, message });
-    const command = run.mock.calls[0]?.[0];
-    expect(command).toEqual({
-      file: executable,
-      args: ['--notify', 'Project', 'Fix tests', message, expect.any(String), TARGET_URL],
-      timeout: 50_000,
+    expect(run.mock.calls[0]?.[0]).toEqual({
+      file: '/usr/bin/osascript',
+      args: [
+        '-e',
+        'on run argv',
+        '-e',
+        'display notification item 1 of argv with title item 2 of argv subtitle item 3 of argv',
+        message,
+        'Project',
+        'Fix tests',
+      ],
     });
     await notifications.playSound();
     expect(run.mock.calls[1]?.[0]).toEqual({ file: '/usr/bin/afplay', args: [SOUND] });
-  });
-
-  it('reports helper installation failures while allowing macOS sound independently', async () => {
-    const run = vi.fn<RunCommand>(async () => {});
-    vi.spyOn(MacOSNotificationHelper.prototype, 'executable').mockRejectedValue(
-      new Error('checksum mismatch')
-    );
-    const notifications = new NativeNotifications(SOUND, APP_ID, 'darwin', run, '/storage');
-    await expect(notifications.show(NOTIFICATION)).rejects.toThrow('checksum mismatch');
-    expect(run).not.toHaveBeenCalled();
-    await notifications.playSound();
-    expect(run).toHaveBeenCalledOnce();
   });
 
   it('uses Windows XML text nodes and environment data, with a silent toast', async () => {
@@ -78,7 +56,6 @@ describe('NativeNotifications', () => {
       APP_ID,
       'win32',
       run,
-      undefined,
       async () => TARGET_URL
     );
     const message = '<>&"\'; Start-Process calc; #';
@@ -88,20 +65,20 @@ describe('NativeNotifications', () => {
     if (!encoded) throw new Error('Missing PowerShell command');
     const script = Buffer.from(encoded, 'base64').toString('utf16le');
     expect(script).not.toContain(message);
-    expect(script).toContain('CreateTextNode($env:VARRO_NOTIFICATION_MESSAGE)');
+    expect(script).toContain('CreateTextNode($env:LOOMERY_NOTIFICATION_MESSAGE)');
     expect(script).toContain('<audio silent="true"/>');
     expect(script).toContain("SetAttribute('activationType', 'protocol')");
-    expect(script).toContain("SetAttribute('launch', $env:VARRO_NOTIFICATION_URL)");
+    expect(script).toContain("SetAttribute('launch', $env:LOOMERY_NOTIFICATION_URL)");
     expect(command?.env).toEqual({
-      VARRO_NOTIFICATION_TITLE: 'Project',
-      VARRO_NOTIFICATION_SUBTITLE: 'Fix tests',
-      VARRO_NOTIFICATION_MESSAGE: message,
-      VARRO_NOTIFICATION_APP_ID: APP_ID,
-      VARRO_NOTIFICATION_URL: TARGET_URL,
+      LOOMERY_NOTIFICATION_TITLE: 'Project',
+      LOOMERY_NOTIFICATION_SUBTITLE: 'Fix tests',
+      LOOMERY_NOTIFICATION_MESSAGE: message,
+      LOOMERY_NOTIFICATION_APP_ID: APP_ID,
+      LOOMERY_NOTIFICATION_URL: TARGET_URL,
     });
     expect(command?.args).toContain('-NonInteractive');
     await notifications.playSound();
-    expect(run.mock.calls[1]?.[0].env).toEqual({ VARRO_NOTIFICATION_SOUND: SOUND });
+    expect(run.mock.calls[1]?.[0].env).toEqual({ LOOMERY_NOTIFICATION_SOUND: SOUND });
   });
 
   it('escapes Linux body markup, ends option parsing, and suppresses the banner sound', async () => {
@@ -115,7 +92,7 @@ describe('NativeNotifications', () => {
     expect(run.mock.calls[0]?.[0]).toEqual({
       file: 'notify-send',
       args: [
-        '--app-name=Varro',
+        '--app-name=Loomery',
         '--icon=dialog-information',
         '--hint=boolean:suppress-sound:true',
         '--',
@@ -134,7 +111,6 @@ describe('NativeNotifications', () => {
         APP_ID,
         'linux',
         run,
-        undefined,
         async () => TARGET_URL
       );
       await notifications.show(NOTIFICATION);

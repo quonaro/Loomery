@@ -9,7 +9,7 @@ import {
 } from './jev-decisions';
 import { logger } from './logger';
 
-const JEV_SETTINGS_SECTION = 'varro.decisions.jev';
+const JEV_SETTINGS_SECTION = 'loomery.decisions.jev';
 
 /** Owns the TypeSafe credential and the opt-in settings for Jev decisions. */
 export class DecisionProviders {
@@ -71,7 +71,7 @@ export class DecisionProviders {
     const apiKey = (
       await vscode.window.showInputBox({
         title: 'Connect TypeSafe Jev',
-        prompt: 'Paste a TypeSafe API key. Varro stores it in VS Code secret storage.',
+        prompt: 'Paste a TypeSafe API key. Loomery stores it in VS Code secret storage.',
         password: true,
         ignoreFocusOut: true,
         validateInput: (value) => (value.trim() ? null : 'Enter an API key'),
@@ -85,7 +85,7 @@ export class DecisionProviders {
         () =>
           this.createClient(apiKey).evaluate(
             this.readSettings().model,
-            'Connection check from Varro.',
+            'Connection check from Loomery.',
             { ok: { type: 'noul', instructions: 'Is this a connection check?' } },
             10_000
           )
@@ -100,7 +100,7 @@ export class DecisionProviders {
     await this.secrets.store(JEV_API_KEY_SECRET, apiKey);
     if (!this.readSettings().autoApprove) {
       void vscode.window.showInformationMessage(
-        'TypeSafe Jev connected. Turn it on for auto-approve in the Varro Models view.'
+        'TypeSafe Jev connected. Turn it on for auto-approve in the Loomery Models view.'
       );
     }
     return true;

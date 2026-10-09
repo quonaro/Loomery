@@ -54,7 +54,7 @@ defer { try? FileManager.default.removeItem(at: fixture) }
 
 check(SessionStatus.planReady.label == "Plan ready", "Use the concise plan-ready event label")
 check(projectURL("vscode://file/Users/test/My%20Project")?.path == "/Users/test/My Project", "Encoded project route")
-for value in ["https://example.com", "vscode://koltyakov.varro/notification?session=x", "vscode://file/tmp?a=b", "vscode://file/tmp#x", "vscode://user@file/tmp", "file:///tmp"] {
+for value in ["https://example.com", "vscode://quonaro.loomery/notification?session=x", "vscode://file/tmp?a=b", "vscode://file/tmp#x", "vscode://user@file/tmp", "file:///tmp"] {
   check(projectURL(value) == nil, "Reject non-project URL: \(value)")
 }
 

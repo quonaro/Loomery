@@ -206,7 +206,7 @@ export class AttentionNotifications {
       void this.deliverChannel(
         'native',
         this.transport.show({
-          projectName: `Project: ${projectName || 'Varro'}`,
+          projectName: `Project: ${projectName || 'Loomery'}`,
           chatTitle: sessionTitle || 'Untitled chat',
           message,
           sessionID: first.sessionID,

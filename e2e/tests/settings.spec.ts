@@ -613,7 +613,7 @@ test('thinking preference persists across reload', async ({ page }) => {
   await expect
     .poll(() =>
       getE2EState(page, () => ({
-        showThinking: localStorage.getItem('varro.showThinking'),
+        showThinking: localStorage.getItem('loomery.showThinking'),
       }))
     )
     .toEqual({ showThinking: 'false' });
@@ -631,7 +631,7 @@ test('thinking preference persists across reload', async ({ page }) => {
 
 test('sticky prompt ignores a legacy disabled preference', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('varro.showStickyUserPrompt', 'false');
+    localStorage.setItem('loomery.showStickyUserPrompt', 'false');
   });
   await page.goto('/e2e/harness/index.html?scenario=sticky-preview');
 

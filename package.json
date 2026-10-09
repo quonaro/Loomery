@@ -1,6 +1,6 @@
 {
-  "name": "varro",
-  "displayName": "Varro: OpenCode Workbench",
+  "name": "loomery",
+  "displayName": "Loomery: OpenCode Workbench",
   "version": "0.32.5",
   "description": "OpenCode agent workbench with project-aware chat, parallel sessions, plan and change review, model and permission controls, commit messages, and usage insights.",
   "categories": [
@@ -16,13 +16,13 @@
     "opencode",
     "opencode-gui"
   ],
-  "homepage": "https://github.com/koltyakov/varro#readme",
+  "homepage": "https://github.com/quonaro/loomery#readme",
   "bugs": {
-    "url": "https://github.com/koltyakov/varro/issues"
+    "url": "https://github.com/quonaro/loomery/issues"
   },
+  "repository": "https://github.com/quonaro/loomery",
   "license": "MIT",
-  "repository": "https://github.com/koltyakov/varro",
-  "publisher": "koltyakov",
+  "publisher": "quonaro",
   "files": [
     "dist/extension/extension.js",
     "dist/extension/thumbnail-worker.js",
@@ -31,23 +31,20 @@
     "dist/extension/thumbnail-LICENSE.txt",
     "dist/extension/thumbnail-NOTICE.txt",
     "dist/extension/notification.wav",
-    "dist/extension/macos-notifier.zip",
-    "dist/extension/macos-notifier.json",
-    "native/macos-notifications",
     "docs/thumbnail-distribution.md",
+    "NOTICES.md",
     "dist/webview",
     "assets/icon.png",
     "README.md",
-    "CHANGELOG.md",
-    "NOTICES.md",
-    "LICENSE"
+    "CHANGELOG.md"
   ],
   "main": "./dist/extension/extension.js",
+  "enabledApiProposals": [
+    "contribSourceControlInputBoxMenu"
+  ],
   "scripts": {
     "postinstall": "node scripts/build-anti-slop-plugin.mjs",
     "build:extension": "node esbuild.config.mjs",
-    "build:notifications:macos": "node scripts/build-macos-notifier.mjs",
-    "test:notifications:macos": "node --test scripts/macos-notifier.test.mjs",
     "build:webview": "vite build",
     "preview:webview": "vite --open /preview.html",
     "build": "npm run build:extension && npm run build:webview",
@@ -68,9 +65,9 @@
     "pretest:e2e": "playwright install chromium",
     "test:e2e": "node scripts/run-e2e.mjs",
     "pretest:e2e:raster": "playwright install chromium",
-    "test:e2e:raster": "VARRO_E2E_MODE=raster node scripts/run-e2e.mjs",
+    "test:e2e:raster": "LOOMERY_E2E_MODE=raster node scripts/run-e2e.mjs",
     "pretest:e2e:diagnostics": "playwright install chromium",
-    "test:e2e:diagnostics": "VARRO_E2E_MODE=diagnostics node scripts/run-e2e.mjs",
+    "test:e2e:diagnostics": "LOOMERY_E2E_MODE=diagnostics node scripts/run-e2e.mjs",
     "test:vscode-sandbox": "npm run build && node scripts/vscode-sandbox/run.mjs",
     "ai:vscode": "npm run build && node scripts/launch-ai-vscode.mjs",
     "ai:preconditions": "node scripts/ai-fuzzy-preconditions.mjs",
@@ -131,149 +128,155 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "varro-primary",
-          "title": "Varro",
+          "id": "loomery-primary",
+          "title": "Loomery",
           "icon": "assets/icon.png"
         }
       ],
       "secondarySidebar": [
         {
-          "id": "varro",
-          "title": "Varro",
+          "id": "loomery",
+          "title": "Loomery",
           "icon": "assets/icon.png"
         }
       ]
     },
     "views": {
-      "varro": [
+      "loomery": [
         {
           "icon": "assets/icon.png",
           "type": "webview",
-          "id": "varro.chat",
-          "name": "Varro"
+          "id": "loomery.chat",
+          "name": "Loomery"
         }
       ]
     },
     "commands": [
       {
-        "command": "varro.chat.newSession",
-        "title": "Varro: New Session"
+        "command": "loomery.chat.newSession",
+        "title": "Loomery: New Session"
       },
       {
-        "command": "varro.chat.newEditor",
-        "title": "Varro: New Chat Editor",
+        "command": "loomery.chat.newEditor",
+        "title": "Loomery: New Chat Editor",
         "shortTitle": "New Chat Editor",
         "icon": "$(add)"
       },
       {
-        "command": "varro.chat.newWindow",
-        "title": "Varro: New Chat Window",
+        "command": "loomery.chat.newWindow",
+        "title": "Loomery: New Chat Window",
         "shortTitle": "New Chat Window"
       },
       {
-        "command": "varro.chat.newTerminalEditor",
-        "title": "Varro: New Terminal Editor",
+        "command": "loomery.chat.newTerminalEditor",
+        "title": "Loomery: New Terminal Editor",
         "shortTitle": "New Terminal Editor",
         "icon": "$(terminal)"
       },
       {
-        "command": "varro.chat.searchSessions",
-        "title": "Varro: Search Sessions"
+        "command": "loomery.chat.searchSessions",
+        "title": "Loomery: Search Sessions"
       },
       {
-        "command": "varro.chat.openSettings",
-        "title": "Varro: Open Settings",
+        "command": "loomery.chat.openSessions",
+        "title": "Loomery: Open Sessions",
+        "shortTitle": "Open Sessions",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "loomery.chat.openSettings",
+        "title": "Loomery: Open Settings",
         "shortTitle": "Settings",
         "icon": "$(gear)"
       },
       {
-        "command": "varro.chat.showFileDiffs",
-        "title": "Varro: Show File Diffs",
+        "command": "loomery.chat.showFileDiffs",
+        "title": "Loomery: Show File Diffs",
         "shortTitle": "Show File Diffs",
         "icon": "$(diff-single)"
       },
       {
-        "command": "varro.chat.hideFileDiffs",
-        "title": "Varro: Hide File Diffs",
+        "command": "loomery.chat.hideFileDiffs",
+        "title": "Loomery: Hide File Diffs",
         "shortTitle": "Hide File Diffs",
         "icon": "$(list-flat)"
       },
       {
-        "command": "varro.chat.openStats",
-        "title": "Varro: Usage Stats",
+        "command": "loomery.chat.openStats",
+        "title": "Loomery: Usage Stats",
         "shortTitle": "Usage Stats"
       },
       {
-        "command": "varro.chat.abort",
-        "title": "Varro: Abort Session",
-        "enablement": "varro:canAbortSession"
+        "command": "loomery.chat.abort",
+        "title": "Loomery: Abort Session",
+        "enablement": "loomery:canAbortSession"
       },
       {
-        "command": "varro.chat.previousSession",
-        "title": "Varro: Previous Session",
-        "enablement": "varro:canSwitchSessions"
+        "command": "loomery.chat.previousSession",
+        "title": "Loomery: Previous Session",
+        "enablement": "loomery:canSwitchSessions"
       },
       {
-        "command": "varro.chat.nextSession",
-        "title": "Varro: Next Session",
-        "enablement": "varro:canSwitchSessions"
+        "command": "loomery.chat.nextSession",
+        "title": "Loomery: Next Session",
+        "enablement": "loomery:canSwitchSessions"
       },
       {
-        "command": "varro.server.restart",
-        "title": "Varro: Restart Server"
+        "command": "loomery.server.restart",
+        "title": "Loomery: Restart Server"
       },
       {
-        "command": "varro.about",
-        "title": "Varro: About",
-        "shortTitle": "About Varro"
+        "command": "loomery.about",
+        "title": "Loomery: About",
+        "shortTitle": "About Loomery"
       },
       {
-        "command": "varro.openGitHub",
-        "title": "Varro: Open GitHub",
+        "command": "loomery.openGitHub",
+        "title": "Loomery: Open GitHub",
         "shortTitle": "View on GitHub"
       },
       {
-        "command": "varro.showOutput",
-        "title": "Varro: Show Output"
+        "command": "loomery.showOutput",
+        "title": "Loomery: Show Output"
       },
       {
-        "command": "varro.openSourceControl",
-        "title": "Varro: Open Source Control"
+        "command": "loomery.openSourceControl",
+        "title": "Loomery: Open Source Control"
       },
       {
-        "command": "varro.generateCommitMessage",
-        "title": "Varro: Generate Commit Message",
+        "command": "loomery.generateCommitMessage",
+        "title": "Loomery: Generate Commit Message",
         "icon": "$(wand)"
       },
       {
-        "command": "varro.agents.openGlobal",
-        "title": "Varro: Open Global AGENTS.md"
+        "command": "loomery.agents.openGlobal",
+        "title": "Loomery: Open Global AGENTS.md"
       },
       {
-        "command": "varro.agents.initializeProject",
-        "title": "Varro: Initialize Project AGENTS.md"
+        "command": "loomery.agents.initializeProject",
+        "title": "Loomery: Initialize Project AGENTS.md"
       },
       {
-        "command": "varro.chat.addToContext",
-        "title": "Varro: Add to Context"
+        "command": "loomery.chat.addToContext",
+        "title": "Loomery: Add to Context"
       },
       {
-        "command": "varro.chat.addProblemsToContext",
-        "title": "Varro: Add to Context",
-        "enablement": "config.varro.chat.enableProblemsContext"
+        "command": "loomery.chat.addProblemsToContext",
+        "title": "Loomery: Add to Context",
+        "enablement": "config.loomery.chat.enableProblemsContext"
       },
       {
-        "command": "varro.chat.addSelectionToContext",
-        "title": "Varro: Add to Context"
+        "command": "loomery.chat.addSelectionToContext",
+        "title": "Loomery: Add to Context"
       },
       {
-        "command": "varro.chat.addTerminalSelectionToContext",
-        "title": "Varro: Add to Context"
+        "command": "loomery.chat.addTerminalSelectionToContext",
+        "title": "Loomery: Add to Context"
       }
     ],
     "submenus": [
       {
-        "id": "varro.viewActions",
+        "id": "loomery.viewActions",
         "label": "More Actions",
         "icon": "$(more)"
       }
@@ -281,130 +284,135 @@
     "menus": {
       "editor/title": [
         {
-          "command": "varro.chat.newEditor",
-          "when": "activeWebviewPanelId == varro.editor",
+          "command": "loomery.chat.newEditor",
+          "when": "activeWebviewPanelId == loomery.editor",
           "group": "navigation@1"
         },
         {
-          "command": "varro.chat.newTerminalEditor",
-          "when": "activeWebviewPanelId == varro.editor",
+          "command": "loomery.chat.newTerminalEditor",
+          "when": "activeWebviewPanelId == loomery.editor",
           "group": "navigation@2"
         }
       ],
       "explorer/context": [
         {
-          "command": "varro.chat.addToContext",
-          "group": "z_varro"
+          "command": "loomery.chat.addToContext",
+          "group": "z_loomery"
         }
       ],
       "editor/context": [
         {
-          "command": "varro.chat.addSelectionToContext",
+          "command": "loomery.chat.addSelectionToContext",
           "when": "editorHasSelection && !editorReadonly",
-          "group": "z_varro"
+          "group": "z_loomery"
         }
       ],
       "terminal/context": [
         {
-          "command": "varro.chat.addTerminalSelectionToContext",
+          "command": "loomery.chat.addTerminalSelectionToContext",
           "when": "terminalTextSelected",
-          "group": "z_varro"
+          "group": "z_loomery"
         }
       ],
-      "scm/title": [
+      "scm/inputBox": [
         {
-          "command": "varro.generateCommitMessage",
+          "command": "loomery.generateCommitMessage",
           "when": "scmProvider == git",
-          "group": "navigation@99"
+          "group": "navigation@1"
         }
       ],
       "view/title": [
         {
-          "command": "varro.chat.showFileDiffs",
-          "when": "view == varro.chat && !varro:showFileDiffs",
+          "command": "loomery.chat.openSessions",
+          "when": "view == loomery.chat",
           "group": "navigation@0"
         },
         {
-          "command": "varro.chat.hideFileDiffs",
-          "when": "view == varro.chat && varro:showFileDiffs",
-          "group": "navigation@0"
-        },
-        {
-          "command": "varro.chat.openSettings",
-          "when": "view == varro.chat",
+          "command": "loomery.chat.showFileDiffs",
+          "when": "view == loomery.chat && !loomery:showFileDiffs",
           "group": "navigation@1"
         },
         {
-          "submenu": "varro.viewActions",
-          "when": "view == varro.chat",
+          "command": "loomery.chat.hideFileDiffs",
+          "when": "view == loomery.chat && loomery:showFileDiffs",
+          "group": "navigation@1"
+        },
+        {
+          "command": "loomery.chat.openSettings",
+          "when": "view == loomery.chat",
           "group": "navigation@2"
+        },
+        {
+          "submenu": "loomery.viewActions",
+          "when": "view == loomery.chat",
+          "group": "navigation@3"
         }
       ],
-      "varro.viewActions": [
+      "loomery.viewActions": [
         {
-          "command": "varro.about",
+          "command": "loomery.about",
           "group": "1_main@1"
         },
         {
-          "command": "varro.chat.openStats",
+          "command": "loomery.chat.openStats",
           "group": "1_main@2"
         },
         {
-          "command": "varro.openGitHub",
+          "command": "loomery.openGitHub",
           "group": "1_main@3"
         }
       ],
       "commandPalette": [
         {
-          "command": "varro.chat.addProblemsToContext",
+          "command": "loomery.chat.addProblemsToContext",
           "when": "false"
         },
         {
-          "command": "varro.chat.showFileDiffs",
-          "when": "!varro:showFileDiffs"
+          "command": "loomery.chat.showFileDiffs",
+          "when": "!loomery:showFileDiffs"
         },
         {
-          "command": "varro.chat.hideFileDiffs",
-          "when": "varro:showFileDiffs"
+          "command": "loomery.chat.hideFileDiffs",
+          "when": "loomery:showFileDiffs"
         },
         {
-          "command": "varro.chat.addToContext",
+          "command": "loomery.chat.addToContext",
           "when": "editorIsOpen"
         },
         {
-          "command": "varro.chat.addSelectionToContext",
+          "command": "loomery.chat.addSelectionToContext",
           "when": "false"
         },
         {
-          "command": "varro.chat.addTerminalSelectionToContext",
+          "command": "loomery.chat.addTerminalSelectionToContext",
           "when": "false"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "varro.chat.addSelectionToContext",
+        "command": "loomery.chat.addSelectionToContext",
         "key": "ctrl+shift+k",
         "mac": "cmd+shift+k",
         "when": "editorTextFocus && editorHasSelection"
       },
       {
-        "command": "varro.chat.addToContext",
+        "command": "loomery.chat.addToContext",
         "key": "ctrl+shift+k",
         "mac": "cmd+shift+k",
         "when": "!terminalFocus && !editorTextFocus"
       },
       {
-        "command": "varro.chat.addTerminalSelectionToContext",
+        "command": "loomery.chat.addTerminalSelectionToContext",
         "key": "ctrl+shift+k",
         "mac": "cmd+shift+k",
         "when": "terminalFocus && terminalTextSelected"
       }
     ],
     "configuration": {
-      "title": "Varro",
+      "title": "Loomery",
       "properties": {
-        "varro.notifications.sound": {
+        "loomery.notifications.sound": {
           "type": "object",
           "scope": "application",
           "additionalProperties": false,
@@ -438,13 +446,13 @@
           },
           "markdownDescription": "Choose which events play the water-plop sound when VS Code is in the background. On macOS, sound stays off while an editor window is still visible, including side-by-side use. Leave all events unchecked to disable sound. Requires a local desktop extension host. On Linux, install `paplay`, `aplay`, or `canberra-gtk-play`."
         },
-        "varro.notifications.native": {
+        "loomery.notifications.native": {
           "type": "boolean",
           "scope": "application",
           "default": false,
-          "markdownDescription": "Show operating-system notifications for completed replies, plans ready for review, permission requests, and questions when VS Code is in the background. On macOS, notifications stay off while an editor window is still visible, including side-by-side use. Sound is controlled separately by `varro.notifications.sound`. Requires a local desktop extension host and OS notification permissions. On Linux, install `notify-send`."
+          "markdownDescription": "Show operating-system notifications for completed replies, plans ready for review, permission requests, and questions when VS Code is in the background. On macOS, notifications stay off while an editor window is still visible, including side-by-side use. Sound is controlled separately by `loomery.notifications.sound`. Requires a local desktop extension host and OS notification permissions. On Linux, install `notify-send`."
         },
-        "varro.server.port": {
+        "loomery.server.port": {
           "oneOf": [
             {
               "type": "string",
@@ -461,27 +469,27 @@
           "default": "auto",
           "markdownDescription": "Automatically select and remember a local server port, or set an exact port from 1 through 65535. Existing verified servers are reused without restarting. Explicit ports never fall back to another port. Reload the VS Code window after changing this setting."
         },
-        "varro.server.command": {
+        "loomery.server.command": {
           "type": "string",
           "default": "",
-          "description": "Optional path to the OpenCode CLI executable used for startup and CLI actions. OpenCode v2 is recommended; v1 remains supported. When empty, Varro searches for opencode2 first, then opencode. Both current CLI families use opencode. Set an explicit v1 executable path to keep using v1."
+          "description": "Optional path to the OpenCode CLI executable used for startup and CLI actions. OpenCode v2 is recommended; v1 remains supported. When empty, Loomery searches for opencode2 first, then opencode. Both current CLI families use opencode. Set an explicit v1 executable path to keep using v1."
         },
-        "varro.server.autoUpdate": {
+        "loomery.server.autoUpdate": {
           "type": "boolean",
           "default": true,
           "description": "Automatically install updates within the installed OpenCode CLI family: @opencode/cli for v2 on Windows, macOS, and Linux; opencode-ai for v1 on macOS and Linux. Does not migrate v1 to v2. Native Windows v1 uses an update prompt."
         },
-        "varro.chat.showFileDiffs": {
+        "loomery.chat.showFileDiffs": {
           "type": "boolean",
           "default": false,
           "description": "Show line-by-line edits directly in file-change tool cards."
         },
-        "varro.chat.expandThinking": {
+        "loomery.chat.expandThinking": {
           "type": "boolean",
           "default": false,
           "description": "Expand thinking details after two seconds while reasoning is active, collapse finished thinking into rows, and return it to Explored when the turn finishes."
         },
-        "varro.chat.fontSize": {
+        "loomery.chat.fontSize": {
           "type": [
             "number",
             "null"
@@ -489,33 +497,33 @@
           "minimum": 6,
           "maximum": 100,
           "default": null,
-          "markdownDescription": "Font size for text in Varro chat. Set to `null` to use the VS Code `chat.fontSize` setting, or use `13.5` for text slightly larger than the default."
+          "markdownDescription": "Font size for text in Loomery chat. Set to `null` to use the VS Code `chat.fontSize` setting, or use `13.5` for text slightly larger than the default."
         },
-        "varro.chat.showChangedFiles": {
+        "loomery.chat.showChangedFiles": {
           "type": "boolean",
           "default": false,
           "description": "Show the changed-files panel above the chat input."
         },
-        "varro.chat.enableProblemsContext": {
+        "loomery.chat.enableProblemsContext": {
           "type": "boolean",
           "default": true,
           "description": "Enable VS Code Problems context in chat. Disable to hide the Problems attachment chip and exclude diagnostics from prompts, including queued messages."
         },
-        "varro.chat.showTurnTimer": {
+        "loomery.chat.showTurnTimer": {
           "type": "boolean",
           "default": true,
           "description": "Show the elapsed duration of the active turn beside the chat input status controls."
         },
-        "varro.chat.desktopSessionPaneSide": {
+        "loomery.chat.desktopSessionPaneSide": {
           "type": "string",
           "enum": [
             "left",
             "right"
           ],
           "default": "right",
-          "markdownDescription": "Choose which side shows the sessions pane on large screens in the Varro chat view."
+          "markdownDescription": "Choose which side shows the sessions pane on large screens in the Loomery chat view."
         },
-        "varro.chat.defaultPermissionMode": {
+        "loomery.chat.defaultPermissionMode": {
           "type": "string",
           "enum": [
             "default",
@@ -523,79 +531,79 @@
             "full"
           ],
           "default": "auto",
-          "markdownDescription": "Permission mode selected when no project or global Varro permission-mode selection has been saved. `default` follows OpenCode permission settings and shows requests OpenCode asks about, `auto` judges eligible requests automatically, and `full` grants unrestricted access."
+          "markdownDescription": "Permission mode selected when no project or global Loomery permission-mode selection has been saved. `default` follows OpenCode permission settings and shows requests OpenCode asks about, `auto` judges eligible requests automatically, and `full` grants unrestricted access."
         },
-        "varro.chat.autoApproveModel": {
+        "loomery.chat.autoApproveModel": {
           "type": "string",
           "scope": "application",
           "default": "",
           "pattern": "^$|^[^/\\s]+/[^\\s]+$",
           "patternErrorMessage": "Use provider/model, or leave the setting empty.",
-          "markdownDescription": "Provider/model used by the auto-approve judge. Leave empty to let Varro select a suitable model automatically. Select a configured model from Varro's Models view."
+          "markdownDescription": "Provider/model used by the auto-approve judge. Leave empty to let Loomery select a suitable model automatically. Select a configured model from Loomery's Models view."
         },
-        "varro.chat.autoRenameUntitledSessions": {
+        "loomery.chat.autoRenameUntitledSessions": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Let Varro generate a fallback title when OpenCode leaves a session untitled. Disable this to rely only on OpenCode's native session naming."
+          "markdownDescription": "Let Loomery generate a fallback title when OpenCode leaves a session untitled. Disable this to rely only on OpenCode's native session naming."
         },
-        "varro.commitMessage.model": {
+        "loomery.commitMessage.model": {
           "type": "string",
           "scope": "application",
           "default": "",
           "pattern": "^$|^[^/\\s]+/[^\\s]+$",
           "patternErrorMessage": "Use provider/model, or leave the setting empty.",
-          "markdownDescription": "Provider/model used to generate commit messages. Leave empty to let Varro select a suitable model automatically. Select a configured model from Varro's Models view."
+          "markdownDescription": "Provider/model used to generate commit messages. Leave empty to let Loomery select a suitable model automatically. Select a configured model from Loomery's Models view."
         },
-        "varro.decisions.jev.autoApprove": {
+        "loomery.decisions.jev.autoApprove": {
           "type": "boolean",
           "scope": "application",
           "default": false,
-          "markdownDescription": "Use TypeSafe's Jev to judge permission requests in Auto mode before the model judge. Only confident answers approve; anything else asks you. Connect it with **Add decision model** in the Varro Models view menu, or set `TYPESAFE_API_KEY`. Permission details are sent to TypeSafe."
+          "markdownDescription": "Use TypeSafe's Jev to judge permission requests in Auto mode before the model judge. Only confident answers approve; anything else asks you. Connect it with **Add decision model** in the Loomery Models view menu, or set `TYPESAFE_API_KEY`. Permission details are sent to TypeSafe."
         },
-        "varro.debug.simulateMissingCli": {
+        "loomery.debug.simulateMissingCli": {
           "deprecationMessage": "Debug only setting. Not intended for regular use.",
           "type": "boolean",
           "default": false,
-          "description": "Debug only: make Varro behave as if the OpenCode CLI is not installed"
+          "description": "Debug only: make Loomery behave as if the OpenCode CLI is not installed"
         },
-        "varro.debug.simulateNoProviders": {
+        "loomery.debug.simulateNoProviders": {
           "deprecationMessage": "Debug only setting. Not intended for regular use.",
           "type": "boolean",
           "default": false,
-          "description": "Debug only: make Varro behave as if no providers are configured"
+          "description": "Debug only: make Loomery behave as if no providers are configured"
         },
-        "varro.debug.showQuotaWarning": {
+        "loomery.debug.showQuotaWarning": {
           "deprecationMessage": "Debug only setting. Not intended for regular use.",
           "type": "boolean",
           "default": false,
           "description": "Debug only: show the quota warning for available provider quotas regardless of remaining allowance or saved dismissals. Closing this preview does not save a dismissal."
         },
-        "varro.debug.resetWarningDays": {
+        "loomery.debug.resetWarningDays": {
           "deprecationMessage": "Debug only setting. Not intended for regular use.",
           "type": "number",
           "minimum": 5,
           "default": 5,
           "description": "Debug only: days before a usage reset expires to show its warning. Increase this to preview resets expiring later. Saved dismissals still apply unless debug.showQuotaWarning is enabled."
         },
-        "varro.debug.simulateUpgradeFailure": {
+        "loomery.debug.simulateUpgradeFailure": {
           "deprecationMessage": "Debug only setting. Not intended for regular use.",
           "type": "string",
           "default": "",
           "description": "Debug only: make OpenCode CLI updates fail with this error text, to exercise the update recovery guidance (for example \"EPERM: operation not permitted\")"
         },
-        "varro.server.autoStart": {
+        "loomery.server.autoStart": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically start the OpenCode server when Varro first needs it. Disable for attach-only connections to a manually managed, Docker, or tunneled server; local CLI and file-based server configuration actions are unavailable in this mode."
+          "description": "Automatically start the OpenCode server when Loomery first needs it. Disable for attach-only connections to a manually managed, Docker, or tunneled server; local CLI and file-based server configuration actions are unavailable in this mode."
         }
       }
     }
   },
   "activationEvents": [
-    "onCommand:varro.chat.focus",
-    "onCommand:varro.chat.statusBarClick",
+    "onCommand:loomery.chat.focus",
+    "onCommand:loomery.chat.statusBarClick",
     "onUri",
-    "onWebviewPanel:varro.editor"
+    "onWebviewPanel:loomery.editor"
   ],
   "extensionKind": [
     "workspace"
@@ -619,7 +627,7 @@
     },
     "untrustedWorkspaces": {
       "supported": false,
-      "description": "Varro starts a local OpenCode process and grants it access to the workspace."
+      "description": "Loomery starts a local OpenCode process and grants it access to the workspace."
     }
   }
 }

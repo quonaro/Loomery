@@ -26,7 +26,7 @@ import {
   toLabel,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 import { delay } from '../../server-utils';
 
@@ -292,7 +292,7 @@ async function readAnthropicLocalProxyStatus(
     const response = await fetch(new URL(MERIDIAN_QUOTA_ENDPOINT_PATH, baseUrl), {
       headers: {
         Accept: 'application/json',
-        'User-Agent': VARRO_USER_AGENT,
+        'User-Agent': LOOMERY_USER_AGENT,
       },
       signal: AbortSignal.timeout(5_000),
     });
@@ -765,7 +765,7 @@ async function writeAnthropicCredentialsNow(
 }
 
 async function acquireCredentialLock(credentialsFilePath: string): Promise<() => Promise<void>> {
-  const lockPath = `${credentialsFilePath}.varro.lock`;
+  const lockPath = `${credentialsFilePath}.loomery.lock`;
   const deadline = Date.now() + CREDENTIAL_LOCK_WAIT_MS;
   while (true) {
     try {

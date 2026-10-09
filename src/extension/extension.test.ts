@@ -6,9 +6,9 @@ const scratchMock = vi.hoisted(() => ({
   prepare: vi.fn(() => Promise.resolve()),
   folders: undefined as { uri: { fsPath: string } }[] | undefined,
 }));
-vi.mock('./varro-state-paths', async (importOriginal) => ({
+vi.mock('./loomery-state-paths', async (importOriginal) => ({
   ...(await importOriginal()),
-  prepareVarroScratchDirectory: scratchMock.prepare,
+  prepareLoomeryScratchDirectory: scratchMock.prepare,
 }));
 
 const { disposeProcessInspectionMock } = vi.hoisted(() => ({
@@ -110,6 +110,7 @@ const {
 vi.mock('vscode', () => ({
   version: '1.110.0',
   env: envMock,
+  ExtensionMode: { Production: 1, Development: 2, Test: 3 },
   workspace: {
     get workspaceFolders() {
       return scratchMock.folders;
@@ -150,8 +151,8 @@ vi.mock('./open-code-process', async (importOriginal) => ({
 }));
 vi.mock('./sidebar-provider', () => ({
   SidebarProvider: class {
-    static viewType = 'varro.chat';
-    static editorViewType = 'varro.editor';
+    static viewType = 'loomery.chat';
+    static editorViewType = 'loomery.editor';
     dispose = vi.fn(() => Promise.resolve());
     post = vi.fn();
     startProviderFileObservation = vi.fn();
@@ -225,7 +226,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       secrets,
       subscriptions: [],
@@ -251,19 +252,17 @@ describe('extension activation', () => {
     );
   });
 
-  it('passes global state and notification storage to the sidebar provider', async () => {
+  it('passes global state and secrets to the sidebar provider', async () => {
     const { activate } = await import('./extension');
     const workspaceState = {};
     const globalState = { get: vi.fn(), update: vi.fn(() => Promise.resolve()) };
-    const globalStorageUri = { fsPath: '/extension-storage' };
     const secrets = { get: vi.fn(), store: vi.fn(), delete: vi.fn() };
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState,
       globalState,
-      globalStorageUri,
       secrets,
       subscriptions: [],
     } as never);
@@ -274,11 +273,10 @@ describe('extension activation', () => {
       globalState,
       expect.anything(),
       expect.anything(),
-      'koltyakov.varro',
+      'quonaro.loomery',
       false,
       undefined,
-      secrets,
-      globalStorageUri
+      secrets
     );
   });
 
@@ -287,7 +285,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -299,12 +297,12 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
     contextChangeCallback.current?.({
-      workspacePath: '/varro/scratch',
+      workspacePath: '/loomery/scratch',
       workspaceFolders: [],
       activeFile: null,
       selection: null,
@@ -312,7 +310,7 @@ describe('extension activation', () => {
     });
     await vi.waitFor(() =>
       expect(latestServerInstance.current?.rescopeEventStream).toHaveBeenCalledWith(
-        '/varro/scratch'
+        '/loomery/scratch'
       )
     );
     expect(scratchMock.prepare).toHaveBeenCalledOnce();
@@ -327,7 +325,7 @@ describe('extension activation', () => {
     await expect(
       activate({
         extensionUri: {},
-        extension: { id: 'koltyakov.varro' },
+        extension: { id: 'quonaro.loomery' },
         workspaceState: {},
         subscriptions: [],
       } as never)
@@ -352,7 +350,7 @@ describe('extension activation', () => {
       const { activate } = await import('./extension');
       await activate({
         extensionUri: {},
-        extension: { id: 'koltyakov.varro' },
+        extension: { id: 'quonaro.loomery' },
         workspaceState: {},
         globalState,
         subscriptions: [],
@@ -360,7 +358,7 @@ describe('extension activation', () => {
       expect(openCodeServerMock.mock.calls.at(-1)?.[0]).toBe('auto');
       expect(openCodeServerMock.mock.calls.at(-1)?.[6]).toBe(existing);
       expect(globalState.update).toHaveBeenCalledWith(
-        'varro.server.legacyDefaultEndpoint',
+        'loomery.server.legacyDefaultEndpoint',
         existing
       );
     }
@@ -375,28 +373,28 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
 
-    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:showFileDiffs', true);
+    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:showFileDiffs', true);
 
     fileDiffs = false;
     const listener = onDidChangeConfigurationMock.mock.lastCall?.[0];
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.chat.showFileDiffs',
+      affectsConfiguration: (key: string) => key === 'loomery.chat.showFileDiffs',
     });
 
-    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:showFileDiffs', false);
+    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:showFileDiffs', false);
   });
 
-  it('does not expose Varro compaction settings or react to legacy setting changes', async () => {
+  it('does not expose Loomery compaction settings or react to legacy setting changes', async () => {
     const { activate } = await import('./extension');
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -405,7 +403,10 @@ describe('extension activation', () => {
     expect(listener).toBeTypeOf('function');
     getMock.mockClear();
 
-    for (const setting of ['varro.chat.autoCompact', 'varro.chat.autoCompactionReservedTokens']) {
+    for (const setting of [
+      'loomery.chat.autoCompact',
+      'loomery.chat.autoCompactionReservedTokens',
+    ]) {
       expect(Object.keys(packageJson.contributes.configuration.properties)).not.toContain(setting);
       listener?.({ affectsConfiguration: (key: string) => key === setting });
     }
@@ -420,14 +421,14 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
 
     const listener = onDidChangeConfigurationMock.mock.lastCall?.[0];
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.server.command',
+      affectsConfiguration: (key: string) => key === 'loomery.server.command',
     });
 
     expect(latestServerInstance.current?.updateLaunchSettings).toHaveBeenCalledWith({
@@ -441,19 +442,19 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
 
     const listener = onDidChangeConfigurationMock.mock.lastCall?.[0];
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.server.port',
+      affectsConfiguration: (key: string) => key === 'loomery.server.port',
     });
     await Promise.resolve();
 
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      'Reload VS Code to apply the new Varro server port.',
+      'Reload VS Code to apply the new Loomery server port.',
       'Reload Window'
     );
     expect(executeCommandMock).toHaveBeenCalledWith('workbench.action.reloadWindow');
@@ -463,18 +464,22 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     const context = {
       extensionUri: { path: '/extension' },
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: { get: vi.fn(), update: vi.fn() },
       subscriptions: [] as Array<{ dispose: () => void }>,
     };
 
     await activate(context as never);
 
-    expect(registerWebviewViewProviderMock).toHaveBeenCalledWith('varro.chat', expect.anything(), {
-      webviewOptions: { retainContextWhenHidden: true },
-    });
+    expect(registerWebviewViewProviderMock).toHaveBeenCalledWith(
+      'loomery.chat',
+      expect.anything(),
+      {
+        webviewOptions: { retainContextWhenHidden: true },
+      }
+    );
     expect(registerWebviewPanelSerializerMock).toHaveBeenCalledWith(
-      'varro.editor',
+      'loomery.editor',
       expect.anything()
     );
     expect(registerCommandsMock).toHaveBeenCalledWith(
@@ -491,7 +496,7 @@ describe('extension activation', () => {
       latestContextProviderInstance.current!
     );
     expect(registerCommandsMock.mock.calls[0]?.[3]).toMatchObject(latestServerInstance.current!);
-    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:activated', true);
+    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:activated', true);
     expect(
       latestSidebarProviderInstance.current?.startProviderFileObservation
     ).toHaveBeenCalledOnce();
@@ -514,15 +519,15 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       globalState,
       workspaceState: {},
       subscriptions: [],
     } as never);
 
     expect(executeCommandMock).toHaveBeenCalledWith('vscode.moveViews', {
-      viewIds: ['varro.chat'],
-      destinationId: 'workbench.view.extension.varro-primary',
+      viewIds: ['loomery.chat'],
+      destinationId: 'workbench.view.extension.loomery-primary',
     });
     expect(globalState.update).toHaveBeenCalledWith('layout.cursorPrimarySidebar.v1', true);
     expect(registerCommandsMock).toHaveBeenCalledWith(
@@ -545,7 +550,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       globalState,
       workspaceState: {},
       subscriptions: [],
@@ -573,7 +578,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       globalState,
       workspaceState: {},
       subscriptions: [],
@@ -585,8 +590,8 @@ describe('extension activation', () => {
     await (reveal as () => Promise<void>)();
 
     expect(executeCommandMock).toHaveBeenCalledWith('vscode.moveViews', {
-      viewIds: ['varro.chat'],
-      destinationId: 'workbench.view.extension.varro-primary',
+      viewIds: ['loomery.chat'],
+      destinationId: 'workbench.view.extension.loomery-primary',
     });
   });
 
@@ -600,7 +605,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -616,7 +621,7 @@ describe('extension activation', () => {
     );
   });
 
-  it.each(['workbench.view.extension.varro', 'varro.chat.focus', 'vscode.moveViews'])(
+  it.each(['workbench.view.extension.loomery', 'loomery.chat.focus', 'vscode.moveViews'])(
     'finishes first-run activation while %s waits for activation',
     async (blockedCommand) => {
       vi.useFakeTimers();
@@ -640,7 +645,7 @@ describe('extension activation', () => {
       let activated = false;
       const activation = activate({
         extensionUri: {},
-        extension: { id: 'koltyakov.varro' },
+        extension: { id: 'quonaro.loomery' },
         globalState,
         workspaceState: {},
         subscriptions: [],
@@ -676,22 +681,22 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       globalState,
       workspaceState: {},
       subscriptions: [],
     } as never);
 
-    expect(executeCommandMock).toHaveBeenCalledWith('workbench.view.extension.varro');
-    expect(executeCommandMock).toHaveBeenCalledWith('varro.chat.focus');
+    expect(executeCommandMock).toHaveBeenCalledWith('workbench.view.extension.loomery');
+    expect(executeCommandMock).toHaveBeenCalledWith('loomery.chat.focus');
     expect(executeCommandMock.mock.calls.filter(([command]) => command !== 'setContext')).toEqual([
-      ['workbench.view.extension.varro'],
-      ['varro.chat.focus'],
+      ['workbench.view.extension.loomery'],
+      ['loomery.chat.focus'],
     ]);
     expect(globalState.update).toHaveBeenCalledWith('layout.initialSidebarReveal.v1', true);
   });
 
-  it.each(['workbench.view.extension.varro', 'varro.chat.focus'])(
+  it.each(['workbench.view.extension.loomery', 'loomery.chat.focus'])(
     'does not remember the initial reveal when %s fails',
     async (failedCommand) => {
       executeCommandMock.mockImplementation((command: string) =>
@@ -707,7 +712,7 @@ describe('extension activation', () => {
 
       await activate({
         extensionUri: {},
-        extension: { id: 'koltyakov.varro' },
+        extension: { id: 'quonaro.loomery' },
         globalState,
         workspaceState: {},
         subscriptions: [],
@@ -715,11 +720,11 @@ describe('extension activation', () => {
 
       await vi.waitFor(() => {
         expect(loggerMock.warn).toHaveBeenCalledWith(
-          'Failed to reveal Varro after installation: view unavailable'
+          'Failed to reveal Loomery after installation: view unavailable'
         );
       });
       expect(globalState.update).not.toHaveBeenCalledWith('layout.initialSidebarReveal.v1', true);
-      expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:activated', true);
+      expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:activated', true);
     }
   );
 
@@ -732,14 +737,14 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       globalState,
       workspaceState: {},
       subscriptions: [],
     } as never);
 
-    expect(executeCommandMock).not.toHaveBeenCalledWith('workbench.view.extension.varro');
-    expect(executeCommandMock).not.toHaveBeenCalledWith('varro.chat.focus');
+    expect(executeCommandMock).not.toHaveBeenCalledWith('workbench.view.extension.loomery');
+    expect(executeCommandMock).not.toHaveBeenCalledWith('loomery.chat.focus');
     expect(globalState.update).not.toHaveBeenCalled();
   });
 
@@ -747,7 +752,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -758,8 +763,8 @@ describe('extension activation', () => {
     await (reveal as () => Promise<void>)();
 
     expect(executeCommandMock).toHaveBeenCalledWith('vscode.moveViews', {
-      viewIds: ['varro.chat'],
-      destinationId: 'workbench.view.extension.varro',
+      viewIds: ['loomery.chat'],
+      destinationId: 'workbench.view.extension.loomery',
     });
   });
 
@@ -767,7 +772,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -784,11 +789,11 @@ describe('extension activation', () => {
       [
         'vscode.moveViews',
         {
-          viewIds: ['varro.chat'],
-          destinationId: 'workbench.view.extension.varro',
+          viewIds: ['loomery.chat'],
+          destinationId: 'workbench.view.extension.loomery',
         },
       ],
-      ['varro.chat.resetViewLocation'],
+      ['loomery.chat.resetViewLocation'],
     ]);
   });
 
@@ -803,11 +808,11 @@ describe('extension activation', () => {
       await expect(
         activate({
           extensionUri: {},
-          extension: { id: 'koltyakov.varro' },
+          extension: { id: 'quonaro.loomery' },
           workspaceState: {},
           subscriptions: [],
         } as never)
-      ).rejects.toThrow('varro.server.port');
+      ).rejects.toThrow('loomery.server.port');
 
       expect(openCodeServerMock).not.toHaveBeenCalled();
     }
@@ -820,7 +825,7 @@ describe('extension activation', () => {
     await expect(
       activate({
         extensionUri: {},
-        extension: { id: 'koltyakov.varro' },
+        extension: { id: 'quonaro.loomery' },
         workspaceState: {},
         subscriptions: [],
       } as never)
@@ -841,7 +846,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -860,7 +865,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -889,7 +894,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -919,7 +924,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -956,7 +961,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -994,7 +999,7 @@ describe('extension activation', () => {
     const { activate } = await import('./extension');
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -1022,7 +1027,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -1033,7 +1038,7 @@ describe('extension activation', () => {
     expect(latestContextProviderInstance.current?.dispose).toHaveBeenCalledTimes(1);
     expect(latestServerInstance.current?.disconnect).toHaveBeenCalledTimes(1);
     expect(disposeProcessInspectionMock).toHaveBeenCalledOnce();
-    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:activated', false);
+    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:activated', false);
     expect(loggerMock.dispose).toHaveBeenCalledTimes(1);
   });
 
@@ -1042,7 +1047,7 @@ describe('extension activation', () => {
 
     await activate({
       extensionUri: {},
-      extension: { id: 'koltyakov.varro' },
+      extension: { id: 'quonaro.loomery' },
       workspaceState: {},
       subscriptions: [],
     } as never);
@@ -1058,116 +1063,129 @@ describe('extension activation', () => {
     );
     expect(latestContextProviderInstance.current?.dispose).toHaveBeenCalledTimes(1);
     expect(latestServerInstance.current?.disconnect).toHaveBeenCalledTimes(1);
-    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'varro:activated', false);
+    expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'loomery:activated', false);
   });
 });
 
 describe('extension manifest', () => {
-  it('contributes quick actions to the Varro view title', () => {
+  it('contributes quick actions to the Loomery view title', () => {
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.chat.openSettings',
-      title: 'Varro: Open Settings',
+      command: 'loomery.chat.openSettings',
+      title: 'Loomery: Open Settings',
       shortTitle: 'Settings',
       icon: '$(gear)',
     });
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.chat.showFileDiffs',
-      title: 'Varro: Show File Diffs',
+      command: 'loomery.chat.showFileDiffs',
+      title: 'Loomery: Show File Diffs',
       shortTitle: 'Show File Diffs',
       icon: '$(diff-single)',
     });
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.chat.hideFileDiffs',
-      title: 'Varro: Hide File Diffs',
+      command: 'loomery.chat.hideFileDiffs',
+      title: 'Loomery: Hide File Diffs',
       shortTitle: 'Hide File Diffs',
       icon: '$(list-flat)',
     });
+    expect(packageJson.contributes.commands).toContainEqual({
+      command: 'loomery.chat.openSessions',
+      title: 'Loomery: Open Sessions',
+      shortTitle: 'Open Sessions',
+      icon: '$(comment-discussion)',
+    });
     expect(packageJson.contributes.submenus).toContainEqual({
-      id: 'varro.viewActions',
+      id: 'loomery.viewActions',
       label: 'More Actions',
       icon: '$(more)',
     });
     expect(packageJson.contributes.menus['view/title']).toEqual([
       {
-        command: 'varro.chat.showFileDiffs',
-        when: 'view == varro.chat && !varro:showFileDiffs',
+        command: 'loomery.chat.openSessions',
+        when: 'view == loomery.chat',
         group: 'navigation@0',
       },
       {
-        command: 'varro.chat.hideFileDiffs',
-        when: 'view == varro.chat && varro:showFileDiffs',
-        group: 'navigation@0',
-      },
-      {
-        command: 'varro.chat.openSettings',
-        when: 'view == varro.chat',
+        command: 'loomery.chat.showFileDiffs',
+        when: 'view == loomery.chat && !loomery:showFileDiffs',
         group: 'navigation@1',
       },
       {
-        submenu: 'varro.viewActions',
-        when: 'view == varro.chat',
+        command: 'loomery.chat.hideFileDiffs',
+        when: 'view == loomery.chat && loomery:showFileDiffs',
+        group: 'navigation@1',
+      },
+      {
+        command: 'loomery.chat.openSettings',
+        when: 'view == loomery.chat',
         group: 'navigation@2',
       },
+      {
+        submenu: 'loomery.viewActions',
+        when: 'view == loomery.chat',
+        group: 'navigation@3',
+      },
     ]);
-    expect(packageJson.contributes.menus['varro.viewActions']).toEqual([
-      { command: 'varro.about', group: '1_main@1' },
-      { command: 'varro.chat.openStats', group: '1_main@2' },
-      { command: 'varro.openGitHub', group: '1_main@3' },
+    expect(packageJson.contributes.menus['loomery.viewActions']).toEqual([
+      { command: 'loomery.about', group: '1_main@1' },
+      { command: 'loomery.chat.openStats', group: '1_main@2' },
+      { command: 'loomery.openGitHub', group: '1_main@3' },
     ]);
     expect(packageJson.contributes.menus.commandPalette).toEqual(
       expect.arrayContaining([
         {
-          command: 'varro.chat.showFileDiffs',
-          when: '!varro:showFileDiffs',
+          command: 'loomery.chat.showFileDiffs',
+          when: '!loomery:showFileDiffs',
         },
         {
-          command: 'varro.chat.hideFileDiffs',
-          when: 'varro:showFileDiffs',
+          command: 'loomery.chat.hideFileDiffs',
+          when: 'loomery:showFileDiffs',
         },
       ])
     );
   });
 
-  it('contributes new chat and terminal actions to Varro editor tabs', () => {
+  it('contributes new chat and terminal actions to Loomery editor tabs', () => {
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.chat.newEditor',
-      title: 'Varro: New Chat Editor',
+      command: 'loomery.chat.newEditor',
+      title: 'Loomery: New Chat Editor',
       shortTitle: 'New Chat Editor',
       icon: '$(add)',
     });
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.chat.newTerminalEditor',
-      title: 'Varro: New Terminal Editor',
+      command: 'loomery.chat.newTerminalEditor',
+      title: 'Loomery: New Terminal Editor',
       shortTitle: 'New Terminal Editor',
       icon: '$(terminal)',
     });
     expect(packageJson.contributes.menus['editor/title']).toEqual([
       {
-        command: 'varro.chat.newEditor',
-        when: 'activeWebviewPanelId == varro.editor',
+        command: 'loomery.chat.newEditor',
+        when: 'activeWebviewPanelId == loomery.editor',
         group: 'navigation@1',
       },
       {
-        command: 'varro.chat.newTerminalEditor',
-        when: 'activeWebviewPanelId == varro.editor',
+        command: 'loomery.chat.newTerminalEditor',
+        when: 'activeWebviewPanelId == loomery.editor',
         group: 'navigation@2',
       },
     ]);
   });
 
-  it('contributes commit-message generation to the command palette and Source Control', () => {
+  it('contributes commit-message generation to the command palette and Source Control input', () => {
     expect(packageJson.contributes.commands).toContainEqual({
-      command: 'varro.generateCommitMessage',
-      title: 'Varro: Generate Commit Message',
+      command: 'loomery.generateCommitMessage',
+      title: 'Loomery: Generate Commit Message',
       icon: '$(wand)',
     });
-    expect(packageJson.contributes.menus['scm/title']).toEqual([
+    expect(packageJson.enabledApiProposals).toEqual(['contribSourceControlInputBoxMenu']);
+    expect(packageJson.contributes.menus['scm/inputBox']).toEqual([
       {
-        command: 'varro.generateCommitMessage',
+        command: 'loomery.generateCommitMessage',
         when: 'scmProvider == git',
-        group: 'navigation@99',
+        group: 'navigation@1',
       },
     ]);
+    expect(Object.keys(packageJson.contributes.menus)).not.toContain('scm/title');
   });
 
   it('constrains the server port setting to valid TCP ports', () => {
@@ -1176,7 +1194,7 @@ describe('extension manifest', () => {
       Record<string, unknown>
     >;
 
-    expect(properties['varro.server.port']).toMatchObject({
+    expect(properties['loomery.server.port']).toMatchObject({
       default: 'auto',
       oneOf: [
         { type: 'string', enum: ['auto'] },
@@ -1191,7 +1209,7 @@ describe('extension manifest', () => {
       Record<string, unknown>
     >;
 
-    for (const key of ['varro.commitMessage.model', 'varro.chat.autoApproveModel']) {
+    for (const key of ['loomery.commitMessage.model', 'loomery.chat.autoApproveModel']) {
       expect(properties[key]).toMatchObject({
         type: 'string',
         scope: 'application',
@@ -1201,13 +1219,13 @@ describe('extension manifest', () => {
     }
   });
 
-  it('contributes a nullable Varro chat font-size override', () => {
+  it('contributes a nullable Loomery chat font-size override', () => {
     const properties = packageJson.contributes.configuration.properties as Record<
       string,
       Record<string, unknown>
     >;
 
-    expect(properties['varro.chat.fontSize']).toMatchObject({
+    expect(properties['loomery.chat.fontSize']).toMatchObject({
       type: ['number', 'null'],
       minimum: 6,
       maximum: 100,
@@ -1221,17 +1239,17 @@ describe('extension manifest', () => {
       Record<string, unknown>
     >;
 
-    expect(properties['varro.chat.showTurnTimer']).toMatchObject({
+    expect(properties['loomery.chat.showTurnTimer']).toMatchObject({
       type: 'boolean',
       default: true,
     });
   });
 
-  it('activates on Varro use instead of every VS Code startup', () => {
-    expect(packageJson.contributes.views.varro).toContainEqual(
-      expect.objectContaining({ id: 'varro.chat' })
+  it('activates on Loomery use instead of every VS Code startup', () => {
+    expect(packageJson.contributes.views.loomery).toContainEqual(
+      expect.objectContaining({ id: 'loomery.chat' })
     );
-    expect(packageJson.activationEvents).not.toContain('onView:varro.chat');
+    expect(packageJson.activationEvents).not.toContain('onView:loomery.chat');
     expect(packageJson.activationEvents).not.toContain('onStartupFinished');
   });
 });

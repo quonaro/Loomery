@@ -194,7 +194,7 @@ export class OpenCodeV2GenerationTiming {
         }
       } catch (error) {
         logger.warn(
-          `Could not read Varro generation timing: ${error instanceof Error ? error.message : String(error)}`
+          `Could not read Loomery generation timing: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     })();
@@ -216,7 +216,7 @@ export class OpenCodeV2GenerationTiming {
         });
     })().catch((error: unknown) => {
       logger.warn(
-        `Could not save Varro generation timing: ${error instanceof Error ? error.message : String(error)}`
+        `Could not save Loomery generation timing: ${error instanceof Error ? error.message : String(error)}`
       );
     });
     this.writes.set(sessionID, write);

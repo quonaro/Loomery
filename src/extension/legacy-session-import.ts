@@ -76,7 +76,7 @@ export class LegacySessionImport {
             ? Object.fromEntries(
                 Object.entries(record).map(([key, item]) => [
                   key,
-                  key === 'varroLegacy' || key === 'varroLegacyImport' ? item : remap(item),
+                  key === 'loomeryLegacy' || key === 'loomeryLegacyImport' ? item : remap(item),
                 ])
               )
             : value;
@@ -105,7 +105,7 @@ export class LegacySessionImport {
               },
             },
             metadata: {
-              varroLegacyImport: {
+              loomeryLegacyImport: {
                 sourceSessionID: session.id,
                 source: session,
                 importedAt: Date.now(),
@@ -180,7 +180,7 @@ function convertMessage(value: unknown, ids: Map<string, string>): UnknownRecord
     throw new Error('Invalid legacy message');
   const parts = entry.parts.map((part: unknown) => asRecord(part) ?? {});
   const time = asRecord(info.time) ?? {};
-  const base = { id: ids.get(info.id), metadata: { varroLegacy: entry } };
+  const base = { id: ids.get(info.id), metadata: { loomeryLegacy: entry } };
   if (info.role === 'user') {
     const files = parts
       .filter((part) => part.type === 'file')

@@ -1,18 +1,18 @@
 # Usage Guide
 
-This guide covers the current Varro workflow inside VS Code.
+This guide covers the current Loomery workflow inside VS Code.
 
-## Open Varro
+## Open Loomery
 
-- Click the `Varro` icon in the Activity Bar.
-- In VS Code and VSCodium, Varro defaults to the `Secondary Side Bar` so you can keep the editor visible while chatting.
-- In Cursor, Windsurf, and Devin, Varro attempts a one-time move to the `Primary Side Bar` instead.
+- Click the `Loomery` icon in the Activity Bar.
+- In VS Code and VSCodium, Loomery defaults to the `Secondary Side Bar` so you can keep the editor visible while chatting.
+- In Cursor, Windsurf, and Devin, Loomery attempts a one-time move to the `Primary Side Bar` instead.
 
 VS Code forks have limited support. See [VS Code Fork Compatibility](vscode-forks.md) for details.
 
 ### Chat without opening a project
 
-Varro also works in an empty VS Code window. It uses a persistent `scratch/` folder
+Loomery also works in an empty VS Code window. It uses a persistent `scratch/` folder
 under its [per-user state root](#local-state-files) for commands and relative paths.
 No-project chats have their own directory-scoped history. Files in scratch survive
 window reloads and are shared by empty windows for the same OS user on the same host.
@@ -31,19 +31,19 @@ Install the recommended [OpenCode v2 CLI](https://opencode.ai/v2/docs/) on macOS
 npm install -g @opencode/cli
 ```
 
-If OpenCode does not have any providers configured yet, either connect one from Varro's Models view or log in from a terminal:
+If OpenCode does not have any providers configured yet, either connect one from Loomery's Models view or log in from a terminal:
 
 ```sh
 opencode auth login
 ```
 
-From inside Varro, `/connect` opens the provider connection dialog. The no-provider recovery screen offers terminal setup. Use `opencode auth login` when a provider does not expose a supported embedded method. If you selected a custom executable such as `opencode2`, use that executable in terminal commands too.
+From inside Loomery, `/connect` opens the provider connection dialog. The no-provider recovery screen offers terminal setup. Use `opencode auth login` when a provider does not expose a supported embedded method. If you selected a custom executable such as `opencode2`, use that executable in terminal commands too.
 
-Varro selects and remembers a loopback port by default with `varro.server.port: "auto"`. It does not start OpenCode at extension activation time. Instead, it starts or attaches to the server the first time the chat view needs it. An update reuses verified running servers and their credentials without a migration restart. Fresh installations do not probe the old default port 4096. See [ownership and migration](server-ownership.md).
+Loomery selects and remembers a loopback port by default with `loomery.server.port: "auto"`. It does not start OpenCode at extension activation time. Instead, it starts or attaches to the server the first time the chat view needs it. An update reuses verified running servers and their credentials without a migration restart. Fresh installations do not probe the old default port 4096. See [ownership and migration](server-ownership.md).
 
-For normal use, leave `varro.server.autoStart` enabled and let Varro manage OpenCode alongside the VS Code extension host. Docker and separately managed remote servers are not recommended for general use: they disable local integrations and require you to manage networking, authentication, workspace paths, and server maintenance yourself.
+For normal use, leave `loomery.server.autoStart` enabled and let Loomery manage OpenCode alongside the VS Code extension host. Docker and separately managed remote servers are not recommended for general use: they disable local integrations and require you to manage networking, authentication, workspace paths, and server maintenance yourself.
 
-Only use manual server management if you have a specific requirement and understand the [unsupported and limited features](docker-server.md#feature-availability-in-attach-only-mode). Set `varro.server.port` to your exact port, disable `varro.server.autoStart`, and start OpenCode yourself. VS Code marks this switch as deprecated and debug-only, but it remains available for this advanced workflow:
+Only use manual server management if you have a specific requirement and understand the [unsupported and limited features](docker-server.md#feature-availability-in-attach-only-mode). Set `loomery.server.port` to your exact port, disable `loomery.server.autoStart`, and start OpenCode yourself. VS Code marks this switch as deprecated and debug-only, but it remains available for this advanced workflow:
 
 ```sh
 opencode serve --port 4096
@@ -51,13 +51,13 @@ opencode serve --port 4096
 
 For Docker or a separately managed remote server, read the [advanced setup guide](docker-server.md), including its limitations, before configuring the connection.
 
-If the CLI is installed somewhere that is not on `PATH`, set `varro.server.command` to the executable path.
+If the CLI is installed somewhere that is not on `PATH`, set `loomery.server.command` to the executable path.
 
-When `varro.server.command` is empty, Varro searches `PATH` and common install locations for `opencode2` first, then falls back to `opencode`. Current v1 and v2 packages both install `opencode`. Check the selected executable with `--version`; its name does not determine its API version.
+When `loomery.server.command` is empty, Loomery searches `PATH` and common install locations for `opencode2` first, then falls back to `opencode`. Current v1 and v2 packages both install `opencode`. Check the selected executable with `--version`; its name does not determine its API version.
 
-On native Windows, download the standalone v2 CLI from the [install page](https://opencode.ai/v2/docs/), which does not currently support Windows package managers. Add the executable to `PATH` or set `varro.server.command` to its path. Run authentication commands in a Windows terminal. Varro runs on the local Windows extension host and looks for the Windows CLI. Native OpenCode data is under `%USERPROFILE%\.local\share\opencode`.
+On native Windows, download the standalone v2 CLI from the [install page](https://opencode.ai/v2/docs/), which does not currently support Windows package managers. Add the executable to `PATH` or set `loomery.server.command` to its path. Run authentication commands in a Windows terminal. Loomery runs on the local Windows extension host and looks for the Windows CLI. Native OpenCode data is under `%USERPROFILE%\.local\share\opencode`.
 
-For WSL, open the project in a VS Code WSL window, then install and authenticate OpenCode inside that distribution. A WSL window runs Varro and OpenCode on the Linux extension host, where data is under `~/.local/share/opencode`. A CLI installed only on Windows is not available to that host, and a CLI installed only in WSL is not available to a native VS Code window.
+For WSL, open the project in a VS Code WSL window, then install and authenticate OpenCode inside that distribution. A WSL window runs Loomery and OpenCode on the Linux extension host, where data is under `~/.local/share/opencode`. A CLI installed only on Windows is not available to that host, and a CLI installed only in WSL is not available to a native VS Code window.
 
 ### Choose and update OpenCode
 
@@ -66,24 +66,24 @@ For WSL, open the project in a VS Code WSL window, then install and authenticate
 | v2, recommended | 2.0.5 | 2.0.24 | `@opencode/cli` |
 | v1, still supported | 1.16.0 | 1.18.35 | `opencode-ai` |
 
-To keep using v1, retain your installation or run `npm install -g opencode-ai`. Set `varro.server.command` to its executable path. Setting it to `opencode` selects v1 only if that command resolves to a v1 installation. Varro detects the API automatically.
+To keep using v1, retain your installation or run `npm install -g opencode-ai`. Set `loomery.server.command` to its executable path. Setting it to `opencode` selects v1 only if that command resolves to a v1 installation. Loomery detects the API automatically.
 
 Both package families now provide the same `opencode` command. When switching from a package-managed v1 installation to v2, remove the v1 package with its package manager first, then install `@opencode/cli`. For npm, use `npm uninstall -g opencode-ai`, then `npm install -g @opencode/cli`. This removes the package, not your history or configuration. If you keep both versions, use separate installation locations and explicit executable paths.
 
-If you previously used v1, installing v2 may leave Varro connected to the running v1 server. Check that `varro.server.command` points to the v2 executable if you set it explicitly. Let active work finish, then run `Varro: Restart Server` from the Command Palette. This is also needed after changing `varro.server.command`. The command only restarts a Varro-managed server; restart a manually managed server in its own terminal using the v2 executable. Confirm that Varro's status bar shows OpenCode v2 after reconnecting.
+If you previously used v1, installing v2 may leave Loomery connected to the running v1 server. Check that `loomery.server.command` points to the v2 executable if you set it explicitly. Let active work finish, then run `Loomery: Restart Server` from the Command Palette. This is also needed after changing `loomery.server.command`. The command only restarts a Loomery-managed server; restart a manually managed server in its own terminal using the v2 executable. Confirm that Loomery's status bar shows OpenCode v2 after reconnecting.
 
-Updates stay within the installed CLI family. For an npm installation, use `npm install -g @opencode/cli@latest` for v2 or `npm install -g opencode-ai@latest` for v1. Use the original installer for other installation methods. `varro.server.autoUpdate` does not switch v1 users to v2. Native Windows v2 supports background updates using the resolved CLI's `update <latest-version>` command; Windows v1 still uses a prompt. Standalone installations should use the current download from their version's install page if the CLI cannot determine its installation method.
+Updates stay within the installed CLI family. For an npm installation, use `npm install -g @opencode/cli@latest` for v2 or `npm install -g opencode-ai@latest` for v1. Use the original installer for other installation methods. `loomery.server.autoUpdate` does not switch v1 users to v2. Native Windows v2 supports background updates using the resolved CLI's `update <latest-version>` command; Windows v1 still uses a prompt. Standalone installations should use the current download from their version's install page if the CLI cannot determine its installation method.
 
 Supported v1 configuration remains accepted by v2. Native v2 configuration uses fields such as `agents`, `permissions`, and `mcp.servers`; v1 cannot read those native-v2-only shapes. Keep compatible configuration if switching between versions. Plugins require a v2 port. See the [upstream migration guide](https://opencode.ai/v2/docs/migrate-v1/).
 
 ### If restart does not switch to v2
 
-`Varro: Restart Server` may not be enough. An old OpenCode process can keep the port occupied, and Varro will not terminate a process it cannot identify as its own. This can also affect a leftover server from an earlier Varro run. On Windows, you may need to end the old `opencode.exe` process explicitly.
+`Loomery: Restart Server` may not be enough. An old OpenCode process can keep the port occupied, and Loomery will not terminate a process it cannot identify as its own. This can also affect a leftover server from an earlier Loomery run. On Windows, you may need to end the old `opencode.exe` process explicitly.
 
 1. Let active work finish in all clients using that server. Stop a manually launched server with `Ctrl+C` in its terminal. If another app or service keeps relaunching it, stop it there too.
-2. Identify the process listening on Varro's actual endpoint, shown in `Varro: About`. Replace `4096` in the examples below with that port. Run these steps on the host where Varro runs, such as the WSL distribution or SSH host for a remote workspace.
-3. Stop that old OpenCode process using the platform steps below, then run `Varro: Restart Server` again. For a manually managed server, start it with the v2 executable instead.
-4. Confirm that Varro's status bar shows OpenCode v2. If it still shows v1, check the executable rather than repeating the restart. Run your selected executable with `--version` and set `varro.server.command` to the full v2 executable path. An old `opencode2` takes precedence over `opencode` when this setting is empty. If you changed `PATH`, fully close and reopen VS Code so it picks up the new environment.
+2. Identify the process listening on Loomery's actual endpoint, shown in `Loomery: About`. Replace `4096` in the examples below with that port. Run these steps on the host where Loomery runs, such as the WSL distribution or SSH host for a remote workspace.
+3. Stop that old OpenCode process using the platform steps below, then run `Loomery: Restart Server` again. For a manually managed server, start it with the v2 executable instead.
+4. Confirm that Loomery's status bar shows OpenCode v2. If it still shows v1, check the executable rather than repeating the restart. Run your selected executable with `--version` and set `loomery.server.command` to the full v2 executable path. An old `opencode2` takes precedence over `opencode` when this setting is empty. If you changed `PATH`, fully close and reopen VS Code so it picks up the new environment.
 
 On native Windows, find the listening process in PowerShell:
 
@@ -104,18 +104,18 @@ On macOS or Linux, use `lsof -nP -iTCP:4096 -sTCP:LISTEN` to find the listener. 
 ### Version differences and history
 
 - V2 does not expose session sharing or an OpenCode LSP service. Sharing is disabled on v2. VS Code Problems remain available as explicit context.
-- V2 cannot patch arbitrary session metadata. Varro keeps session annotations in `opencode-v2/` under its per-user state directory, described below. These annotations are local to Varro and are not synchronized to other OpenCode clients.
+- V2 cannot patch arbitrary session metadata. Loomery keeps session annotations in `opencode-v2/` under its per-user state directory, described below. These annotations are local to Loomery and are not synchronized to other OpenCode clients.
 - Changing CLI versions does not synchronize history. After switching to v2, opening a v1 conversation that is still in the session list imports a copy of it and its child sessions when v2 cannot load the original. The copy has new IDs and a title ending in `(v1 copy)`. You can continue it without changing the original v1 history. Imports do not execute recorded tools or send a model request.
 
 See [OpenCode v1 and v2 support](opencode-v2-support.md) for adapter details and verification coverage.
 
 ## Local state files
 
-Varro uses one per-user state root for files shared across editor windows and distributions:
+Loomery uses one per-user state root for files shared across editor windows and distributions:
 
-- macOS: `~/Library/Application Support/Varro/`
-- Windows: `%LOCALAPPDATA%\Varro\`, defaulting to `~/AppData/Local/Varro/`
-- Linux: `$XDG_STATE_HOME/varro/`, defaulting to `~/.local/state/varro/`
+- macOS: `~/Library/Application Support/Loomery/`
+- Windows: `%LOCALAPPDATA%\Loomery\`, defaulting to `~/AppData/Local/Loomery/`
+- Linux: `$XDG_STATE_HOME/loomery/`, defaulting to `~/.local/state/loomery/`
 
 Relative or empty `LOCALAPPDATA` and `XDG_STATE_HOME` values are ignored for new paths.
 The root contains `scratch/` for no-project files, `servers/` for server ownership records, `opencode-v2/` for
@@ -124,14 +124,14 @@ quota snapshots and polling locks. Annotation JSON includes `generationTiming`,
 the text/reasoning boundaries used with OpenCode's token counts to estimate tok/s.
 Quota disk sharing remains disabled on Windows until private ACL handling is supported.
 
-Existing annotation directories at `$XDG_STATE_HOME/varro/opencode-v2/` and quota
-directories at `~/.varro-provider-quota-v2/` remain intact. When needed, Varro creates
+Existing annotation directories at `$XDG_STATE_HOME/loomery/opencode-v2/` and quota
+directories at `~/.loomery-provider-quota-v2/` remain intact. When needed, Loomery creates
 a symbolic link at the native path, or a directory junction on Windows, pointing
 to the existing directory. Older and newer writers then share the same files and
 locks, including atomic file replacements. This exposes a consistent native path
 without moving live data. Read-only usage reports can read the old path without
 creating a link. Separate existing directories at both locations are a conflict;
-Varro does not automatically merge or overwrite them.
+Loomery does not automatically merge or overwrite them.
 
 Update all editor installations before using a fresh state root. Older builds do
 not know the new paths and can create separate legacy directories if launched
@@ -144,29 +144,28 @@ These paths belong to the machine running the workspace extension host, includin
 SSH, WSL, and container hosts. OpenCode's database, service registration, provider
 credentials, temporary attachments, and VS Code-managed workspace/profile storage
 retain their owners' existing locations. Isolated test hosts use
-`VARRO_TEST_STATE_ROOT` for all three state subdirectories and never use legacy
+`LOOMERY_TEST_STATE_ROOT` for all three state subdirectories and never use legacy
 production paths.
 
 ## Workspace And Remote Environments
 
-Varro requires a trusted, non-virtual workspace because it starts a process with access to workspace files. VS Code does not enable the extension in Restricted Mode or virtual workspaces such as repositories opened without a local or remote filesystem checkout.
+Loomery requires a trusted, non-virtual workspace because it starts a process with access to workspace files. VS Code does not enable the extension in Restricted Mode or virtual workspaces such as repositories opened without a local or remote filesystem checkout.
 
-Varro is a workspace extension. In Remote SSH, Dev Containers, and similar setups where VS Code runs workspace extensions remotely, Varro and the OpenCode server run on that remote extension host. In those environments:
+Loomery is a workspace extension. In Remote SSH, Dev Containers, and similar setups where VS Code runs workspace extensions remotely, Loomery and the OpenCode server run on that remote extension host. In those environments:
 
 - `127.0.0.1`, port `4096`, and a manually started OpenCode server refer to the remote host or container, not your desktop.
-- The OpenCode CLI, `varro.server.command`, provider credentials, and OpenCode configuration must be available on that host.
-- Files dragged from the desktop can use Varro's bounded content-upload fallback when their local paths are unavailable to the remote extension host.
+- The OpenCode CLI, `loomery.server.command`, provider credentials, and OpenCode configuration must be available on that host.
+- Files dragged from the desktop can use Loomery's bounded content-upload fallback when their local paths are unavailable to the remote extension host.
 
 VS Code WSL follows the same rule. Check the lower-left remote indicator before troubleshooting `PATH`, configuration, credentials, or session history. A window with a `WSL` indicator uses the distribution's Linux CLI and files; a normal local window uses the native Windows CLI and files.
 
-These remote workspace environments support the recommended Varro-managed setup. Keep OpenCode alongside the extension host with `varro.server.autoStart` enabled. Connecting to a separately managed server uses [attach-only mode with reduced functionality](docker-server.md#feature-availability-in-attach-only-mode).
+These remote workspace environments support the recommended Loomery-managed setup. Keep OpenCode alongside the extension host with `loomery.server.autoStart` enabled. Connecting to a separately managed server uses [attach-only mode with reduced functionality](docker-server.md#feature-availability-in-attach-only-mode).
 
-## What Varro Sends As Context
+## What Loomery Sends As Context
 
-Varro can include more than the text in the composer.
+Loomery can include more than the text in the composer.
 
 - Working directory and, in multi-root workspaces, the open workspace-folder map
-- Active file, when live current-document context is enabled
 - Current selection, including unsaved selected text, or a bounded window of a dirty editor buffer when there is no selection, when live current-document context is enabled
 - Selected terminal text
 - Diagnostics from the active file when you explicitly attach current Problems with `/diagnostics`
@@ -175,21 +174,21 @@ Varro can include more than the text in the composer.
 - Pasted image attachments when the selected model supports vision, or path-backed images delegated through a configured `@vision` subagent
 - Native PDF attachments when the selected model advertises PDF input support
 
-The current document appears as a chip above the composer. Click it to disable or re-enable live current-document context. Varro saves this preference per project/workspace and keeps it across file changes and chat sessions until you toggle it again.
+The current selection, or a bounded window of a dirty editor buffer when there is no selection, appears as a chip above the composer. A file that is merely open without a selection is not attached. Click the chip to disable or re-enable live current-document context. Loomery saves this preference per project/workspace and keeps it across file changes and chat sessions until you toggle it again.
 
 In a multi-root workspace, session history and search cover every open root. The session-list folder picker filters that workspace-wide catalog without changing where new work runs. A new empty chat follows the active editor's root; use the working-directory picker in the composer toolbar to choose another root. Existing and restored sessions always run in their recorded directory and cannot be moved between roots.
 
-OpenCode still has one working directory per session. Varro tells the agent about sibling workspace roots and can attach or search files from them, but access outside the session's working directory remains subject to OpenCode's `external_directory` permission.
+OpenCode still has one working directory per session. Loomery tells the agent about sibling workspace roots and can attach or search files from them, but access outside the session's working directory remains subject to OpenCode's `external_directory` permission.
 
-When the active file is also attached explicitly, Varro avoids duplicating overlapping line ranges.
+When the active selection is also attached explicitly, Loomery avoids duplicating overlapping line ranges.
 
 ## Add Context Manually
 
 Use any of these flows to add more context.
 
-- Right-click a file or folder in Explorer and choose `Varro: Add to Context`, or run `Varro: Add to Context` from the Command Palette to add the active file.
-- With an editor selection, use the editor context menu entry that also appears as `Varro: Add to Context`, or press `Cmd+Shift+K` / `Ctrl+Shift+K`.
-- Select terminal text and choose `Varro: Add to Context` from the terminal context menu, or press `Cmd+Shift+K` / `Ctrl+Shift+K`.
+- Right-click a file or folder in Explorer and choose `Loomery: Add to Context`, or run `Loomery: Add to Context` from the Command Palette to add the active file.
+- With an editor selection, use the editor context menu entry that also appears as `Loomery: Add to Context`, or press `Cmd+Shift+K` / `Ctrl+Shift+K`.
+- Select terminal text and choose `Loomery: Add to Context` from the terminal context menu, or press `Cmd+Shift+K` / `Ctrl+Shift+K`.
 - Drag files or folders into the composer.
 - Use the attachment button beside the composer.
 - Paste an image or PDF into the composer.
@@ -197,11 +196,11 @@ Use any of these flows to add more context.
 - Type `@agent-name` to mention an available agent.
 - Type `&` to search recent root sessions and insert a stable `session:<id>` reference. Session references in the composer and rendered responses open the referenced session.
 
-Varro keeps at most five pasted images, with a maximum size of 5 MiB per image. Native PDFs can be picked, dropped, or pasted and are limited to 20 MiB in total. When the selected model does not advertise PDF input support, a picked or dropped PDF with an available file path is sent as a file reference instead of native PDF data. A pasted PDF without an available path remains visible but is not sent. In environments where other dropped items do not expose local paths, content-only drops are limited to 20 files, 10 MiB per file, and 50 MiB in total.
+Loomery keeps at most five pasted images, with a maximum size of 5 MiB per image. Native PDFs can be picked, dropped, or pasted and are limited to 20 MiB in total. When the selected model does not advertise PDF input support, a picked or dropped PDF with an available file path is sent as a file reference instead of native PDF data. A pasted PDF without an available path remains visible but is not sent. In environments where other dropped items do not expose local paths, content-only drops are limited to 20 files, 10 MiB per file, and 50 MiB in total.
 
 ### Add Vision To A Text-Only Model
 
-Varro can delegate pasted images from a tool-capable text-only model, such as GLM, to an OpenCode subagent named `vision`. Add the agent to `opencode.json` and replace the example model with a model available from one of your configured providers. This example uses supported v1-format configuration so it works with both v1 and v2:
+Loomery can delegate pasted images from a tool-capable text-only model, such as GLM, to an OpenCode subagent named `vision`. Add the agent to `opencode.json` and replace the example model with a model available from one of your configured providers. This example uses supported v1-format configuration so it works with both v1 and v2:
 
 ```json
 {
@@ -222,7 +221,7 @@ Varro can delegate pasted images from a tool-capable text-only model, such as GL
 }
 ```
 
-The `vision` agent must have an explicit model that OpenCode reports as supporting image input. If the saved agent does not appear, follow the server restart guidance under [Models, Agents, Reasoning, And MCPs](#models-agents-reasoning-and-mcps). With a non-vision parent model, pasted images retain the normal disabled appearance and are not sent unless the prompt contains an exact `@vision` mention. Once `@vision` is present, Varro materializes the images as private temporary files and instructs OpenCode to include those files in the vision subagent task. The parent model must support tool calls and be allowed to invoke the `vision` subagent.
+The `vision` agent must have an explicit model that OpenCode reports as supporting image input. If the saved agent does not appear, follow the server restart guidance under [Models, Agents, Reasoning, And MCPs](#models-agents-reasoning-and-mcps). With a non-vision parent model, pasted images retain the normal disabled appearance and are not sent unless the prompt contains an exact `@vision` mention. Once `@vision` is present, Loomery materializes the images as private temporary files and instructs OpenCode to include those files in the vision subagent task. The parent model must support tool calls and be allowed to invoke the `vision` subagent.
 
 ## Composer Behavior
 
@@ -253,10 +252,10 @@ Commands offered in slash-command completion include:
 
 - `/skills` browses skill commands loaded from OpenCode
 - `/connect` opens the provider connection dialog
-- `/settings` opens VS Code Settings filtered to Varro
+- `/settings` opens VS Code Settings filtered to Loomery
 - `/export` opens a JSON export of the current session in the editor
 - `/stats` opens a Markdown token and assistant-duration report for the last 30 days across all OpenCode projects; `/stats all` also includes retained all-time usage
-- Usage reports include local V1 and V2 sessions. For migrated sessions, including Varro imports, only the session with the latest update time contributes usage. Equal update times prefer V2.
+- Usage reports include local V1 and V2 sessions. For migrated sessions, including Loomery imports, only the session with the latest update time contributes usage. Equal update times prefer V2.
 - `/thinking` or `/reasoning` toggles thinking block visibility
 - `/compact` or `/summarize` compacts conversation context
 - `/fork` forks the current session
@@ -272,23 +271,23 @@ Some commands only appear when they apply. `/ralph` appears before a session exi
 
 `/diagnostics`, `/fork`, `/abort`, `/stop`, `/undo`, `/revert`, and `/redo` can be submitted directly when applicable but are intentionally hidden from slash-command completion. `/undo` or `/revert` undoes the last assistant response, and `/redo` reapplies it. These session-level actions are separate from composer undo and redo.
 
-Use `Varro: Open Global AGENTS.md` to edit OpenCode's global instructions. `Varro: Initialize Project AGENTS.md` creates the project file when needed, opens it, and starts a new chat with `/init` ready to send using the current model.
+Use `Loomery: Open Global AGENTS.md` to edit OpenCode's global instructions. `Loomery: Initialize Project AGENTS.md` creates the project file when needed, opens it, and starts a new chat with `/init` ready to send using the current model.
 
 ## Sessions
 
 Sessions from every open workspace root appear in one catalog. Use the folder filter above search to narrow the list; it defaults to `All folders`. Folder labels appear only when multiple roots are open. The default list is split into `Recent`, `Archive`, and `Recycle Bin`. `Archive` is a UI grouping for older ordinary sessions; opening it does not alter those sessions in OpenCode. Pinned and active-state sessions remain surfaced, while other sessions are ordered approximately by activity age.
 
-- Start a fresh session with `Varro: New Session` or the new chat button. Right-click the button to choose `New Chat` or `New Chat in Editor`. Crafted composer text is kept for the new session, while file, image, terminal, and message-edit context is cleared.
+- Start a fresh session with `Loomery: New Session` or the new chat button. Right-click the button to choose `New Chat` or `New Chat in Editor`. Each click creates a separate empty session immediately, so any number can be kept open at once; closing a session tab removes it once it has no messages. Crafted composer text is kept for the new session, while file, image, terminal, and message-edit context is cleared.
 - Open the session list from the back button in the header.
-- Search uses OpenCode's native root-session search across loaded and older history and returns up to 30 results. Matching fields depend on the installed OpenCode version. Run `Varro: Search Sessions` to open and focus search directly.
+- Search uses OpenCode's native root-session search across loaded and older history and returns up to 30 results. Matching fields depend on the installed OpenCode version. Run `Loomery: Search Sessions` to open and focus search directly.
 - Filter or jump to `Running`, `Needs attention`, `Failed`, `Plan ready`, and `Completed` sessions from the header badges.
 - Open sub-agent sessions from the parent session row when they exist.
 - Top-level sessions can be renamed, pinned, or moved to the recycle bin. Drag a pinned session's handle, or focus it and press `ArrowUp` or `ArrowDown`, to reorder pinned sessions. Any session can open in the sidebar, an editor tab, or the OpenCode TUI, and its ID can be copied. Opening an editor session in the sidebar closes its matching editor tab. On v1, sharing asks OpenCode to create a share link and copies it to the clipboard; v2 sharing is unavailable.
 - Deleted session roots move into a recycle bin section where you can restore them or delete them permanently for 24 hours before they expire.
-- Stop the active run with `Varro: Abort Session`.
+- Stop the active run with `Loomery: Abort Session`.
 - Use `/export` to open the current session as JSON in the editor.
 - Changed-file rows open the selected session's before/after snapshot in VS Code's native diff editor when OpenCode provides both sides, with the working-tree Git diff as a fallback.
-- Use the conversation-turn rail beside the transcript to jump between user prompts. If the target turn is outside the loaded message window, Varro loads older history before navigating to it.
+- Use the conversation-turn rail beside the transcript to jump between user prompts. If the target turn is outside the loaded message window, Loomery loads older history before navigating to it.
 
 The indicators at the top of the chat summarize activity in other sessions. Select one to open the matching session directly or show all matching sessions. Their colors follow the active VS Code theme, but normally appear as follows:
 
@@ -304,11 +303,11 @@ The session list uses the same status colors. Hover over any indicator to see it
 
 Opening a session fetches the newest 200 messages. Scrolling to the top automatically prepends the next 200-message page while preserving the visible position. If an earlier page fails to load, the history boundary changes into a `Retry` action.
 
-On large layouts, Varro can keep a persistent session pane beside the chat. Use `varro.chat.desktopSessionPaneSide` to choose whether that pane appears on the left or right.
+On large layouts, Loomery can keep a persistent session pane beside the chat. Use `loomery.chat.desktopSessionPaneSide` to choose whether that pane appears on the left or right.
 
-If the sidebar is hidden, Varro can show VS Code notifications when a plan is ready, a top-level session fails, or the agent is blocked on a permission or question. It also exposes a status bar item that summarizes waiting or completed top-level sessions, including ordinary completed sessions that do not produce a notification, and alerts in sibling workspaces. Clicking that item opens pending-attention sessions first, otherwise it focuses Varro.
+If the sidebar is hidden, Loomery can show VS Code notifications when a plan is ready, a top-level session fails, or the agent is blocked on a permission or question. It also exposes a status bar item that summarizes waiting or completed top-level sessions, including ordinary completed sessions that do not produce a notification, and alerts in sibling workspaces. Clicking that item opens pending-attention sessions first, otherwise it focuses Loomery.
 
-If VS Code reloads while a session was running, Varro reconnects to those sessions and can continue interrupted work automatically when the session is still resumable.
+If VS Code reloads while a session was running, Loomery reconnects to those sessions and can continue interrupted work automatically when the session is still resumable.
 
 ## Plans, Reviews, And Ralph
 
@@ -322,15 +321,15 @@ If VS Code reloads while a session was running, Varro reconnects to those sessio
 - Ralph can pause, resume, or stop from the dashboard. It stops early when the plan starts with `DONE` and the latest completed iteration has no failed verification; otherwise it runs to the iteration cap. If the cap is reached with unchecked plan items or failed verification, the run is marked `incomplete` and can be continued with a higher limit. Manual stops and iteration errors terminate the run separately.
 - Sessions that finished with the `plan` agent surface as `Plan ready` in the session list.
 - The latest plan response can be opened as a saved markdown plan document.
-- The latest plan response can also be handed off to the build flow so Varro continues with implementation instead of revising the plan.
+- The latest plan response can also be handed off to the build flow so Loomery continues with implementation instead of revising the plan.
 
 ## Models, Agents, Reasoning, And MCPs
 
-Varro loads agents, models, and MCP tools from your local OpenCode configuration.
+Loomery loads agents, models, and MCP tools from your local OpenCode configuration.
 
-Varro watches OpenCode's global configuration and authentication files and refreshes provider and model state when OpenCode is idle. A refresh waits while agents are running or questions or permission requests are pending. Changes made through Varro's Models view follow the same safe refresh flow.
+Loomery watches OpenCode's global configuration and authentication files and refreshes provider and model state when OpenCode is idle. A refresh waits while agents are running or questions or permission requests are pending. Changes made through Loomery's Models view follow the same safe refresh flow.
 
-External edits to project-level OpenCode configuration may not be detected. If agents, models, commands, skills, MCP servers, or other settings do not reflect the saved config, open the Command Palette and run `Varro: Restart Server`. Varro checks for active work before restarting a server it manages. If active work blocks the restart, finish or abort that work and run the command again. If you started `opencode serve` yourself, restart that process from its terminal.
+External edits to project-level OpenCode configuration may not be detected. If agents, models, commands, skills, MCP servers, or other settings do not reflect the saved config, open the Command Palette and run `Loomery: Restart Server`. Loomery checks for active work before restarting a server it manages. If active work blocks the restart, finish or abort that work and run the command again. If you started `opencode serve` yourself, restart that process from its terminal.
 
 - Pick the agent from the composer toolbar.
 - Pick the provider/model from the model picker.
@@ -346,13 +345,13 @@ The Models view also shows whether a model exposes tools, variants, vision suppo
 
 ### Configure Primary Agents
 
-Define primary agents in OpenCode configuration. Varro lists them in the agent picker and uses the selected agent for the main conversation.
+Define primary agents in OpenCode configuration. Loomery lists them in the agent picker and uses the selected agent for the main conversation.
 
-Varro automatically adds its read-only `Ask` primary agent to the managed OpenCode runtime. This does not modify `opencode.json`; if inherited, global, or project OpenCode configuration already defines an agent named `ask` (case-insensitive), Varro uses that definition instead.
+Loomery automatically adds its read-only `Ask` primary agent to the managed OpenCode runtime. This does not modify `opencode.json`; if inherited, global, or project OpenCode configuration already defines an agent named `ask` (case-insensitive), Loomery uses that definition instead.
 
-Runtime injection requires Varro to launch the server itself. If an OpenCode upgrade replaces a Varro-managed service without its runtime config, Varro detects the missing Ask agent and safely relaunches the owned server with that config. Startup restores it before publishing the agent catalog when the server is idle. Active sessions, pending questions, and pending approvals defer recovery until work finishes. User-defined Ask agents and caller-provided configuration are preserved; global and project config files are not modified.
+Runtime injection requires Loomery to launch the server itself. If an OpenCode upgrade replaces a Loomery-managed service without its runtime config, Loomery detects the missing Ask agent and safely relaunches the owned server with that config. Startup restores it before publishing the agent catalog when the server is idle. Active sessions, pending questions, and pending approvals defer recovery until work finishes. User-defined Ask agents and caller-provided configuration are preserved; global and project config files are not modified.
 
-When Varro attaches to an unmanaged OpenCode v2 shared service or an external server, it cannot inject Ask. OpenCode's shared-service API does not support runtime agent registration. Agents already configured on the server remain available.
+When Loomery attaches to an unmanaged OpenCode v2 shared service or an external server, it cannot inject Ask. OpenCode's shared-service API does not support runtime agent registration. Agents already configured on the server remain available.
 
 Choose the config scope based on where you want the agent to appear:
 
@@ -394,7 +393,7 @@ Omit `model` to use the configured global model, or add a provider-qualified mod
 
 ### Agent icons
 
-Custom agents use the Iconoir `cube` icon in the agent picker and compact toolbar. Choose another icon by its kebab-case name from [Iconoir](https://iconoir.com), such as `binocular` or `code-brackets`. Solid variants use the `-solid` suffix. Icons come from the Iconoir version bundled with Varro; an unknown name falls back to `cube`.
+Custom agents use the Iconoir `cube` icon in the agent picker and compact toolbar. Choose another icon by its kebab-case name from [Iconoir](https://iconoir.com), such as `binocular` or `code-brackets`. Solid variants use the `-solid` suffix. Icons come from the Iconoir version bundled with Loomery; an unknown name falls back to `cube`.
 
 Set `icon` directly on the agent in `opencode.json` or `opencode.jsonc`. This v1-compatible format works with both OpenCode v1 and v2:
 
@@ -426,30 +425,30 @@ icon: binocular
 Review the code for correctness and regressions.
 ```
 
-Save this as `.opencode/agents/reviewer.md`. The tested v2 releases, 2.0.5 and 2.0.18, omit Markdown-defined agents from the catalog API used by Varro. Use the JSON definition above for cross-version support.
+Save this as `.opencode/agents/reviewer.md`. The tested v2 releases, 2.0.5 and 2.0.18, omit Markdown-defined agents from the catalog API used by Loomery. Use the JSON definition above for cross-version support.
 
 Build, Ask, and Plan retain their default icons unless an icon is configured. After changing a definition, reload the agent configuration using the server restart guidance above.
 
 ### Session selections across editor instances
 
-On v1, Varro saves explicit model, reasoning variant, and agent selections in OpenCode session metadata.
+On v1, Loomery saves explicit model, reasoning variant, and agent selections in OpenCode session metadata.
 Opening the same session in another extension instance, including VS Code Insiders, restores those
 selections ahead of local preferences and historical messages. Session updates also refresh them in
 open views. Restoring a session does not write metadata or change its last-updated timestamp.
 
-The stored fields are `metadata.varro.model`, containing `provider`, `model`, and an optional
-`variant`, and `metadata.varro.agent`, containing the agent name. A model selection without a variant
+The stored fields are `metadata.loomery.model`, containing `provider`, `model`, and an optional
+`variant`, and `metadata.loomery.agent`, containing the agent name. A model selection without a variant
 clears the previous reasoning selection. Existing sessions without these fields retain the previous
 local and history-based fallback behavior until an explicit selection is saved.
 
-On v2, the adapter stores these annotations locally in Varro's state directory rather than writing them to OpenCode session metadata. Other OpenCode clients do not receive them.
+On v2, the adapter stores these annotations locally in Loomery's state directory rather than writing them to OpenCode session metadata. Other OpenCode clients do not receive them.
 
-Varro merges its fields under `metadata.varro`, preserving workspace scope and unrelated metadata:
+Loomery merges its fields under `metadata.loomery`, preserving workspace scope and unrelated metadata:
 
 ```json
 {
   "metadata": {
-    "varro": {
+    "loomery": {
       "schemaVersion": 1,
       "workspaceScope": "folder",
       "permissionMode": "auto",
@@ -466,7 +465,7 @@ Varro merges its fields under `metadata.varro`, preserving workspace scope and u
 
 ### Provider Connections
 
-The Models view reads OpenCode's provider catalog and authentication methods. Depending on the provider plugin, the connection dialog can accept an API key, collect provider-specific fields, or open an OAuth authorization page in your browser. Some OAuth flows finish automatically; others ask you to paste an authorization code back into Varro. OpenCode stores the resulting credential.
+The Models view reads OpenCode's provider catalog and authentication methods. Depending on the provider plugin, the connection dialog can accept an API key, collect provider-specific fields, or open an OAuth authorization page in your browser. Some OAuth flows finish automatically; others ask you to paste an authorization code back into Loomery. OpenCode stores the resulting credential.
 
 Disconnect removes the selected saved credential from OpenCode. Providers without a usable embedded method, providers missing from the dialog, and connection problems can use the terminal fallback instead.
 
@@ -474,8 +473,8 @@ When an assistant response fails because a provider credential expired, was revo
 
 The composer can show model and session metadata:
 
-- Provider limit status, when Varro can read quota information from OpenCode metadata or a supported provider endpoint.
-- Available OpenAI/Codex and Z.ai usage-limit resets and their expiration times. Varro displays these resets and links to the provider's usage page, but does not redeem them.
+- Provider limit status, when Loomery can read quota information from OpenCode metadata or a supported provider endpoint.
+- Available OpenAI/Codex and Z.ai usage-limit resets and their expiration times. Loomery displays these resets and links to the provider's usage page, but does not redeem them.
 - Context usage, based on token totals from assistant messages and the selected model's context window.
 - Reported session cost in the context popup, when OpenCode supplies cost data.
 
@@ -483,15 +482,15 @@ When an applicable provider quota has 25% or less remaining, a warning above the
 
 Closing a yellow warning hides each displayed quota until it becomes critical at 10% remaining or resets. Closing a red warning hides critical quotas until they reset. Each window is tracked independently, including when yellow and red quotas appear together. Dismissals persist across session switches and reloads, with a one-hour fallback when the reset time is unknown. A newly low window can still warn independently.
 
-For UI debugging, set `varro.debug.showQuotaWarning` to `true` to show available quotas regardless of remaining allowance or saved dismissals. The setting updates live. Closing the debug preview does not save a dismissal; toggle the setting off and on to show it again.
+For UI debugging, set `loomery.debug.showQuotaWarning` to `true` to show available quotas regardless of remaining allowance or saved dismissals. The setting updates live. Closing the debug preview does not save a dismissal; toggle the setting off and on to show it again.
 
-If a provider or model hits a usage limit, Varro shows a usage-limit banner with actions to stop retrying or switch providers. This error notice takes priority over quota warnings.
+If a provider or model hits a usage limit, Loomery shows a usage-limit banner with actions to stop retrying or switch providers. This error notice takes priority over quota warnings.
 
 Provider and configuration changes are revalidated without interrupting running agents. When applying a refresh must wait, the Models view shows a queued configuration update and applies it after active work finishes. Embedded reauthentication can refresh an authentication-only change immediately.
 
 ### Provider-Limit Polling And Credentials
 
-Provider-limit polling is enabled. Varro polls every `120` seconds while visible and idle, and every `30` seconds while any known session uses the selected provider. Active-provider polling continues with the sidebar hidden. A follow-up refresh runs `31` seconds after work finishes so the provider has time to report final usage.
+Provider-limit polling is enabled. Loomery polls every `120` seconds while visible and idle, and every `30` seconds while any known session uses the selected provider. Active-provider polling continues with the sidebar hidden. A follow-up refresh runs `31` seconds after work finishes so the provider has time to report final usage.
 
 On macOS and Linux, OpenAI/Codex subscriptions, Anthropic OAuth, Claude Code IPC, and OpenRouter share quota snapshots and retry cooldowns between extension hosts using the same OS user and local filesystem. Matching credentials and endpoints share polling across models. Other windows receive shared snapshot updates within about two seconds without extra provider requests. Different accounts or endpoint identities remain separate. Anthropic local statusline/proxy results remain local, and native Windows uses process-local caching.
 
@@ -510,7 +509,7 @@ When neither the corresponding VS Code model setting nor a valid `small_model` i
 
 ### Recommended OpenCode Configuration
 
-Varro loads agents, providers, models, and MCP tools from your local OpenCode configuration. The most reliable setup is to treat model selection as an agent-level concern in OpenCode.
+Loomery loads agents, providers, models, and MCP tools from your local OpenCode configuration. The most reliable setup is to treat model selection as an agent-level concern in OpenCode.
 
 Recommended approach:
 
@@ -518,7 +517,7 @@ Recommended approach:
 - Create focused subagents for distinct task types such as exploration, planning, review, or documentation.
 - Pin each subagent to the provider/model that best fits that task.
 - Let the main agent decide which subagent to invoke for a task instead of manually switching models for every step.
-- Keep the visible model list in Varro small and practical so the picker stays useful.
+- Keep the visible model list in Loomery small and practical so the picker stays useful.
 
 This allows a flow where the main agent orchestrates work across different models:
 
@@ -596,11 +595,11 @@ OpenCode approval flows stay inside the chat UI.
 - Use the permission control in the composer toolbar to switch the active session between those modes.
 
 Permissions from child and deeper sub-agent sessions inherit the nearest explicitly selected mode in
-their parent session tree. When manual approval is needed, Varro surfaces the child request in the
+their parent session tree. When manual approval is needed, Loomery surfaces the child request in the
 parent conversation while keeping the request owned by the child session.
 
 `Default` leaves permission decisions to OpenCode. Rules from your OpenCode configuration and selected
-agent determine which actions are allowed, denied, or sent to Varro for manual approval. Varro does
+agent determine which actions are allowed, denied, or sent to Loomery for manual approval. Loomery does
 not add session-level permission rules in this mode.
 
 OpenCode defaults depend on the version and agent. V2's base policy allows most actions and asks for
@@ -630,35 +629,37 @@ Switching away from `Auto` prevents an unfinished judge request from granting pe
 When automatic review falls back to manual approval, the prompt shows a concise action summary when
 available, the full request metadata with copy actions, and the judge's reason under `AI check`.
 
-The judge uses `varro.chat.autoApproveModel` first, then OpenCode's `small_model`, OpenAI GPT Luna, GitHub Copilot GPT Luna, and the selected Varro session model. Right-click a model in the Models view to set the VS Code user setting.
+The judge uses `loomery.chat.autoApproveModel` first, then OpenCode's `small_model`, OpenAI GPT Luna, GitHub Copilot GPT Luna, and the selected Loomery session model. Right-click a model in the Models view to set the VS Code user setting.
 
 `Full access` updates the session permission rules and auto-approves pending permission prompts for that session. Select it only when the session can operate without confirmation.
 
 ## Generate Commit Messages
 
-Varro integrates commit-message generation directly into VS Code Source Control.
+Loomery integrates commit-message generation directly into VS Code Source Control.
 
 1. Stage the exact changes you intend to commit.
-2. Use the quick wand icon in the Source Control toolbar, or run `Varro: Generate Commit Message` from the Command Palette.
+2. Select the wand next to the commit message input, or run `Loomery: Generate Commit Message` from the Command Palette.
 3. Review or edit the generated text in Git's commit input, then commit normally.
 
-Varro uses staged changes when the index is non-empty. If nothing is staged, it uses tracked unstaged changes and untracked files instead. It never mixes the two scopes. Varro rejects unresolved merge changes and reports when neither scope has usable changes.
+While Loomery generates, the wand control becomes a Cancel action; select it to stop without writing anything. The input action uses the proposed `contribSourceControlInputBoxMenu` API, so it is visible only when Loomery is enabled for proposed APIs (add `quonaro.loomery` to `enable-proposed-api` in `argv.json`). `Loomery: Generate Commit Message` from the Command Palette works without that opt-in.
+
+Loomery uses staged changes when the index is non-empty. If nothing is staged, it uses tracked unstaged changes and untracked files instead. It never mixes the two scopes. Loomery rejects unresolved merge changes and reports when neither scope has usable changes.
 
 The model is selected in this order:
 
-1. The `varro.commitMessage.model` VS Code user setting
+1. The `loomery.commitMessage.model` VS Code user setting
 2. OpenCode's repository-scoped `small_model`, when configured
 3. OpenAI GPT Luna, preferring Luna Fast when the connected account is confirmed as a Pro plan
 4. GitHub Copilot GPT Luna
-5. The active Varro chat model, using an available low-reasoning variant instead of the selected high or max variant
+5. The active Loomery chat model, using an available low-reasoning variant instead of the selected high or max variant
 
 When no explicit route is available, the helper request omits its model and OpenCode uses its default. Right-click a model in the Models view to update the VS Code user setting.
 
-All paths, up to the first 100,000 characters of the selected patch, and up to ten recent commit subjects are treated as untrusted input in a temporary tool-disabled session. Untracked file content has separate per-file and total size limits. On native Windows, Varro includes each untracked path with a `content unavailable` marker but omits its contents because Windows does not provide the atomic no-follow file read used to prevent path replacement during generation. Tracked unstaged diffs are unaffected. Split larger changes into smaller commits for the most accurate result. Varro never logs the patch, stages files, or executes the commit. It also rechecks the selected changes and commit input before applying a result, so a slow generation cannot silently overwrite newer work.
+All paths, up to the first 100,000 characters of the selected patch, and up to ten recent commit subjects are treated as untrusted input in a temporary tool-disabled session. Untracked file content has separate per-file and total size limits. On native Windows, Loomery includes each untracked path with a `content unavailable` marker but omits its contents because Windows does not provide the atomic no-follow file read used to prevent path replacement during generation. Tracked unstaged diffs are unaffected. Split larger changes into smaller commits for the most accurate result. Loomery never logs the patch, stages files, or executes the commit. It also rechecks the selected changes and commit input before applying a result, so a slow generation cannot silently overwrite newer work.
 
 ## Output In The Chat
 
-Varro renders OpenCode output as structured UI instead of plain text only.
+Loomery renders OpenCode output as structured UI instead of plain text only.
 
 - Streaming assistant messages
 - Tool call cards with live status
@@ -669,7 +670,7 @@ Varro renders OpenCode output as structured UI instead of plain text only.
   turn, its summary says `Permission rejected`
 - Todo tracking from `todowrite` or related todo events
 - Diff summaries for changed files
-- Complete inline file-edit previews when `varro.chat.showFileDiffs` is enabled; filenames in the previews open the corresponding file
+- Complete inline file-edit previews when `loomery.chat.showFileDiffs` is enabled; filenames in the previews open the corresponding file
 - Session summaries with changed-file counts and line additions/deletions
 - Context compaction markers when OpenCode summarizes a session
 - Mermaid diagrams from completed `mermaid` code fences, with source fallback, copy, and expanded-preview controls
@@ -680,7 +681,7 @@ Varro renders OpenCode output as structured UI instead of plain text only.
 - A jump-to-latest button when you scroll away from the bottom of the chat; clicking it returns to the newest message and re-enables auto-follow
 - Completed turn summaries expose `Copy final response` and `Fork chat from here` actions. Copying uses the final assistant text from that turn.
 
-OpenCode controls automatic compaction through its own configuration and defaults. Varro does not override it. Use the compact action or `/compact` to request compaction on demand.
+OpenCode controls automatic compaction through its own configuration and defaults. Loomery does not override it. Use the compact action or `/compact` to request compaction on demand.
 
 Hold `Option`/`Alt` to show turn numbers and message timestamps. While the chat has focus on Windows, bare `Alt` does not activate the native menu bar.
 
@@ -690,75 +691,76 @@ Editable user messages expose an edit action. Sending the replacement removes th
 
 ## VS Code Commands And Keybindings
 
-- `Varro: New Session`
-- `Varro: New Chat Editor`
-- `Varro: New Terminal Editor`
-- `Varro: Search Sessions`
-- `Varro: Open Settings`
-- `Varro: Show File Diffs` or `Varro: Hide File Diffs`
-- `Varro: Usage Stats`
-- `Varro: Abort Session`
-- `Varro: Previous Session`
-- `Varro: Next Session`
-- `Varro: Restart Server`
-- `Varro: About`
-- `Varro: Open GitHub`
-- `Varro: Show Output`
-- `Varro: Open Source Control`
-- `Varro: Generate Commit Message` generates from staged changes, or from the unstaged working tree when the index is empty, using the configured VS Code commit-message model, OpenCode `small_model`, OpenAI GPT Luna, GitHub Copilot GPT Luna, or the active chat model at low reasoning, in that order. It fills the selected Git repository's commit input without committing
-- `Varro: Open Global AGENTS.md`
-- `Varro: Initialize Project AGENTS.md`
-- `Varro: Add to Context` from Explorer, from the Command Palette (adds the active file), or `Cmd+Shift+K` / `Ctrl+Shift+K` when focus is outside the editor and terminal
-- `Varro: Add to Context` from the editor selection context menu, or `Cmd+Shift+K` / `Ctrl+Shift+K` with an editor selection. Without a selection the key keeps its VS Code default (`Delete Line`)
-- `Varro: Add to Context` from the terminal context menu, or `Cmd+Shift+K` / `Ctrl+Shift+K` while the terminal is focused
+- `Loomery: New Session`
+- `Loomery: New Chat Editor`
+- `Loomery: New Terminal Editor`
+- `Loomery: Search Sessions`
+- `Loomery: Open Sessions`
+- `Loomery: Open Settings`
+- `Loomery: Show File Diffs` or `Loomery: Hide File Diffs`
+- `Loomery: Usage Stats`
+- `Loomery: Abort Session`
+- `Loomery: Previous Session`
+- `Loomery: Next Session`
+- `Loomery: Restart Server`
+- `Loomery: About`
+- `Loomery: Open GitHub`
+- `Loomery: Show Output`
+- `Loomery: Open Source Control`
+- `Loomery: Generate Commit Message` generates from staged changes, or from the unstaged working tree when the index is empty, using the configured VS Code commit-message model, OpenCode `small_model`, OpenAI GPT Luna, GitHub Copilot GPT Luna, or the active chat model at low reasoning, in that order. It fills the selected Git repository's commit input without committing
+- `Loomery: Open Global AGENTS.md`
+- `Loomery: Initialize Project AGENTS.md`
+- `Loomery: Add to Context` from Explorer, from the Command Palette (adds the active file), or `Cmd+Shift+K` / `Ctrl+Shift+K` when focus is outside the editor and terminal
+- `Loomery: Add to Context` from the editor selection context menu, or `Cmd+Shift+K` / `Ctrl+Shift+K` with an editor selection. Without a selection the key keeps its VS Code default (`Delete Line`)
+- `Loomery: Add to Context` from the terminal context menu, or `Cmd+Shift+K` / `Ctrl+Shift+K` while the terminal is focused
 
 ## Settings
 
 Server:
 
-- `varro.server.autoStart` - auto-start `opencode serve` when Varro first needs it; defaults to `true` and is marked deprecated/debug-only in VS Code
-- `varro.server.port` - `"auto"` selects and remembers a local port; an integer from 1 through 65535 selects a fixed endpoint without fallback. Reload the VS Code window after changing it
-- `varro.server.command` - optional path to the OpenCode CLI executable. Empty prefers `opencode2`, then `opencode`; use your v1 executable's path to keep v1 selected
-- `varro.server.autoUpdate` - automatically install updates within the installed CLI family in the background: v2 on Windows, macOS, and Linux; v1 on macOS and Linux. V1 stays on v1; v2 stays on v2. Native Windows v2 runs `update <latest-version>` through the resolved CLI and verifies the installed version without stopping the server first. Server restarts still wait for active work and require Varro ownership. Native Windows v1 uses an upgrade prompt instead because a running server can lock `opencode.exe`. Before opening a prompted Windows update command, Varro waits for active work and stops its managed server; stop a manually launched server yourself. Failed automatic updates show tailored recovery guidance.
+- `loomery.server.autoStart` - auto-start `opencode serve` when Loomery first needs it; defaults to `true` and is marked deprecated/debug-only in VS Code
+- `loomery.server.port` - `"auto"` selects and remembers a local port; an integer from 1 through 65535 selects a fixed endpoint without fallback. Reload the VS Code window after changing it
+- `loomery.server.command` - optional path to the OpenCode CLI executable. Empty prefers `opencode2`, then `opencode`; use your v1 executable's path to keep v1 selected
+- `loomery.server.autoUpdate` - automatically install updates within the installed CLI family in the background: v2 on Windows, macOS, and Linux; v1 on macOS and Linux. V1 stays on v1; v2 stays on v2. Native Windows v2 runs `update <latest-version>` through the resolved CLI and verifies the installed version without stopping the server first. Server restarts still wait for active work and require Loomery ownership. Native Windows v1 uses an upgrade prompt instead because a running server can lock `opencode.exe`. Before opening a prompted Windows update command, Loomery waits for active work and stops its managed server; stop a manually launched server yourself. Failed automatic updates show tailored recovery guidance.
 
 Chat view:
 
-- `varro.chat.defaultPermissionMode` - initial permission mode when no saved project or global selection exists; defaults to `auto`
-- `varro.chat.autoApproveModel` - provider/model used by the auto-approve judge; stored in VS Code user settings and selected from Varro's Models view
-- `varro.chat.showFileDiffs` - show line-by-line edits in file-change tool cards; defaults to `false`
-- `varro.chat.expandThinking` - expand thinking details after two seconds while reasoning is active, collapse finished thinking into rows, and return it to `Explored` when the turn finishes; defaults to `false`
-- `varro.chat.fontSize` - chat text size from `6` through `100`; defaults to `null`, which uses VS Code's `chat.fontSize`. Tool and diff editor content follows `chat.editor.fontSize`
-- `varro.chat.showChangedFiles` - show the changed-files panel above the composer; defaults to `false`
-- `varro.chat.showTurnTimer` - show the elapsed duration of the active turn beside the composer status controls; defaults to `true`
-- `varro.chat.desktopSessionPaneSide` - on large screens, show the sessions pane on the `left` or `right`; defaults to `right`
-- Use the scope picker inside the session search field to choose which OpenCode sessions appear. **Folder** shows exact working-directory matches, **Nested** includes folders beneath it in the same OpenCode project, and **Project** shows the entire containing Git project. Varro remembers the choice for each project; non-Git folders offer Folder and Nested independently.
-- `varro.chat.autoRenameUntitledSessions` - generate a fallback title when OpenCode leaves a session untitled; defaults to `false`
+- `loomery.chat.defaultPermissionMode` - initial permission mode when no saved project or global selection exists; defaults to `auto`
+- `loomery.chat.autoApproveModel` - provider/model used by the auto-approve judge; stored in VS Code user settings and selected from Loomery's Models view
+- `loomery.chat.showFileDiffs` - show line-by-line edits in file-change tool cards; defaults to `false`
+- `loomery.chat.expandThinking` - expand thinking details after two seconds while reasoning is active, collapse finished thinking into rows, and return it to `Explored` when the turn finishes; defaults to `false`
+- `loomery.chat.fontSize` - chat text size from `6` through `100`; defaults to `null`, which uses VS Code's `chat.fontSize`. Tool and diff editor content follows `chat.editor.fontSize`
+- `loomery.chat.showChangedFiles` - show the changed-files panel above the composer; defaults to `false`
+- `loomery.chat.showTurnTimer` - show the elapsed duration of the active turn beside the composer status controls; defaults to `true`
+- `loomery.chat.desktopSessionPaneSide` - on large screens, show the sessions pane on the `left` or `right`; defaults to `right`
+- Use the scope picker inside the session search field to choose which OpenCode sessions appear. **Folder** shows exact working-directory matches, **Nested** includes folders beneath it in the same OpenCode project, and **Project** shows the entire containing Git project. Loomery remembers the choice for each project; non-Git folders offer Folder and Nested independently.
+- `loomery.chat.autoRenameUntitledSessions` - generate a fallback title when OpenCode leaves a session untitled; defaults to `false`
 
 Commit messages:
 
-- `varro.commitMessage.model` - provider/model used to generate commit messages; stored in VS Code user settings and selected from Varro's Models view
+- `loomery.commitMessage.model` - provider/model used to generate commit messages; stored in VS Code user settings and selected from Loomery's Models view
 
 There are also deprecated debug-only settings used for development and recovery testing:
 
-- `varro.debug.simulateMissingCli`
-- `varro.debug.simulateNoProviders`
-- `varro.debug.simulateUpgradeFailure`
+- `loomery.debug.simulateMissingCli`
+- `loomery.debug.simulateNoProviders`
+- `loomery.debug.simulateUpgradeFailure`
 
 ## Troubleshooting
 
 - OpenCode CLI missing: install v2 with `npm install -g @opencode/cli` on macOS, Linux, or WSL, or download the native Windows CLI from the [v2 install page](https://opencode.ai/v2/docs/). V1 remains available with `npm install -g opencode-ai`.
-- OpenCode CLI incompatible: Varro supports the v1 API from `1.16.0` and the v2 API from `2.0.5`. This release was tested with v1 `1.18.35` and v2 `2.0.24`. Varro selects the API automatically, including when `varro.server.command` points to a custom binary such as `opencode2`. Updates use the installed CLI's package family.
-- OpenCode v2 authentication: Varro captures managed-server credentials automatically and redacts them from output. Existing local services use their registered credentials. An externally managed server can also use `OPENCODE_SERVER_PASSWORD` and `OPENCODE_SERVER_USERNAME` from the extension host's environment.
-- OpenCode v2 session settings: Varro stores mutable session annotations locally because the released v2 API cannot update session metadata. Session sharing is unavailable through this API, so its menu action is disabled. Existing v1-format configuration remains supported.
-- CLI not on `PATH`: set `varro.server.command` to the executable path.
-- Windows host mismatch: install OpenCode in Windows for a native VS Code window, or inside the distribution for a VS Code WSL window. Run `Varro: About` and check `Platform` if the active extension host is unclear.
-- Windows update reports a locked file: finish active sessions and close the OpenCode update terminal before retrying. Stop any OpenCode server not managed by Varro yourself.
-- OpenCode already running on another port: update `varro.server.port` and optionally disable `varro.server.autoStart`.
-- No models available: connect a provider from the Models view, run `/connect`, or run `opencode auth login`, then reload providers or reopen Varro.
+- OpenCode CLI incompatible: Loomery supports the v1 API from `1.16.0` and the v2 API from `2.0.5`. This release was tested with v1 `1.18.35` and v2 `2.0.24`. Loomery selects the API automatically, including when `loomery.server.command` points to a custom binary such as `opencode2`. Updates use the installed CLI's package family.
+- OpenCode v2 authentication: Loomery captures managed-server credentials automatically and redacts them from output. Existing local services use their registered credentials. An externally managed server can also use `OPENCODE_SERVER_PASSWORD` and `OPENCODE_SERVER_USERNAME` from the extension host's environment.
+- OpenCode v2 session settings: Loomery stores mutable session annotations locally because the released v2 API cannot update session metadata. Session sharing is unavailable through this API, so its menu action is disabled. Existing v1-format configuration remains supported.
+- CLI not on `PATH`: set `loomery.server.command` to the executable path.
+- Windows host mismatch: install OpenCode in Windows for a native VS Code window, or inside the distribution for a VS Code WSL window. Run `Loomery: About` and check `Platform` if the active extension host is unclear.
+- Windows update reports a locked file: finish active sessions and close the OpenCode update terminal before retrying. Stop any OpenCode server not managed by Loomery yourself.
+- OpenCode already running on another port: update `loomery.server.port` and optionally disable `loomery.server.autoStart`.
+- No models available: connect a provider from the Models view, run `/connect`, or run `opencode auth login`, then reload providers or reopen Loomery.
 - Provider authentication failed: use `Re-authenticate` on the failed response or provider row, complete the API-key or OAuth flow, then send a new prompt. Use terminal setup if the embedded method is unavailable.
 - Provider badge missing: quota metadata is only shown when OpenCode or the provider exposes usable limit information.
 - Images do not send: select a model with vision support.
-- OpenCode configuration changes are not taking effect: wait for any queued refresh to finish. For externally edited project configuration, run `Varro: Restart Server` if Varro manages the server. If you started `opencode serve` yourself, restart it from its terminal.
+- OpenCode configuration changes are not taking effect: wait for any queued refresh to finish. For externally edited project configuration, run `Loomery: Restart Server` if Loomery manages the server. If you started `opencode serve` yourself, restart it from its terminal.
 - Live updates are reconnecting: REST requests still work, but session status can lag until the event stream recovers.
-- Session export fails: ensure the OpenCode CLI is installed and `varro.server.command` points to it if the executable is outside `PATH`.
-- Server needs a clean reconnect: run `Varro: Restart Server` for a Varro-managed server, or restart a manually managed server from its terminal.
+- Session export fails: ensure the OpenCode CLI is installed and `loomery.server.command` points to it if the executable is outside `PATH`.
+- Server needs a clean reconnect: run `Loomery: Restart Server` for a Loomery-managed server, or restart a manually managed server from its terminal.

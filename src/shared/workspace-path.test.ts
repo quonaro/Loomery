@@ -7,33 +7,37 @@ import {
 
 describe('workspace path identity', () => {
   it('case-folds drive paths and normalizes separators', () => {
-    expect(normalizeWorkspaceIdentity('C:\\Users\\Andrew\\Varro\\')).toBe('c:/users/andrew/varro');
-    expect(isSameWorkspacePath('C:\\Users\\Andrew\\Varro', 'c:/users/andrew/VARRO/')).toBe(true);
+    expect(normalizeWorkspaceIdentity('C:\\Users\\Andrew\\Loomery\\')).toBe(
+      'c:/users/andrew/loomery'
+    );
+    expect(isSameWorkspacePath('C:\\Users\\Andrew\\Loomery', 'c:/users/andrew/LOOMERY/')).toBe(
+      true
+    );
   });
 
   it('case-folds UNC server, share, and directory names', () => {
-    expect(normalizeWorkspaceIdentity('\\\\BuildServer\\Projects\\Varro\\')).toBe(
-      '//buildserver/projects/varro'
+    expect(normalizeWorkspaceIdentity('\\\\BuildServer\\Projects\\Loomery\\')).toBe(
+      '//buildserver/projects/loomery'
     );
     expect(
-      isSameWorkspacePath('\\\\BuildServer\\Projects\\Varro', '//buildserver/PROJECTS/varro/')
+      isSameWorkspacePath('\\\\BuildServer\\Projects\\Loomery', '//buildserver/PROJECTS/loomery/')
     ).toBe(true);
   });
 
   it('canonicalizes extended drive and UNC paths', () => {
-    expect(normalizeWorkspaceIdentity('\\\\?\\C:\\Users\\Andrew\\Varro\\')).toBe(
-      'c:/users/andrew/varro'
+    expect(normalizeWorkspaceIdentity('\\\\?\\C:\\Users\\Andrew\\Loomery\\')).toBe(
+      'c:/users/andrew/loomery'
     );
-    expect(isSameWorkspacePath('\\\\?\\C:\\Users\\Andrew\\Varro', 'c:/users/andrew/VARRO')).toBe(
-      true
-    );
-    expect(normalizeWorkspaceIdentity('\\\\?\\UNC\\BuildServer\\Projects\\Varro\\')).toBe(
-      '//buildserver/projects/varro'
+    expect(
+      isSameWorkspacePath('\\\\?\\C:\\Users\\Andrew\\Loomery', 'c:/users/andrew/LOOMERY')
+    ).toBe(true);
+    expect(normalizeWorkspaceIdentity('\\\\?\\UNC\\BuildServer\\Projects\\Loomery\\')).toBe(
+      '//buildserver/projects/loomery'
     );
     expect(
       isSameWorkspacePath(
-        '\\\\?\\UNC\\BuildServer\\Projects\\Varro',
-        '\\\\buildserver\\projects\\VARRO'
+        '\\\\?\\UNC\\BuildServer\\Projects\\Loomery',
+        '\\\\buildserver\\projects\\LOOMERY'
       )
     ).toBe(true);
   });
@@ -59,7 +63,7 @@ describe('workspace path identity', () => {
   });
 
   it('keeps POSIX path identity case-sensitive', () => {
-    expect(isSameWorkspacePath('/Users/Andrew/Varro', '/Users/andrew/Varro')).toBe(false);
+    expect(isSameWorkspacePath('/Users/Andrew/Loomery', '/Users/andrew/Loomery')).toBe(false);
     expect(isSameWorkspacePath('src/Feature.ts', 'src/feature.ts')).toBe(false);
   });
 

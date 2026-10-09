@@ -194,7 +194,7 @@ await test('timings sum retry attempts and exclude skipped or interrupted attemp
 });
 
 await test('missing or malformed history falls back, while other I/O failures remain actionable', async () => {
-  const directory = await temporaryDirectory('varro-e2e-timings-');
+  const directory = await temporaryDirectory('loomery-e2e-timings-');
   const file = path.join(directory, 'timings.json');
   assert.equal((await readTimings(file)).size, 0);
   for (const contents of [
@@ -215,7 +215,7 @@ await test('missing or malformed history falls back, while other I/O failures re
 });
 
 await test('merges shard reports into reusable history and rejects overlapping shards', async () => {
-  const directory = await temporaryDirectory('varro-e2e-merge-');
+  const directory = await temporaryDirectory('loomery-e2e-merge-');
   const files = ['first', 'second'].map((name) => path.join(directory, `${name}.json`));
   const first = report('first', [{ status: 'passed', duration: 10 }], 'chromium', 'first.spec.ts');
   await writeFile(files[0], JSON.stringify(first));
@@ -256,8 +256,8 @@ await test('preserves unsharded arguments and rejects invalid shard options', as
 
 await test('generated lists round-trip through Playwright with exclusive spec-file ownership', async () => {
   const cli = path.join(root, 'scripts/run-e2e.mjs');
-  const directory = await temporaryDirectory('varro-e2e-lists-');
-  const env = { ...process.env, VARRO_E2E_PORT: '4184' };
+  const directory = await temporaryDirectory('loomery-e2e-lists-');
+  const env = { ...process.env, LOOMERY_E2E_PORT: '4184' };
   const module = new URL('../node_modules/@playwright/test/index.mjs', import.meta.url).href;
   const config = path.join(directory, 'playwright.config.mjs');
   await writeFile(

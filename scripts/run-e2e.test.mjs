@@ -29,12 +29,12 @@ test('E2E startup avoids an occupied default port and preserves explicit and pla
     for (const explicitPort of [undefined, '4174']) {
       const env = {
         ...process.env,
-        VARRO_E2E_MODE: mode,
-        VARRO_PLAYBACK_ID: '92',
-        VARRO_PLAYBACK_FILE: 'nonexistent-playback-capture.json',
+        LOOMERY_E2E_MODE: mode,
+        LOOMERY_PLAYBACK_ID: '92',
+        LOOMERY_PLAYBACK_FILE: 'nonexistent-playback-capture.json',
       };
-      delete env.VARRO_E2E_PORT;
-      if (explicitPort !== undefined) env.VARRO_E2E_PORT = explicitPort;
+      delete env.LOOMERY_E2E_PORT;
+      if (explicitPort !== undefined) env.LOOMERY_E2E_PORT = explicitPort;
       const { stdout, stderr } = await exec(
         process.execPath,
         ['scripts/run-e2e.mjs', '--list', '--reporter=json'],

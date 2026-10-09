@@ -12,7 +12,7 @@ describe('SessionPermissionModeStore', () => {
       store.restoreSessionMetadata({
         id: 'session-1',
         time: { updated: 100 },
-        metadata: { varro: { permissionMode: 'full' } },
+        metadata: { loomery: { permissionMode: 'full' } },
       })
     ).toBe(false);
     expect(store.list()).toEqual({ 'session-1': 'default' });
@@ -20,14 +20,14 @@ describe('SessionPermissionModeStore', () => {
       store.restoreSessionMetadata({
         id: 'session-1',
         time: { updated: 300 },
-        metadata: { varro: { permissionMode: 'auto' } },
+        metadata: { loomery: { permissionMode: 'auto' } },
       })
     ).toBe(true);
     expect(
       store.restoreSessionMetadata({
         id: 'session-1',
         time: { updated: 250 },
-        metadata: { varro: { permissionMode: 'full' } },
+        metadata: { loomery: { permissionMode: 'full' } },
       })
     ).toBe(false);
     expect(store.list()).toEqual({ 'session-1': 'auto' });
@@ -40,15 +40,15 @@ describe('SessionPermissionModeStore', () => {
     expect(
       store.restoreSessionMetadata({
         id: 'session-1',
-        metadata: { varro: { permissionMode: 'auto' } },
+        metadata: { loomery: { permissionMode: 'auto' } },
       })
     ).toBe(true);
     expect(store.list()).toEqual({ 'session-1': 'auto' });
     for (const metadata of [
       undefined,
       {},
-      { varro: { permissionMode: 'edits' } },
-      { varro: { permissionMode: 'unknown' } },
+      { loomery: { permissionMode: 'edits' } },
+      { loomery: { permissionMode: 'unknown' } },
     ]) {
       expect(store.restoreSessionMetadata({ id: 'session-1', metadata })).toBe(false);
     }
@@ -60,7 +60,7 @@ describe('SessionPermissionModeStore', () => {
     await store.stageSafeFallback('session-1');
     store.restoreSessionMetadata({
       id: 'session-1',
-      metadata: { varro: { permissionMode: 'full' } },
+      metadata: { loomery: { permissionMode: 'full' } },
     });
     expect(store.list()).toEqual({ 'session-1': 'default' });
   });
@@ -81,7 +81,7 @@ describe('SessionPermissionModeStore', () => {
       'session-1': 'full',
     });
     await expect(store.set('valid', null)).resolves.toEqual({ 'session-1': 'full' });
-    expect(persistence.set).toHaveBeenLastCalledWith('varro.sessionPermissionModes', {
+    expect(persistence.set).toHaveBeenLastCalledWith('loomery.sessionPermissionModes', {
       'session-1': 'full',
     });
   });
@@ -105,7 +105,7 @@ describe('SessionPermissionModeStore', () => {
 
   it('migrates removed edit modes to recoverable defaults', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionPermissionModes', { 'session-legacy': 'edits' }],
+      ['loomery.sessionPermissionModes', { 'session-legacy': 'edits' }],
     ]);
     const persistence: Persistence = {
       get: <T>(key: string) => values.get(key) as T | undefined,
@@ -120,10 +120,10 @@ describe('SessionPermissionModeStore', () => {
 
     expect(store.list()).toEqual({ 'session-legacy': 'default' });
     expect(store.pendingSafeFallbackSessionIds()).toEqual(['session-legacy']);
-    expect(values.get('varro.sessionPermissionModes')).toEqual({
+    expect(values.get('loomery.sessionPermissionModes')).toEqual({
       'session-legacy': 'default',
     });
-    expect(values.get('varro.sessionPermissionModeFallbacks')).toEqual(['session-legacy']);
+    expect(values.get('loomery.sessionPermissionModeFallbacks')).toEqual(['session-legacy']);
   });
 
   it('removes the persisted mode for a deleted session', async () => {
@@ -179,12 +179,12 @@ describe('SessionPermissionModeStore', () => {
 
   it('keeps a staged fallback conservative until remote recovery is durable', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionPermissionModes', { 'session-1': 'full' }],
+      ['loomery.sessionPermissionModes', { 'session-1': 'full' }],
     ]);
     const persistence: Persistence = {
       get: <T>(key: string) => values.get(key) as T | undefined,
       set: vi.fn(async <T>(key: string, value: T) => {
-        if (key === 'varro.sessionPermissionModes') throw new Error('disk full');
+        if (key === 'loomery.sessionPermissionModes') throw new Error('disk full');
         values.set(key, value);
       }),
       remove: vi.fn(),

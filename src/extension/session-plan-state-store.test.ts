@@ -17,7 +17,7 @@ describe('SessionPlanStateStore', () => {
     await store.set('session-1', null);
 
     expect(store.list()).toEqual({ 'session-1': null });
-    expect(set).toHaveBeenLastCalledWith('varro.sessionPlanState', { 'session-1': null });
+    expect(set).toHaveBeenLastCalledWith('loomery.sessionPlanState', { 'session-1': null });
   });
 
   it('persists selected agents for later webviews', async () => {
@@ -32,7 +32,7 @@ describe('SessionPlanStateStore', () => {
     await store.setAgent('session-1', 'build');
 
     expect(store.listAgents()).toEqual({ 'session-1': 'build' });
-    expect(set).toHaveBeenLastCalledWith('varro.sessionPlanAgentState', {
+    expect(set).toHaveBeenLastCalledWith('loomery.sessionPlanAgentState', {
       'session-1': 'build',
     });
   });
@@ -51,7 +51,7 @@ describe('SessionPlanStateStore', () => {
     expect(store.listAgents()).toEqual({ 'session-1': 'build' });
   });
 
-  it.each(['varro.sessionPlanState', 'varro.sessionPlanAgentState'])(
+  it.each(['loomery.sessionPlanState', 'loomery.sessionPlanAgentState'])(
     'keeps the last saved value when an update to %s fails',
     async (failedKey) => {
       const saved = new Map<string, unknown>();
@@ -74,7 +74,7 @@ describe('SessionPlanStateStore', () => {
         'Storage unavailable'
       );
       expect(store.list()).toEqual({
-        'session-1': failedKey === 'varro.sessionPlanState' ? 100 : 200,
+        'session-1': failedKey === 'loomery.sessionPlanState' ? 100 : 200,
       });
       expect(store.listAgents()).toEqual({ 'session-1': 'plan' });
     }
@@ -93,8 +93,8 @@ describe('SessionPlanStateStore', () => {
 
     expect(store.list()).toEqual({});
     expect(store.listAgents()).toEqual({});
-    expect(persistence.set).toHaveBeenCalledWith('varro.sessionPlanState', {});
-    expect(persistence.set).toHaveBeenCalledWith('varro.sessionPlanAgentState', {});
+    expect(persistence.set).toHaveBeenCalledWith('loomery.sessionPlanState', {});
+    expect(persistence.set).toHaveBeenCalledWith('loomery.sessionPlanAgentState', {});
   });
 
   it('keeps agent restoration for another session while deletion is saving', async () => {
@@ -139,7 +139,7 @@ describe('SessionPlanStateStore', () => {
     expect(new SessionPlanStateStore(persistence).list()).toEqual({ 'session-1': 200 });
   });
 
-  it.each(['varro.sessionPlanState', 'varro.sessionPlanAgentState'])(
+  it.each(['loomery.sessionPlanState', 'loomery.sessionPlanAgentState'])(
     'retries deletion after saving %s fails',
     async (failedKey) => {
       const saved = new Map<string, unknown>();

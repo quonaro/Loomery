@@ -220,6 +220,9 @@ describe('parseExtensionMessage', () => {
     expect(parseExtensionMessage({ type: 'command/search-sessions' })).toEqual({
       type: 'command/search-sessions',
     });
+    expect(parseExtensionMessage({ type: 'command/open-sessions' })).toEqual({
+      type: 'command/open-sessions',
+    });
     expect(parseExtensionMessage({ type: 'command/open-attention-sessions' })).toEqual({
       type: 'command/open-attention-sessions',
     });

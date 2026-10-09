@@ -61,7 +61,7 @@ export function RestartBlocked() {
           <p class="mt-1.5 text-[12px] leading-normal text-vscode-muted">
             {blockers()?.totalSessionCount ?? 0}{' '}
             {(blockers()?.totalSessionCount ?? 0) === 1 ? 'session is' : 'sessions are'} still
-            running. Varro will restart automatically when they finish.
+            running. Loomery will restart automatically when they finish.
           </p>
         </div>
 

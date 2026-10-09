@@ -97,7 +97,7 @@ describe('sendMessage', () => {
       if (options?.directory !== created.directory) throw new Error('404 Session not found');
       return { ...created, ...body };
     });
-    clientMocks.varroSessionUpdatePermissionMode.mockImplementation(async () => {
+    clientMocks.loomerySessionUpdatePermissionMode.mockImplementation(async () => {
       // The host confirms the mode through a snapshot before the update resolves.
       stateModule.applySessionPermissionModesSnapshot({ [created.id]: 'full' });
       return created;
@@ -111,10 +111,14 @@ describe('sendMessage', () => {
         newSessionWorkspace: { scope: 'workspace', directory: '/workspace' },
       })
     ).toBe(true);
-    expect(clientMocks.varroSessionUpdatePermissionMode).toHaveBeenCalledWith(created.id, 'full', {
-      directory: '/workspace',
-      preconfigured: true,
-    });
+    expect(clientMocks.loomerySessionUpdatePermissionMode).toHaveBeenCalledWith(
+      created.id,
+      'full',
+      {
+        directory: '/workspace',
+        preconfigured: true,
+      }
+    );
     expect(stateModule.getPermissionModeForSession(created.id)).toBe('full');
     expect(clientMocks.sessionUpdate).toHaveBeenCalledWith(
       created.id,
@@ -257,7 +261,7 @@ describe('sendMessage', () => {
 
     await hookModule.sendMessage('Fix the delayed session title');
 
-    expect(clientMocks.varroSessionRenameIfUntitled).toHaveBeenCalledWith('session-1', {
+    expect(clientMocks.loomerySessionRenameIfUntitled).toHaveBeenCalledWith('session-1', {
       directory: '/repo',
     });
   });
@@ -967,7 +971,7 @@ describe('sendMessage', () => {
     expect(clientMocks.sessionCreate).toHaveBeenCalledWith(
       {
         metadata: {
-          varro: { workspaceScope: 'folder', schemaVersion: 1 },
+          loomery: { workspaceScope: 'folder', schemaVersion: 1 },
         },
         permission: undefined,
         title: undefined,
@@ -1499,7 +1503,7 @@ describe('sendMessage', () => {
 
     await hookModule.openPlan('# Plan\n\n1. Ship it');
 
-    expect(clientMocks.varroOpenPlan).toHaveBeenCalledWith('# Plan\n\n1. Ship it');
+    expect(clientMocks.loomeryOpenPlan).toHaveBeenCalledWith('# Plan\n\n1. Ship it');
   });
 
   it('does not try to open an empty plan', async () => {
@@ -1509,7 +1513,7 @@ describe('sendMessage', () => {
 
     await hookModule.openPlan('   ');
 
-    expect(clientMocks.varroOpenPlan).not.toHaveBeenCalled();
+    expect(clientMocks.loomeryOpenPlan).not.toHaveBeenCalled();
     expect(stateModule.error()).toBe('Plan content is empty');
   });
 
@@ -1595,5 +1599,53 @@ describe('sendMessage', () => {
       'The original request is not loaded. Reopen the session and retry.'
     );
     expect(stateModule.isLoading()).toBe(false);
+  });
+});
+
+describe('startNewSession', () => {
+  it('creates and activates a new empty session', async () => {
+    const { stateModule, hookModule } = await loadModules();
+    const tabsModule = await import('../lib/session-tabs');
+    tabsModule.setOpenSessionTabsForTest([]);
+    clientMocks.sessionCreate.mockResolvedValue(session('session-2'));
+
+    hookModule.startNewSession();
+
+    await vi.waitFor(() => expect(clientMocks.sessionCreate).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(stateModule.state.activeSessionId).toBe('session-2'));
+    await vi.waitFor(() => expect(tabsModule.getOpenSessionTabs()).toContain('session-2'));
+  });
+
+  it('creates a distinct session for every new-session request', async () => {
+    const { stateModule, hookModule } = await loadModules();
+    const tabsModule = await import('../lib/session-tabs');
+    tabsModule.setOpenSessionTabsForTest([]);
+    clientMocks.sessionCreate
+      .mockResolvedValueOnce(session('session-2'))
+      .mockResolvedValueOnce(session('session-3'));
+
+    hookModule.startNewSession();
+    await vi.waitFor(() => expect(clientMocks.sessionCreate).toHaveBeenCalledTimes(1));
+    hookModule.startNewSession();
+    await vi.waitFor(() => expect(clientMocks.sessionCreate).toHaveBeenCalledTimes(2));
+
+    expect(stateModule.state.sessions.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['session-2', 'session-3'])
+    );
+    await vi.waitFor(() => {
+      const tabs = tabsModule.getOpenSessionTabs();
+      expect(tabs).toContain('session-2');
+      expect(tabs).toContain('session-3');
+    });
+    expect(stateModule.state.activeSessionId).toBe('session-3');
+  });
+
+  it('applies a prefill to the composer for the new session', async () => {
+    const { stateModule, hookModule } = await loadModules();
+    clientMocks.sessionCreate.mockResolvedValue(session('session-2'));
+
+    hookModule.startNewSession('Prefilled prompt');
+
+    expect(stateModule.inputText()).toBe('Prefilled prompt');
   });
 });

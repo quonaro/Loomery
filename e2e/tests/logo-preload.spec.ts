@@ -56,10 +56,10 @@ test('loads the chat logo while the webview app module is still pending', async 
   try {
     await page.goto(`${baseURL}/logo-preload.html`, { waitUntil: 'commit' });
     await expect.poll(() => logoRequested, { timeout: 5_000 }).toBe(true);
-    const logo = page.locator('.varro-startup-logo');
+    const logo = page.locator('.loomery-startup-logo');
     await expect(logo).toBeVisible({ timeout: 5_000 });
-    await expect(logo).toHaveCSS('animation-name', 'varro-startup-logo-pulse');
-    await expect(page.locator('.varro-startup-dots')).toHaveCount(0);
+    await expect(logo).toHaveCSS('animation-name', 'loomery-startup-logo-pulse');
+    await expect(page.locator('.loomery-startup-dots')).toHaveCount(0);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(logo).toHaveCSS('animation-name', 'none');
   } finally {
@@ -94,8 +94,8 @@ test('startup shows the animated logo, loading, and restored content in order', 
     await page.goto('/e2e/harness/index.html?scenario=dispose-during-start', {
       waitUntil: 'commit',
     });
-    await expect(page.locator('.varro-startup-logo')).toBeVisible();
-    await expect(page.locator('.varro-startup-dots')).toHaveCount(0);
+    await expect(page.locator('.loomery-startup-logo')).toBeVisible();
+    await expect(page.locator('.loomery-startup-dots')).toHaveCount(0);
     releaseScript?.();
 
     const loading = page.getByText('Connecting to OpenCode...', { exact: true });

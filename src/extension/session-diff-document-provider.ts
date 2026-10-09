@@ -13,7 +13,7 @@ import {
 import type { OpenCodeServer } from './server';
 import { assertSessionInCurrentWorkspace } from './session-workspace';
 
-const SCHEME = 'varro-session-diff';
+const SCHEME = 'loomery-session-diff';
 type SessionDiffOpenResult = 'opened' | 'unavailable' | 'forbidden';
 type SessionDirectoryAuthorizer = (
   sessionID: string,
@@ -106,7 +106,7 @@ export class SessionDiffDocumentProvider implements vscode.TextDocumentContentPr
           'vscode.diff',
           beforeUri,
           afterUri,
-          `${filename} (Varro session)`,
+          `${filename} (Loomery session)`,
           { preview: true }
         );
         return 'opened';

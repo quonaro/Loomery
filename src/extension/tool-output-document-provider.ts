@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import * as vscode from 'vscode';
 
-const SCHEME = 'varro-tool-output';
+const SCHEME = 'loomery-tool-output';
 
 /**
  * Backs read-only editor tabs for generated text, including tool output and

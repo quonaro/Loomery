@@ -13,15 +13,15 @@ test('undo slash command reverts the latest assistant response', async ({ page }
   const revertRequest = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find((request) => {
-        const url = new URL(request.path, 'http://varro.test');
+        const url = new URL(request.path, 'http://loomery.test');
         return (
           url.pathname.endsWith('/revert') &&
-          url.searchParams.get('directory') === '/workspace/varro'
+          url.searchParams.get('directory') === '/workspace/loomery'
         );
       }) || null
     );
@@ -29,7 +29,7 @@ test('undo slash command reverts the latest assistant response', async ({ page }
 
   expect(revertRequest).toMatchObject({
     method: 'POST',
-    path: '/session/session-undo/revert?directory=%2Fworkspace%2Fvarro',
+    path: '/session/session-undo/revert?directory=%2Fworkspace%2Floomery',
     body: { messageID: 'message-undo-assistant' },
   });
 });

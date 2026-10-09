@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import type { ServerEvent } from '../../src/shared/protocol';
+import { openSessions } from './helpers';
 
-test('shows an unseen plan in the narrow header after switching to another chat', async ({
+test('shows an unseen plan in the sessions list after switching to another chat', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 400, height: 900 });
@@ -14,50 +15,45 @@ test('shows an unseen plan in the narrow header after switching to another chat'
     // SAFETY: The isolated session-list fixture installs this event transport.
     const harness = (
       window as typeof window & {
-        __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+        __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     harness.replayServerEvent({
       type: 'session.status',
       properties: { sessionID: 'session-plan-filter', status: { type: 'busy' } },
     });
   });
   await planRow.click();
-  await expect(
-    page.locator('.interactive-session > .chat-header .chat-header-title-text')
-  ).toHaveText('Plan awaiting implementation');
-  await page.getByLabel('Back to sessions').click();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    'Plan awaiting implementation'
+  );
+  await openSessions(page);
   await page
     .locator('.session-item:visible')
     .filter({ hasText: 'Completed sticky cleanup' })
     .click();
-  const header = page.locator('.interactive-session > .chat-header');
-  await expect(header.locator('.chat-header-title-text')).toHaveText('Completed sticky cleanup');
-  await expect(header.locator('.chat-header-plan-badge')).toHaveCount(0);
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    'Completed sticky cleanup'
+  );
   await page.evaluate(() => {
     // SAFETY: The isolated session-list fixture installs this event transport.
     const harness = (
       window as typeof window & {
-        __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+        __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     harness.replayServerEvent({
       type: 'session.status',
       properties: { sessionID: 'session-plan-filter', status: { type: 'idle' } },
     });
   });
-  await expect(header.locator('.chat-header-plan-badge')).toBeVisible();
-  await page.getByLabel('Back to sessions').click();
+  await openSessions(page);
   await expect(planRow.locator('.is-plan-completed')).toBeVisible();
-  await page
-    .locator('.session-item:visible')
-    .filter({ hasText: 'Completed sticky cleanup' })
-    .click();
-  await header.locator('.chat-header-plan-badge').click();
-  await expect(header.locator('.chat-header-title-text')).toHaveText(
+  await planRow.click();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
     'Plan awaiting implementation'
   );
-  await page.getByLabel('Back to sessions').click();
+  await openSessions(page);
   await expect(planRow.locator('.is-plan-completed')).toHaveCount(0);
 });
 
@@ -76,9 +72,9 @@ test('keeps large-list search, status filtering, and session switching working',
     // SAFETY: The isolated session-list fixture installs this event transport.
     const harness = (
       window as typeof window & {
-        __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+        __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     for (let index = 0; index < 100; index += 1) {
       harness.replayServerEvent({
         type: 'session.status',
@@ -101,7 +97,7 @@ test('keeps large-list search, status filtering, and session switching working',
   await page.locator('.session-item').click();
   await expect(page.locator('.chat-header-title-text').first()).toHaveText('Load session 0019');
   await expect(page.getByText('Response 19', { exact: true })).toBeVisible();
-  await page.getByLabel('Back to sessions').click();
+  await openSessions(page);
   await search.fill('Load session 0018');
   await expect(page.locator('.session-item')).toHaveCount(1);
   await search.press('ArrowDown');
@@ -290,9 +286,7 @@ test('keeps persistent statuses static and visible with reduced motion', async (
 test('restores a persisted active session', async ({ page }) => {
   await page.goto('/e2e/harness/index.html?scenario=restored-session');
 
-  await expect(
-    page.getByLabel('Back to sessions').locator('..').getByText('Restored Session')
-  ).toBeVisible();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText('Restored Session');
   await expect(page.getByText('Review the refactor status', { exact: true })).toBeVisible();
   await expect(
     page.getByText('Refactor status looks good. The latest cleanup is ready for review.', {
@@ -343,10 +337,10 @@ test('filters sessions by running, failed, attention, and plan ready status', as
   await page.goto('/e2e/harness/index.html?scenario=status-filters');
 
   await page.locator('.session-item').filter({ hasText: 'Completed sticky cleanup' }).click();
-  await expect(
-    page.getByLabel('Back to sessions').locator('..').getByText('Completed sticky cleanup')
-  ).toBeVisible();
-  await page.getByLabel('Back to sessions').click();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    'Completed sticky cleanup'
+  );
+  await openSessions(page);
   await expect(page.getByText('Sessions', { exact: false })).toBeVisible();
 
   const visibleSessionTitles = page.locator('.session-item:visible .session-item-title-text');

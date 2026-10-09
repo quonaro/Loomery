@@ -64,10 +64,12 @@ describe('protocol parsers', () => {
   it('round-trips namespaced session workspace metadata', () => {
     const metadata = createSessionWorkspaceMetadata('workspace');
     expect(metadata).toEqual({
-      varro: { workspaceScope: 'workspace', schemaVersion: 1 },
+      loomery: { workspaceScope: 'workspace', schemaVersion: 1 },
     });
     expect(getSessionWorkspaceScopeFromMetadata(metadata)).toBe('workspace');
-    expect(getSessionWorkspaceScopeFromMetadata({ varro: { workspaceScope: 'other' } })).toBeNull();
+    expect(
+      getSessionWorkspaceScopeFromMetadata({ loomery: { workspaceScope: 'other' } })
+    ).toBeNull();
     expect(getSessionWorkspaceScopeFromMetadata(null)).toBeNull();
   });
 
@@ -264,7 +266,7 @@ describe('protocol parsers', () => {
     });
   });
 
-  it('preserves Varro sequence-only event upgrades', () => {
+  it('preserves Loomery sequence-only event upgrades', () => {
     expect(
       parseServerEvent({
         id: 'event-1',

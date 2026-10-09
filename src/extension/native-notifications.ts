@@ -1,7 +1,5 @@
 import { execFile } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import { dirname, join } from 'node:path';
-import { MacOSNotificationHelper } from './macos-notification-helper';
+import { join } from 'node:path';
 import type {
   AttentionNotification,
   AttentionNotificationTransport,
@@ -28,25 +26,25 @@ $ErrorActionPreference = 'Stop'
 [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] > $null
 $xml = New-Object Windows.Data.Xml.Dom.XmlDocument
 $xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text/><text/><text/></binding></visual><audio silent="true"/></toast>')
-if ($env:VARRO_NOTIFICATION_URL) {
+if ($env:LOOMERY_NOTIFICATION_URL) {
   $xml.DocumentElement.SetAttribute('activationType', 'protocol')
-  $xml.DocumentElement.SetAttribute('launch', $env:VARRO_NOTIFICATION_URL)
+  $xml.DocumentElement.SetAttribute('launch', $env:LOOMERY_NOTIFICATION_URL)
 }
 $text = $xml.GetElementsByTagName('text')
-$null = $text.Item(0).AppendChild($xml.CreateTextNode($env:VARRO_NOTIFICATION_TITLE))
-$null = $text.Item(1).AppendChild($xml.CreateTextNode($env:VARRO_NOTIFICATION_SUBTITLE))
-$null = $text.Item(2).AppendChild($xml.CreateTextNode($env:VARRO_NOTIFICATION_MESSAGE))
+$null = $text.Item(0).AppendChild($xml.CreateTextNode($env:LOOMERY_NOTIFICATION_TITLE))
+$null = $text.Item(1).AppendChild($xml.CreateTextNode($env:LOOMERY_NOTIFICATION_SUBTITLE))
+$null = $text.Item(2).AppendChild($xml.CreateTextNode($env:LOOMERY_NOTIFICATION_MESSAGE))
 $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
-$toast.Tag = 'varro-attention'
-$toast.Group = 'varro'
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($env:VARRO_NOTIFICATION_APP_ID).Show($toast)
+$toast.Tag = 'loomery-attention'
+$toast.Group = 'loomery'
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($env:LOOMERY_NOTIFICATION_APP_ID).Show($toast)
 `;
 
 const WINDOWS_SOUND_SCRIPT = `
 $ErrorActionPreference = 'Stop'
 $player = New-Object System.Media.SoundPlayer
 try {
-  $player.SoundLocation = $env:VARRO_NOTIFICATION_SOUND
+  $player.SoundLocation = $env:LOOMERY_NOTIFICATION_SOUND
   $player.PlaySync()
 } finally {
   $player.Dispose()
@@ -90,31 +88,20 @@ function escapeMarkup(value: string): string {
 /** Desktop-side commands; callers must not invoke this on a remote extension host. */
 export class NativeNotifications implements AttentionNotificationTransport {
   private readonly abort = new AbortController();
-  private readonly macOSHelper: MacOSNotificationHelper | undefined;
 
   constructor(
     private readonly soundPath: string,
     private readonly windowsAppId: string,
     private readonly platform: NodeJS.Platform = process.platform,
     private readonly run: RunNotificationCommand = runNotificationCommand,
-    storageDirectory?: string,
-    private readonly notificationUrlFor?: (sessionID: string) => Promise<string>,
-    private readonly editorProcessID = process.ppid
-  ) {
-    if (platform === 'darwin' && storageDirectory) {
-      this.macOSHelper = new MacOSNotificationHelper(
-        dirname(soundPath),
-        storageDirectory,
-        (file, args) => this.run({ file, args }, this.abort.signal)
-      );
-    }
-  }
+    private readonly notificationUrlFor?: (sessionID: string) => Promise<string>
+  ) {}
 
   async isEditorVisible(): Promise<boolean> {
-    // VS Code supplies the foreground check on every platform. macOS also exposes occlusion.
-    if (this.platform !== 'darwin') return false;
-    if (!this.macOSHelper) throw new Error('Varro notification helper storage is unavailable.');
-    return this.macOSHelper.isEditorVisible(this.editorProcessID);
+    // VS Code supplies the foreground focus check on every platform. The macOS
+    // occlusion probe lived in the removed native helper, so there is no extra
+    // desktop-side visibility signal to consult.
+    return false;
   }
 
   async show(notification: AttentionNotification): Promise<void> {
@@ -122,18 +109,20 @@ export class NativeNotifications implements AttentionNotificationTransport {
     const targetUrl = await this.notificationUrlFor?.(sessionID);
     switch (this.platform) {
       case 'darwin':
-        if (!this.macOSHelper) throw new Error('Varro notification helper storage is unavailable.');
+        // macOS banners come from osascript. User text is passed as script
+        // arguments so it is never interpolated into AppleScript source.
         await this.run(
           {
-            file: await this.macOSHelper.executable(),
+            file: '/usr/bin/osascript',
             args: [
-              '--notify',
+              '-e',
+              'on run argv',
+              '-e',
+              'display notification item 1 of argv with title item 2 of argv subtitle item 3 of argv',
+              message,
               projectName,
               chatTitle,
-              message,
-              ...(targetUrl ? [randomUUID(), targetUrl] : []),
             ],
-            timeout: 50_000,
           },
           this.abort.signal
         );
@@ -141,11 +130,11 @@ export class NativeNotifications implements AttentionNotificationTransport {
       case 'win32':
         await this.run(
           this.windowsCommand(WINDOWS_NOTIFICATION_SCRIPT, {
-            VARRO_NOTIFICATION_TITLE: projectName,
-            VARRO_NOTIFICATION_SUBTITLE: chatTitle,
-            VARRO_NOTIFICATION_MESSAGE: message,
-            VARRO_NOTIFICATION_APP_ID: this.windowsAppId,
-            VARRO_NOTIFICATION_URL: targetUrl,
+            LOOMERY_NOTIFICATION_TITLE: projectName,
+            LOOMERY_NOTIFICATION_SUBTITLE: chatTitle,
+            LOOMERY_NOTIFICATION_MESSAGE: message,
+            LOOMERY_NOTIFICATION_APP_ID: this.windowsAppId,
+            LOOMERY_NOTIFICATION_URL: targetUrl,
           }),
           this.abort.signal
         );
@@ -154,7 +143,7 @@ export class NativeNotifications implements AttentionNotificationTransport {
         const command: NotificationCommand = {
           file: 'notify-send',
           args: [
-            '--app-name=Varro',
+            '--app-name=Loomery',
             '--icon=dialog-information',
             '--hint=boolean:suppress-sound:true',
             ...(targetUrl ? ['--wait', '--action=default=Open project'] : []),
@@ -186,7 +175,7 @@ export class NativeNotifications implements AttentionNotificationTransport {
       case 'win32':
         await this.run(
           this.windowsCommand(WINDOWS_SOUND_SCRIPT, {
-            VARRO_NOTIFICATION_SOUND: this.soundPath,
+            LOOMERY_NOTIFICATION_SOUND: this.soundPath,
           }),
           this.abort.signal
         );

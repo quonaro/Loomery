@@ -79,6 +79,7 @@ import {
   takeCachedSessionHistoryPage,
 } from '../../lib/message-window';
 import { getNewChatDraftGeneration, startNewChatDraft } from '../../lib/new-chat-draft';
+import { openSessionTab } from '../../lib/session-tabs';
 import { readInitialWebviewState, readWebviewInstanceContext } from '../../lib/state-stored-values';
 import { STORAGE_KEYS, writeStored } from '../../lib/state-storage';
 import {
@@ -168,6 +169,7 @@ export interface OpenCodeRuntime {
   ): Promise<boolean>;
   loadOlderSessionPrompts(sessionId: string, isOwnerCurrent?: () => boolean): Promise<boolean>;
   createSession(title?: string, initialPermissionMode?: PermissionMode): Promise<string | null>;
+  startNewSession(prefill?: string): void;
   renameSession(id: string, title: string): Promise<boolean>;
   forkSession(id: string, messageID?: string): Promise<string | null>;
   deleteSession(id: string): Promise<void>;
@@ -284,7 +286,7 @@ type PermissionJudgeAttempt = {
 };
 
 type PermissionJudgeOutcome =
-  | { type: 'decision'; response: Awaited<ReturnType<typeof client.varro.judgePermission>> }
+  | { type: 'decision'; response: Awaited<ReturnType<typeof client.loomery.judgePermission>> }
   | { type: 'error'; error: unknown }
   | { type: 'timeout' };
 
@@ -1207,7 +1209,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     sessionLifecycleOperations;
 
   async function deleteSessionImmediately(id: string, options?: { directory?: string }) {
-    await client.varro.session.deleteImmediately(id, {
+    await client.loomery.session.deleteImmediately(id, {
       directory: options?.directory ?? getSessionDirectory(id),
     });
     hideDeletedSessionTree(id);
@@ -1237,7 +1239,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     sessionTitleFallbackAttempts.set(sessionId, attempts + 1);
 
     const fallback = (async () => {
-      const renamed = await client.varro.session.renameIfUntitled(sessionId, {
+      const renamed = await client.loomery.session.renameIfUntitled(sessionId, {
         directory: getSessionDirectory(sessionId),
       });
       if (!renamed) return;
@@ -1325,10 +1327,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
         reloadWorkspaceAfterChange,
         isInitialized: () => initialized,
         createSession: (prefill) => {
-          startNewChatDraft();
-          if (prefill !== undefined) {
-            composerStore.setInputText(prefill);
-          }
+          startNewSession(prefill);
         },
         openSession: (sessionId, directory) => {
           uiStore.setShowSessionPicker(false);
@@ -2029,7 +2028,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
         if (attempt.automationLease === undefined) {
           throw new Error('Permission automation lease is unavailable');
         }
-        const response = await client.varro.judgePermission(request, {
+        const response = await client.loomery.judgePermission(request, {
           permissionAutomationLease: attempt.automationLease,
         });
         return { type: 'decision', response };
@@ -2360,7 +2359,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
         throwOnLoadFailure: true,
         waitForMcpSync: false,
       }),
-    startNewSession: startNewChatDraft,
+    startNewSession,
     setShowSessionPicker: uiStore.setShowSessionPicker,
     setInitialized: (value) => {
       initialized = value;
@@ -2666,7 +2665,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       await loadRecycleBin();
     },
     restoreSessionTreeFromRecycleBin: async (sessionId) => {
-      const restored = await client.varro.recycleBin.restore(sessionId);
+      const restored = await client.loomery.recycleBin.restore(sessionId);
       if (restored) {
         await Promise.all([loadSessions(), loadRecycleBin(), hydrateSessionStatuses()]);
       }
@@ -2719,7 +2718,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       routingStore.setSelectedAgent(agent, { sessionId, persistGlobal: false });
     },
     sendMessage,
-    openPlan: (content) => client.varro.openPlan(content),
+    openPlan: (content) => client.loomery.openPlan(content),
     createSession: (workspaceTarget) =>
       createSession(undefined, permissionsStore.getPermissionModeForSession(null), workspaceTarget),
     getMessageCount: () => appStore.state.messages.length,
@@ -2770,7 +2769,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     setDraftPermissionMode: permissionsStore.setDraftPermissionMode,
     saveProjectPermissionMode: permissionsStore.saveProjectPermissionMode,
     updateSessionPermission: (sessionId, mode, input) =>
-      client.varro.session.updatePermissionMode(sessionId, mode, {
+      client.loomery.session.updatePermissionMode(sessionId, mode, {
         directory: getSessionDirectory(sessionId),
         defaultPermission: mode === 'default' ? input.permission : undefined,
       }),
@@ -2850,7 +2849,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     setPermissionModeForSession: permissionsStore.setPermissionModeForSession,
     setPendingSessionPermissionMode: permissionsStore.setPendingSessionPermissionMode,
     persistConfirmedPermissionModeForSession: (sessionId, mode, directory) =>
-      client.varro.session
+      client.loomery.session
         .updatePermissionMode(sessionId, mode, {
           directory,
           preconfigured: true,
@@ -2870,13 +2869,13 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     loadRecycleBin,
     selectSession,
     logError,
-    restoreRecycleBinEntry: (rootID) => client.varro.recycleBin.restore(rootID),
+    restoreRecycleBinEntry: (rootID) => client.loomery.recycleBin.restore(rootID),
     loadSessions,
     hydrateSessionStatuses,
     getRecycleBinEntries: () => appStore.state.recycleBinEntries,
-    deleteRecycleBinEntry: (rootID) => client.varro.recycleBin.delete(rootID),
+    deleteRecycleBinEntry: (rootID) => client.loomery.recycleBin.delete(rootID),
     clearDeletedSessionState,
-    emptyRecycleBin: () => client.varro.recycleBin.empty(),
+    emptyRecycleBin: () => client.loomery.recycleBin.empty(),
   });
 
   async function selectSession(id: string, options?: SessionSelectionOptions) {
@@ -3006,6 +3005,22 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       );
     }
     return sessionId;
+  }
+
+  /**
+   * Resets the composer to a blank draft and immediately creates a real
+   * server-side session for it. Unlike the old lazy draft, every call produces
+   * a distinct empty session, so a user can keep any number of them open at
+   * once. The session tab is opened explicitly so a session that loses the
+   * activation race (rapid clicks) is still kept around instead of being
+   * treated as an abandoned empty session.
+   */
+  function startNewSession(prefill?: string) {
+    startNewChatDraft();
+    if (prefill !== undefined) composerStore.setInputText(prefill);
+    void createSession().then((sessionId) => {
+      if (sessionId) openSessionTab(sessionId);
+    });
   }
 
   async function loadFullSessionHistory(sessionId: string) {
@@ -3369,6 +3384,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     loadOlderSessionHistoryPage,
     loadOlderSessionPrompts: loadOlderSessionPromptsForCurrentWorkspace,
     createSession,
+    startNewSession,
     renameSession,
     forkSession,
     deleteSession,

@@ -203,12 +203,12 @@ test('bounds active tools and moves completed tools into Explored without collap
   });
   const transition = await completedItem.evaluate(async (element, initialLoadingTop) => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
         updateMessagePart?: (part: Record<string, unknown>) => void;
       };
     };
-    const part = harnessWindow.__varroE2E
+    const part = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .flatMap((message) => message.parts)
       .find((candidate) => candidate.id === 'tool-active-0');
@@ -222,7 +222,7 @@ test('bounds active tools and moves completed tools into Explored without collap
       metadata: {},
       time: { start: Date.now() - 1_000, end: Date.now() },
     };
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     window.postMessage(
       {
         type: 'server/event',
@@ -471,14 +471,14 @@ test('keeps a cross-message active tool adjacent to Explored after entrance', as
   await page.evaluate(() => {
     const sessionId = 'session-tool-cards';
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
         updateMessageInfo?: (info: Record<string, unknown>) => void;
         updateMessagePart?: (part: Record<string, unknown>) => void;
         updateSessionStatus?: (id: string, status: { type: 'busy' }) => void;
       };
     };
-    const original = harnessWindow.__varroE2E
+    const original = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.(sessionId)
       .find((message) => message.info.role === 'assistant');
     if (!original) throw new Error('Cross-message activity fixture is missing');
@@ -501,9 +501,9 @@ test('keeps a cross-message active tool adjacent to Explored after entrance', as
         time: { start: Date.now() },
       },
     };
-    harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
-    harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
+    harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
     for (const [type, properties] of [
       ['message.updated', { info }],
       ['message.part.updated', { part }],
@@ -577,13 +577,13 @@ test('keeps streamed response text fixed when it follows Explored', async ({ pag
   });
   const appendedInfo = await page.evaluate(() => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
         updateMessageInfo?: (info: Record<string, unknown>) => void;
         updateMessagePart?: (part: Record<string, unknown>) => void;
       };
     };
-    const original = harnessWindow.__varroE2E
+    const original = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .find((message) => message.info.role === 'assistant');
     if (!original) throw new Error('Tool-card assistant fixture is missing');
@@ -600,8 +600,8 @@ test('keeps streamed response text fixed when it follows Explored', async ({ pag
       text: '',
     };
     const streamedText = 'Streamed response after Explored.';
-    harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     window.postMessage(
       { type: 'server/event', payload: { type: 'message.updated', properties: { info } } },
       '*'
@@ -626,7 +626,7 @@ test('keeps streamed response text fixed when it follows Explored', async ({ pag
       },
       '*'
     );
-    harnessWindow.__varroE2E?.updateMessagePart?.({ ...part, text: streamedText });
+    harnessWindow.__loomeryE2E?.updateMessagePart?.({ ...part, text: streamedText });
     return info;
   });
 
@@ -669,9 +669,9 @@ test('keeps streamed response text fixed when it follows Explored', async ({ pag
     };
     const streamedText = 'Following streamed block.';
     const harnessWindow = window as typeof window & {
-      __varroE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
+      __loomeryE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
     };
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     window.postMessage(
       { type: 'server/event', payload: { type: 'message.part.updated', properties: { part } } },
       '*'
@@ -692,7 +692,7 @@ test('keeps streamed response text fixed when it follows Explored', async ({ pag
       },
       '*'
     );
-    harnessWindow.__varroE2E?.updateMessagePart?.({ ...part, text: streamedText });
+    harnessWindow.__loomeryE2E?.updateMessagePart?.({ ...part, text: streamedText });
     for (let frame = 0; frame < 30; frame += 1) {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       collectedSamples.push(measure());
@@ -773,19 +773,19 @@ for (const delayedDelivery of [false, true]) {
     await page.evaluate(() => {
       const sessionId = 'session-tool-cards';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
           updateMessageInfo?: (info: Record<string, unknown>) => void;
           updateSessionStatus?: (id: string, status: { type: 'busy' }) => void;
         };
       };
-      const assistant = harnessWindow.__varroE2E
+      const assistant = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.(sessionId)
         .find((message) => message.info.id === 'message-tool-cards-assistant');
       if (!assistant) throw new Error('Expanded activity fixture is missing');
       const info = { ...assistant.info, time: { created: Date.now() } };
-      harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
+      harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
       for (const [type, properties] of [
         ['message.updated', { info }],
         ['session.status', { sessionID: sessionId, status: { type: 'busy' } }],
@@ -807,7 +807,7 @@ for (const delayedDelivery of [false, true]) {
       const sessionId = 'session-tool-cards';
       const messageId = 'message-tool-cards-assistant';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
       };
@@ -825,7 +825,7 @@ for (const delayedDelivery of [false, true]) {
           time: { start: Date.now() },
         },
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       return new Promise<void>((resolve) => {
         // Receipt confirms delivery; the frame-sized bridge batch is drained below.
         const onDelivered = (event: MessageEvent<ExtensionMessage>) => {
@@ -875,18 +875,18 @@ test('toggles Explored from the full disclosure hit area', async ({ page }) => {
   await expect(summary).toHaveAttribute('aria-expanded', 'true');
   await page.evaluate(() => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
         updateMessagePart?: (part: Record<string, unknown>) => void;
       };
     };
-    const part = harnessWindow.__varroE2E
+    const part = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .flatMap((message) => message.parts)
       .find((candidate) => candidate.id === 'tool-read-1');
     if (!part) throw new Error('Streaming activity fixture is missing');
     const state = part.state as Record<string, unknown>;
-    harnessWindow.__varroE2E?.updateMessagePart?.({
+    harnessWindow.__loomeryE2E?.updateMessagePart?.({
       ...part,
       state: { ...state, output: `${String(state.output)}\nstreamed update` },
     });
@@ -905,19 +905,19 @@ test('hides the loading indicator while an apply_patch tool is shown inline', as
   await page.evaluate(() => {
     const sessionId = 'session-diff-preview-large-transcript';
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
         updateMessageInfo?: (info: Record<string, unknown>) => void;
         updateSessionStatus?: (id: string, status: { type: 'busy' }) => void;
       };
     };
-    const assistant = harnessWindow.__varroE2E
+    const assistant = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.(sessionId)
       .find((message) => message.info.id === 'message-diff-preview-assistant-59');
     if (!assistant) throw new Error('Inline apply_patch fixture is missing');
     const info = { ...assistant.info, time: { created: Date.now() } };
-    harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-    harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
+    harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+    harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
     window.postMessage(
       {
         type: 'server/event',
@@ -1236,11 +1236,11 @@ test('tightens only bordered activity boundaries', async ({ page }) => {
   });
   await page.evaluate(() => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
       };
     };
-    const original = harnessWindow.__varroE2E
+    const original = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .find((message) => message.info.role === 'assistant');
     if (!original) throw new Error('Tool-card assistant fixture is missing');
@@ -1717,22 +1717,22 @@ test('matches the visual incoming Thinking gap to markdown', async ({ page }) =>
   await expect(page.locator('.assistant-activity-summary')).toHaveCount(1);
   await page.evaluate(() => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
         updateMessageInfo?: (info: Record<string, unknown>) => void;
         updateSessionStatus?: (id: string, status: { type: 'busy' }) => void;
       };
     };
-    const assistant = harnessWindow.__varroE2E
+    const assistant = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .find((message) => message.info.role === 'assistant');
     if (!assistant) throw new Error('Tool-card assistant fixture is missing');
     const postEvent = (type: string, properties: Record<string, unknown>) => {
       window.postMessage({ type: 'server/event', payload: { type, properties } }, '*');
     };
-    harnessWindow.__varroE2E?.updateSessionStatus?.('session-tool-cards', { type: 'busy' });
+    harnessWindow.__loomeryE2E?.updateSessionStatus?.('session-tool-cards', { type: 'busy' });
     const updatedInfo = { ...assistant.info, time: { created: Date.now() } };
-    harnessWindow.__varroE2E?.updateMessageInfo?.(updatedInfo);
+    harnessWindow.__loomeryE2E?.updateMessageInfo?.(updatedInfo);
     postEvent('message.updated', {
       info: updatedInfo,
     });
@@ -1865,12 +1865,12 @@ for (const elapsedSeconds of [0, 31]) {
       // SAFETY: This isolated harness exposes the fixture's message store and event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             getSessionMessages(id: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const completed = harness
         .getSessionMessages('session-large-transcript')
         .flatMap((message) => message.parts)
@@ -1965,11 +1965,11 @@ test('keeps the hidden loading slot fixed while an active tool is visible', asyn
 
   await page.evaluate(() => {
     const harnessWindow = window as typeof window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
       };
     };
-    const original = harnessWindow.__varroE2E
+    const original = harnessWindow.__loomeryE2E
       ?.getSessionMessages?.('session-tool-cards')
       .find((message) => message.info.role === 'assistant');
     if (!original) throw new Error('Tool-card assistant fixture is missing');
@@ -3858,9 +3858,9 @@ test('loaded sticky navigation takes ownership from a pending history request', 
   const pendingHistoryRequestCount = () =>
     page.evaluate(() => {
       const harness = window as typeof window & {
-        __varroE2E?: { pendingHistoryRequestCount?: () => number };
+        __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
       };
-      return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+      return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
     });
   for (let attempt = 0; attempt < 80; attempt += 1) {
     await page.mouse.wheel(0, -420);
@@ -3884,8 +3884,8 @@ test('loaded sticky navigation takes ownership from a pending history request', 
 
   await page.evaluate(() => {
     const harness = window as typeof window & {
-      __varroE2E?: { releaseHistoryRequests?: () => void };
+      __loomeryE2E?: { releaseHistoryRequests?: () => void };
     };
-    harness.__varroE2E?.releaseHistoryRequests?.();
+    harness.__loomeryE2E?.releaseHistoryRequests?.();
   });
 });

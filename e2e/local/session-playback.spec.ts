@@ -5,8 +5,8 @@ import { verifySessionPlayback } from '../session-playback';
 import type { PlaybackFixture } from '../session-playback';
 
 test('recorded session playback has no frame-level flicker', async ({ page }) => {
-  const playbackId = Number(process.env.VARRO_PLAYBACK_ID);
-  const replayFile = process.env.VARRO_PLAYBACK_FILE;
+  const playbackId = Number(process.env.LOOMERY_PLAYBACK_ID);
+  const replayFile = process.env.LOOMERY_PLAYBACK_FILE;
   if (!Number.isInteger(playbackId) || playbackId < 1 || !replayFile) {
     throw new Error(
       'Local playback requires a capture. Run npm run ai:playback -- replay --id <capture-id>'

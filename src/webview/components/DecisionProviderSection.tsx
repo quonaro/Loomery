@@ -21,7 +21,7 @@ export function DecisionProviderSection(props: {
     setBusy(true);
     setError('');
     try {
-      props.onStatusChange((await client.varro.decisionProviders.update(request)).jev);
+      props.onStatusChange((await client.loomery.decisionProviders.update(request)).jev);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -64,7 +64,7 @@ export function DecisionProviderSection(props: {
       <Show when={expanded()}>
         <div class="decision-provider-body">
           <p class="decision-provider-description">
-            Jev returns typed decisions with calibrated probabilities instead of text. Varro only
+            Jev returns typed decisions with calibrated probabilities instead of text. Loomery only
             acts on confident answers; everything else falls back to the model judge or to you.
           </p>
           <label class="decision-provider-option">

@@ -15,7 +15,7 @@ import {
   readBoundedResponseText,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const MINIMAX_REMAINS_ENDPOINT = 'https://api.minimax.io/v1/api/openplatform/coding_plan/remains';
@@ -48,7 +48,7 @@ export function createMiniMaxAdapter(): ProviderLimitAdapter {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${token}`,
-            'User-Agent': VARRO_USER_AGENT,
+            'User-Agent': LOOMERY_USER_AGENT,
           },
           signal: AbortSignal.timeout(10_000),
         });

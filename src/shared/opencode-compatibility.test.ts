@@ -31,7 +31,7 @@ describe('getMaximumTestedOpenCodeVersion', () => {
 
   it('rejects a manifest without a valid SDK version', () => {
     expect(() => getMaximumTestedOpenCodeVersion({ dependencies: {} })).toThrow(
-      'Varro package.json does not declare @opencode-ai/sdk'
+      'Loomery package.json does not declare @opencode-ai/sdk'
     );
   });
 

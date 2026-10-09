@@ -9,7 +9,7 @@ import {
   readBoundedResponseJson,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const OPENCODE_GO_USAGE_ENDPOINT = 'https://opencode.ai/zen/go/v1/usage';
@@ -37,7 +37,7 @@ export function createOpenCodeGoAdapter(): ProviderLimitAdapter {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${apiKey}`,
-            'User-Agent': VARRO_USER_AGENT,
+            'User-Agent': LOOMERY_USER_AGENT,
           },
           signal: AbortSignal.timeout(10_000),
         });

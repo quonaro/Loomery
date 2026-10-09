@@ -55,12 +55,12 @@ describe('v2 pending steering history', () => {
         'POST',
         '/api/session/ses_one/prompt',
         expect.objectContaining({
-          metadata: delivery ? { varroDelivery: delivery } : undefined,
+          metadata: delivery ? { loomeryDelivery: delivery } : undefined,
         }),
         expect.anything()
       );
       const projected = projectV2Message(
-        { ...delivered, metadata: delivery ? { varroDelivery: delivery } : undefined },
+        { ...delivered, metadata: delivery ? { loomeryDelivery: delivery } : undefined },
         'ses_one'
       );
       expect(projected.info.role).toBe('user');

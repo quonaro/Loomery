@@ -118,7 +118,7 @@ function createSession(options?: {
     deliver: vi.fn(() => Promise.resolve(true)),
     webviewOptions: vi.fn(() => ({ enableScripts: true, localResourceRoots: [] })),
     renderHtml: vi.fn(
-      options?.renderHtml ?? (() => Promise.resolve('<html><body>Varro</body></html>'))
+      options?.renderHtml ?? (() => Promise.resolve('<html><body>Loomery</body></html>'))
     ),
     emptyStateLogoUri: vi.fn(() => ''),
   };
@@ -320,6 +320,7 @@ describe('WebviewSession', () => {
     session.searchSessions();
     session.openAttentionSessions();
     session.openCompletedSessions();
+    session.openAllSessions();
 
     await session.resolve(view as never);
     await session.handleReady();
@@ -331,6 +332,7 @@ describe('WebviewSession', () => {
     expect(typesAfterReady).not.toContain('command/search-sessions');
     expect(typesAfterReady).not.toContain('command/open-attention-sessions');
     expect(typesAfterReady).not.toContain('command/open-completed-sessions');
+    expect(typesAfterReady).not.toContain('command/open-sessions');
 
     view.visible = true;
     session.handleVisible();
@@ -346,6 +348,7 @@ describe('WebviewSession', () => {
     expect(postedTypes.filter((type) => type === 'command/open-completed-sessions')).toHaveLength(
       1
     );
+    expect(postedTypes.filter((type) => type === 'command/open-sessions')).toHaveLength(1);
     expect(sessionState.clearCompletedInWorkspace).not.toHaveBeenCalled();
     expect(deps.handleVisibleSideEffects).toHaveBeenCalledOnce();
   });
@@ -391,7 +394,7 @@ describe('WebviewSession', () => {
     ]);
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
       'setContext',
-      'varro:canSwitchSessions',
+      'loomery:canSwitchSessions',
       true
     );
   });
@@ -425,12 +428,12 @@ describe('WebviewSession', () => {
 
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
       'setContext',
-      'varro:canAbortSession',
+      'loomery:canAbortSession',
       true
     );
     expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
       'setContext',
-      'varro:canSwitchSessions',
+      'loomery:canSwitchSessions',
       true
     );
   });
@@ -473,10 +476,10 @@ describe('WebviewSession', () => {
 
       await session.resolve(view as never);
 
-      expect(view.webview.html).toContain('class="varro-startup-logo"');
+      expect(view.webview.html).toContain('class="loomery-startup-logo"');
       expect(view.webview.html).toContain('src="vscode-resource://icon"');
       expect(view.webview.html).toContain('img-src vscode-webview-resource: data:;');
-      expect(view.webview.html).not.toContain('class="varro-startup-dots"');
+      expect(view.webview.html).not.toContain('class="loomery-startup-dots"');
       html.resolve('<html>ready</html>');
       await flushMicrotasks();
       expect(view.webview.html).toBe('<html>ready</html>');
@@ -511,7 +514,7 @@ describe('WebviewSession', () => {
     await flushMicrotasks();
 
     expect(deps.handleUnavailableSideEffects).toHaveBeenCalled();
-    expect(view.webview.html).toContain('Failed to load Varro webview');
+    expect(view.webview.html).toContain('Failed to load Loomery webview');
   });
 
   it('retries interrupted-session delivery once before revoking readiness', async () => {
@@ -597,7 +600,7 @@ describe('WebviewSession', () => {
       await session.resolve(view as never);
       await flushMicrotasks();
 
-      expect(view.webview.html).toBe('<html><body>Varro</body></html>');
+      expect(view.webview.html).toBe('<html><body>Loomery</body></html>');
       expect(sessionState.consumeRecoverySnapshot).toHaveBeenCalledOnce();
     } finally {
       vi.useRealTimers();
@@ -659,7 +662,7 @@ describe('WebviewSession', () => {
     expect(deps.resetStatusBarCache).toHaveBeenCalledOnce();
     expect(bridge.renderHtml).toHaveBeenCalledTimes(2);
     expect(firstView.webview.html).toContain('aria-label="Loading workspace"');
-    expect(secondView.webview.html).toBe('<html><body>Varro</body></html>');
+    expect(secondView.webview.html).toBe('<html><body>Loomery</body></html>');
     expect(session.interruptedSessionsForWebview).toEqual([
       { id: 'session-1', title: 'Interrupted' },
     ]);
@@ -1211,7 +1214,7 @@ describe('WebviewSession', () => {
 
     await session.resolve(view as never);
     await vi.waitFor(() => {
-      expect(view.webview.html).toBe('<p>Failed to load Varro webview. Please reload.</p>');
+      expect(view.webview.html).toBe('<p>Failed to load Loomery webview. Please reload.</p>');
     });
     expect(loggerMock.error).toHaveBeenCalledWith('getHtml failed: boom');
   });

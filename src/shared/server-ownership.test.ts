@@ -16,7 +16,7 @@ function createLease(overrides: LeaseOverrides = {}) {
     port: 4096,
     executable: '/usr/local/bin/opencode',
     birthIdentity: 'boot-1700000000',
-    owner: 'varro',
+    owner: 'loomery',
     host: 'workstation',
     state: 'active',
     createdAt: 1_700_000_000_000,
@@ -49,7 +49,7 @@ describe('parseManagedServerOwnershipLease', () => {
       port: 4096,
       executable: '/usr/local/bin/opencode',
       birthIdentity: 'boot-1700000000',
-      owner: 'varro',
+      owner: 'loomery',
       host: 'workstation',
       state: 'active',
       createdAt: 1_700_000_000_000,
@@ -63,7 +63,7 @@ describe('parseManagedServerOwnershipLease', () => {
           state: 'relinquished',
           hostPid: 99,
           hostBirthIdentity: 'host-boot-1',
-          configPath: '/tmp/varro-managed/opencode.json',
+          configPath: '/tmp/loomery-managed/opencode.json',
         })
       )
     ).toEqual({
@@ -72,13 +72,13 @@ describe('parseManagedServerOwnershipLease', () => {
       port: 4096,
       executable: '/usr/local/bin/opencode',
       birthIdentity: 'boot-1700000000',
-      owner: 'varro',
+      owner: 'loomery',
       host: 'workstation',
       state: 'relinquished',
       createdAt: 1_700_000_000_000,
       hostPid: 99,
       hostBirthIdentity: 'host-boot-1',
-      configPath: '/tmp/varro-managed/opencode.json',
+      configPath: '/tmp/loomery-managed/opencode.json',
     });
   });
 

@@ -9,24 +9,24 @@ test('slash commands trigger settings actions', async ({ page }) => {
 
   await composer.click();
   await composer.fill('/settings');
-  await expect(page.getByText('Open VS Code settings for Varro')).toBeVisible();
+  await expect(page.getByText('Open VS Code settings for Loomery')).toBeVisible();
   await page.keyboard.press('Enter');
 
   const state = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           settingsQueries?: string[];
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return {
       settings: value?.settingsQueries?.[0] || null,
     };
   });
 
   expect(state).toEqual({
-    settings: 'Varro >',
+    settings: 'Loomery >',
   });
 });
 

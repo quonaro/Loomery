@@ -28,7 +28,7 @@ for (const theme of ['dark', 'light']) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated E2E harness consumes this fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       {
@@ -165,8 +165,8 @@ for (const theme of ['dark', 'light']) {
         (fixture) => {
           // SAFETY: The isolated E2E harness consumes this fixture before mounting.
           (
-            window as typeof window & { varroPlaybackCapture: typeof fixture }
-          ).varroPlaybackCapture = fixture;
+            window as typeof window & { loomeryPlaybackCapture: typeof fixture }
+          ).loomeryPlaybackCapture = fixture;
         },
         {
           session: {

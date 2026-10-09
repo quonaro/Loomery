@@ -3412,7 +3412,7 @@ describe('MessageList sticky prompt preview', () => {
           index === targetIndex
             ? [
                 {
-                  ...textPart(`text-${index}-1`, '[Working directory: /workspace/varro]'),
+                  ...textPart(`text-${index}-1`, '[Working directory: /workspace/loomery]'),
                   messageID: `message-${index}`,
                 },
                 {

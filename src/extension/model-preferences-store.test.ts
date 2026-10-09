@@ -62,7 +62,7 @@ describe('ModelPreferencesStore', () => {
     const updated = { ...preferences, pinnedModels: ['openai:gpt-5.5'] };
     await store.update(preferences, updated);
     expect(persistence.set).toHaveBeenLastCalledWith(
-      'varro.modelPreferences.hostMigration.v1',
+      'loomery.modelPreferences.hostMigration.v1',
       true
     );
     expect(store.get()).toEqual(updated);
@@ -137,7 +137,7 @@ describe('ModelPreferencesStore', () => {
     const persistence: Persistence = {
       // SAFETY: The fixture handles the two persistence keys read by ModelPreferencesStore.
       get: vi.fn((key: string) =>
-        key === 'varro.modelPreferences.hostMigration.v1' ? true : null
+        key === 'loomery.modelPreferences.hostMigration.v1' ? true : null
       ) as Persistence['get'],
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn(() => Promise.resolve()),
@@ -165,7 +165,7 @@ describe('ModelPreferencesStore', () => {
     const persistence: Persistence = {
       // SAFETY: The fixture implements the generic persistence lookup for these known keys.
       get: vi.fn((key: string) =>
-        key === 'varro.modelPreferences'
+        key === 'loomery.modelPreferences'
           ? { ...preferences, pinnedModels: ['openai:gpt-5.6-sol', 42] }
           : true
       ) as Persistence['get'],
@@ -183,16 +183,16 @@ describe('ModelPreferencesStore', () => {
     const { persistence: globalPersistence, storage: globalStorage } = createMemoryPersistence();
     const { persistence: workspacePersistence, storage: workspaceStorage } =
       createMemoryPersistence();
-    workspaceStorage.set('varro.modelPreferences', preferences);
-    workspaceStorage.set('varro.modelPreferences.hostMigration.v1', true);
+    workspaceStorage.set('loomery.modelPreferences', preferences);
+    workspaceStorage.set('loomery.modelPreferences.hostMigration.v1', true);
 
     const store = new ModelPreferencesStore(globalPersistence, workspacePersistence);
 
     expect(store.needsMigration()).toBe(false);
     expect(store.get()).toEqual(preferences);
     await store.dispose();
-    expect(globalStorage.get('varro.modelPreferences')).toEqual(preferences);
-    expect(globalStorage.get('varro.modelPreferences.hostMigration.v1')).toBe(true);
+    expect(globalStorage.get('loomery.modelPreferences')).toEqual(preferences);
+    expect(globalStorage.get('loomery.modelPreferences.hostMigration.v1')).toBe(true);
   });
 
   it('prefers existing global preferences over legacy workspace storage', () => {
@@ -200,10 +200,10 @@ describe('ModelPreferencesStore', () => {
     const { persistence: workspacePersistence, storage: workspaceStorage } =
       createMemoryPersistence();
     const globalPreferences = { ...preferences, pinnedModels: ['global/model'] };
-    globalStorage.set('varro.modelPreferences', globalPreferences);
-    globalStorage.set('varro.modelPreferences.hostMigration.v1', true);
-    workspaceStorage.set('varro.modelPreferences', preferences);
-    workspaceStorage.set('varro.modelPreferences.hostMigration.v1', true);
+    globalStorage.set('loomery.modelPreferences', globalPreferences);
+    globalStorage.set('loomery.modelPreferences.hostMigration.v1', true);
+    workspaceStorage.set('loomery.modelPreferences', preferences);
+    workspaceStorage.set('loomery.modelPreferences.hostMigration.v1', true);
 
     const store = new ModelPreferencesStore(globalPersistence, workspacePersistence);
 

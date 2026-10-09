@@ -15,7 +15,7 @@ import {
   thumbnailSecret,
   validThumbnailProof,
 } from './image-thumbnail-service-auth';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 
 type Endpoint = { port: number; secret: string };
 
@@ -99,7 +99,7 @@ export class SharedThumbnailClient {
 
   private async connect(): Promise<Endpoint> {
     const servicePath = this.options.servicePath ?? join(__dirname, 'thumbnail-service.js');
-    const directory = this.options.stateDirectory ?? getVarroStateDirectory('thumbnails');
+    const directory = this.options.stateDirectory ?? getLoomeryStateDirectory('thumbnails');
     const credential = await thumbnailSecret(directory);
     const identity = createHash('sha256')
       .update(directory)

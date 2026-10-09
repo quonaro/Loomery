@@ -7,7 +7,7 @@ describe('OpenCode IDs', () => {
     vi.useRealTimers();
   });
 
-  it('does not silently wrap a Varro-generated OpenCode timestamp', () => {
+  it('does not silently wrap a Loomery-generated OpenCode timestamp', () => {
     vi.useFakeTimers();
     const timestampRangeMs = 2 ** 36;
     vi.setSystemTime(timestampRangeMs - 2);

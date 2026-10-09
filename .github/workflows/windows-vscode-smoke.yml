@@ -41,8 +41,8 @@ jobs:
         env:
           TEMP: ${{ runner.temp }}
           TMP: ${{ runner.temp }}
-          VARRO_KEEP_VSCODE_SANDBOX: 1
-          VARRO_VSCODE_EXECUTABLE: ${{ runner.temp }}\vscode\Code.exe
+          LOOMERY_KEEP_VSCODE_SANDBOX: 1
+          LOOMERY_VSCODE_EXECUTABLE: ${{ runner.temp }}\vscode\Code.exe
         run: npm run test:vscode-sandbox -- clean-install-missing-cli invalid-cli-path healthy-first-run
 
       - name: Upload failed sandbox profiles

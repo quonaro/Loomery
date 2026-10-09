@@ -1,6 +1,6 @@
-# Permissions in Varro
+# Permissions in Loomery
 
-Varro uses OpenCode permissions to control what an agent can do in a session. Choose a mode from the shield menu below the composer. The selected mode applies to that session and its child sessions unless a child has its own selection.
+Loomery uses OpenCode permissions to control what an agent can do in a session. Choose a mode from the shield menu below the composer. The selected mode applies to that session and its child sessions unless a child has its own selection.
 
 Permission checks happen before an action runs. A tool shown as waiting or running may still be waiting for your response.
 
@@ -8,17 +8,17 @@ Permission checks happen before an action runs. A tool shown as waiting or runni
 
 | Mode | Behavior | Good fit |
 | --- | --- | --- |
-| `Default` | Uses your OpenCode global, project, and agent permission rules, with direct `todowrite` and `question` allowances. Varro shows other requests that OpenCode decides to ask about. | You manage permissions in OpenCode configuration. |
-| `Auto approve` | Approves known safe actions with local rules. Varro can ask a model to review other requests and shows a prompt when it cannot make a safe decision. | You want routine work to continue with a manual fallback. |
+| `Default` | Uses your OpenCode global, project, and agent permission rules, with direct `todowrite` and `question` allowances. Loomery shows other requests that OpenCode decides to ask about. | You manage permissions in OpenCode configuration. |
+| `Auto approve` | Approves known safe actions with local rules. Loomery can ask a model to review other requests and shows a prompt when it cannot make a safe decision. | You want routine work to continue with a manual fallback. |
 | `Full access` | Allows every permission without prompting, including commands, unknown tools, and MCP tools. This mode overrides restrictive agent rules for the session. | You trust the task, instructions, tools, and workspace. |
 
-Changing modes affects pending requests as well as later actions. Switching to `Default` removes Varro's mode rules and returns permission evaluation to OpenCode configuration. Varro still answers `todowrite` and `question` asks once without installing session rules. Switching to `Full access` approves requests that are already waiting.
+Changing modes affects pending requests as well as later actions. Switching to `Default` removes Loomery's mode rules and returns permission evaluation to OpenCode configuration. Loomery still answers `todowrite` and `question` asks once without installing session rules. Switching to `Full access` approves requests that are already waiting.
 
 `Full access` removes the permission checkpoint. Review prompts and repository instructions before selecting it, especially when a session can run shell commands or use third-party MCP tools.
 
 ## Manual requests
 
-When OpenCode asks for permission, Varro places the request beside the action that needs it. A standalone prompt appears if that action is not currently visible.
+When OpenCode asks for permission, Loomery places the request beside the action that needs it. A standalone prompt appears if that action is not currently visible.
 
 - `Once` approves only the current request.
 - `Always` approves the request and saves matching actions through OpenCode. V1 keeps these allowances
@@ -26,14 +26,14 @@ When OpenCode asks for permission, Varro places the request beside the action th
   rule or a persistent project-config rule.
 - `Reject` denies the request.
 
-On Varro-managed servers, rejecting a request lets the agent continue without that action. The agent
+On Loomery-managed servers, rejecting a request lets the agent continue without that action. The agent
 is instructed not to retry or bypass the rejection, to continue permitted work, and to explain when
 the denied action blocks completion. Use Stop to end the run. OpenCode may also reject other pending
 requests in the same session. Skipping a question likewise lets the agent continue.
 
 On v1, this uses OpenCode's `experimental.continue_loop_on_deny: true` runtime default. Project or inline
 config can override it. If you manage the server yourself or supply `OPENCODE_CONFIG`, enable that
-setting in your own OpenCode config. After updating Varro, restart its server once active work has
+setting in your own OpenCode config. After updating Loomery, restart its server once active work has
 finished to load the new default.
 
 V2 does not use `experimental.continue_loop_on_deny`; that legacy setting is ignored. Rejection and
@@ -45,7 +45,7 @@ Read the command, path, URL, or tool details before responding. `Always` can cov
 
 `Auto approve` first checks narrow local rules. These rules cover known read-only operations, safe workspace edits, some read-only shell commands, and exact external-directory scopes you previously approved with `Always`.
 
-If local rules cannot decide, Varro may create a temporary hidden OpenCode session to review the request. The reviewer receives the action details and relevant prior permission decisions. It cannot use tools other than structured output. Its result has three possible effects:
+If local rules cannot decide, Loomery may create a temporary hidden OpenCode session to review the request. The reviewer receives the action details and relevant prior permission decisions. It cannot use tools other than structured output. Its result has three possible effects:
 
 - Approve this request once
 - Reject a request that materially matches a prior rejection
@@ -53,7 +53,7 @@ If local rules cannot decide, Varro may create a temporary hidden OpenCode sessi
 
 An error or timeout also falls back to a manual prompt. Automatic approval never creates an `Always` rule.
 
-You can choose the reviewer model with `varro.chat.autoApproveModel` or from the Models view. If you do not choose one, Varro follows its model fallback order, starting with the project's OpenCode `small_model` when configured and then compatible helper or session models.
+You can choose the reviewer model with `loomery.chat.autoApproveModel` or from the Models view. If you do not choose one, Loomery follows its model fallback order, starting with the project's OpenCode `small_model` when configured and then compatible helper or session models.
 
 Commands, paths, URLs, tool metadata, and prior decisions may be sent to the selected reviewer model. Choose a provider that is appropriate for your code and data.
 
@@ -76,7 +76,7 @@ See [v2 permissions](https://opencode.ai/v2/docs/permissions/) for the recommend
 
 ## Session behavior
 
-- New chats use the saved workspace selection, then `varro.chat.defaultPermissionMode`.
+- New chats use the saved workspace selection, then `loomery.chat.defaultPermissionMode`.
 - Existing sessions keep their selected mode.
 - Child sessions inherit the nearest selected mode in their session tree.
 - Forked sessions copy the source session's non-default mode.
@@ -84,13 +84,13 @@ See [v2 permissions](https://opencode.ai/v2/docs/permissions/) for the recommend
 
 ## If a session is waiting
 
-Look for a permission prompt in the transcript or a `Needs attention` session in the session list. Varro also reports waiting sessions in the VS Code status bar and can show a notification when the view is hidden.
+Look for a permission prompt in the transcript or a `Needs attention` session in the session list. Loomery also reports waiting sessions in the VS Code status bar and can show a notification when the view is hidden.
 
 If no prompt is visible:
 
 1. Open the affected root session and check its child-session activity.
 2. Confirm the permission mode shown below the composer.
 3. Wait for an automatic review to finish. A failed or timed-out review should return to a manual prompt.
-4. Run `Varro: Restart Server` only after active work has stopped if the OpenCode connection or configuration is stale.
+4. Run `Loomery: Restart Server` only after active work has stopped if the OpenCode connection or configuration is stale.
 
-Do not switch to `Full access` only to clear a stuck request unless you accept unrestricted execution for that session. If changing to `Full access` immediately unblocks it, report the missing prompt as a Varro issue with the session export and OpenCode version when possible.
+Do not switch to `Full access` only to clear a stuck request unless you accept unrestricted execution for that session. If changing to `Full access` immediately unblocks it, report the missing prompt as a Loomery issue with the session export and OpenCode version when possible.

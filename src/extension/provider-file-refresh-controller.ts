@@ -61,7 +61,7 @@ type PersistedPendingRefreshState =
     };
 
 export class ProviderFileRefreshController {
-  private static readonly PENDING_STATE_KEY = 'varro.providerRefresh.pending';
+  private static readonly PENDING_STATE_KEY = 'loomery.providerRefresh.pending';
   private static readonly RETRY_MS = 1_000;
   private static readonly BUSY_RETRY_MAX_MS = 30_000;
   private static readonly MAX_RETRIES = 5;

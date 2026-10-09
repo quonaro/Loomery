@@ -1,6 +1,6 @@
 # OpenCode server ownership
 
-Varro identifies a managed server independently of the VS Code window that started
+Loomery identifies a managed server independently of the VS Code window that started
 it. Connecting to a server, including a registered OpenCode v2 service, does not
 by itself grant ownership or permission to stop it.
 
@@ -9,11 +9,11 @@ by itself grant ownership or permission to stop it.
 New server leases and ownership markers use a per-user directory shared by VS Code
 windows and builds using this implementation:
 
-- macOS: `~/Library/Application Support/Varro/servers/`
-- Linux: `$XDG_STATE_HOME/varro/servers/`, defaulting to `~/.local/state/varro/servers/`
-- Windows: `%LOCALAPPDATA%\Varro\servers\`, defaulting to `~/AppData/Local/Varro/servers/`
+- macOS: `~/Library/Application Support/Loomery/servers/`
+- Linux: `$XDG_STATE_HOME/loomery/servers/`, defaulting to `~/.local/state/loomery/servers/`
+- Windows: `%LOCALAPPDATA%\Loomery\servers\`, defaulting to `~/AppData/Local/Loomery/servers/`
 
-Each configured port has a `varro-opencode-server-<port>.json` lease, a `.managed`
+Each configured port has a `loomery-opencode-server-<port>.json` lease, a `.managed`
 server marker, and a short-lived `.claim` coordination file. The lease records
 the actual listening port, including fallback ports. These files do not depend
 on a workspace, VS Code profile, or extension ID.
@@ -34,7 +34,7 @@ port before copying and still verifies enforced authentication before attachment
 A vault payload for another launch is rejected. A private lease or companion
 already carrying credentials skips this vault lookup entirely.
 
-The parent directory is Varro's shared state root. Session annotations use its
+The parent directory is Loomery's shared state root. Session annotations use its
 `opencode-v2/` subdirectory and provider quota coordination uses
 `provider-quota-v2/`. See [local state files](usage.md#local-state-files) for native
 paths, legacy compatibility links, and read-only usage reporting. Existing session
@@ -45,36 +45,36 @@ coordination point for that process. It is not moved while older windows may
 still use it. Once that lease is retired, newly constructed managers select the
 per-user directory.
 
-After OpenCode shared-service discovery, Varro rechecks ownership records before
+After OpenCode shared-service discovery, Loomery rechecks ownership records before
 classifying the endpoint as external. A matching lease or marker under another
 configured-port key is verified against the listening PID, executable, and process
-start identity. Varro keeps using that record's original lease/marker/claim path;
+start identity. Loomery keeps using that record's original lease/marker/claim path;
 it does not copy a live registration into the automatic key. A live owning editor
-remains the owner, while other editors report the server as managed by Varro.
+remains the owner, while other editors report the server as managed by Loomery.
 Conflicting matching registrations block recovery rather than creating another
 ownership authority. About/diagnostics wait for the pending ownership preparation
 so they do not show a transient unmanaged result.
 
-An OpenCode v2 CLI upgrade can replace a Varro-launched shared service and retain
+An OpenCode v2 CLI upgrade can replace a Loomery-launched shared service and retain
 its password while changing the PID and random port. Automatic discovery recovers
-this replacement without adoption consent only when a private Varro lease carries
+this replacement without adoption consent only when a private Loomery lease carries
 the exact discovered credentials, its original process is conclusively retired,
 and the replacement has the same executable identity. Account inspection must not
 identify another OS user. Unavailable account evidence does not erase the proven
-Varro provenance or trigger connection consent; it is not recorded as same-user.
-An anonymous `/api/info` request must be rejected and a request using the Varro
+Loomery provenance or trigger connection consent; it is not recorded as same-user.
+An anonymous `/api/info` request must be rejected and a request using the Loomery
 lease credentials must return the verified listening PID. Account and process
 identity are checked again before publication under the original claim path.
 Random ports or OpenCode's own service registration alone do not grant ownership.
 
-When several retired Varro leases share those credentials, recovery selects the
+When several retired Loomery leases share those credentials, recovery selects the
 newest lease with a deterministic path tie-break. A matching live or uncertain
 original process blocks replacement recovery. The new process receives a new
 ownership token so late cleanup from its former host cannot remove its records.
 Retired injected configuration is not attributed to the replacement. Other live
 services, credentials, and sessions are left unchanged.
 
-A recovered replacement without runtime configuration is checked for Varro's Ask
+A recovered replacement without runtime configuration is checked for Loomery's Ask
 agent. If no user definition exists and the owned server is globally idle, startup
 relaunches it with a fresh temporary config before publishing routing catalogs.
 Recovery checks work again under verified restart ownership. If sessions, questions,
@@ -85,12 +85,12 @@ grant restart rights over another host's or an unmanaged server.
 
 ## Editor distributions and test isolation
 
-VS Code, VS Code Nightly/Insiders, VSCodium, and Varro OpenJet coordinate through
+VS Code, VS Code Nightly/Insiders, VSCodium, and Loomery OpenJet coordinate through
 the same production paths for the same OS user and state directory. Editor names
-and Varro patch versions must not create separate ownership authorities for one
+and Loomery patch versions must not create separate ownership authorities for one
 server. Compatible builds retain the version-1 lease and existing legacy paths.
 
-AI and sandbox launchers instead supply an absolute `VARRO_TEST_STATE_ROOT` inside
+AI and sandbox launchers instead supply an absolute `LOOMERY_TEST_STATE_ROOT` inside
 their disposable profile. Server records live in its `servers/` directory; v2
 annotations and session locks live in `opencode-v2/`; quota coordination uses
 `provider-quota-v2/`. Test discovery never falls
@@ -124,7 +124,7 @@ OS can reuse it.
 
 - Windows uses process creation ticks and case-insensitive executable paths.
 - macOS uses the process start date and executable path. If replacing the binary
-  leaves `lsof` reporting a nonexistent path, Varro resolves the launch path from
+  leaves `lsof` reporting a nonexistent path, Loomery resolves the launch path from
   `ps` before comparing executable identities. The listening PID and process start
   date must still match.
 - Linux uses process start ticks and the boot ID when available. Legacy tick-only
@@ -159,12 +159,12 @@ preparation before rejecting an attach-only connection.
 
 ## Automatic ports and upgrade compatibility
 
-`varro.server.port` defaults to `"auto"`. New managed launches choose a random
+`loomery.server.port` defaults to `"auto"`. New managed launches choose a random
 loopback port in 49152-65535 and retry collisions a bounded number of times.
 The actual port is persisted in the existing lease. An explicit integer setting
 never selects another port or redirects to a differently registered v2 service.
 
-Automatic mode retains the default `varro-opencode-server-4096.json` coordination
+Automatic mode retains the default `loomery-opencode-server-4096.json` coordination
 key. The number in that filename is a compatibility key, not the listening port.
 Do not replace it with an independent automatic-mode lock while a process lives.
 Older clients and rollback builds already recover its recorded actual port.
@@ -206,7 +206,7 @@ not select launch flags.
 Reused servers never run implicit server-family migration. Only the window holding
 verified ownership of a reused server runs the same-family background CLI update, so
 windows sharing one server do not race installers and a reload does not disable
-automatic updates. Maintenance can then restart a reused Varro-owned server when the
+automatic updates. Maintenance can then restart a reused Loomery-owned server when the
 installed CLI is newer within the same API family, after fresh lease/process
 verification and the existing global active-session and pending-attention preflight.
 Unmanaged servers, another live host's ownership, unknown or cross-family versions,
@@ -216,7 +216,7 @@ the process. A surviving registered server is recoverable, not a stale process t
 kill based on age.
 
 The About view mirrors this: a managed server with automatic updates enabled reports
-that Varro installs the update itself, with the manual command as an optional
+that Loomery installs the update itself, with the manual command as an optional
 shortcut. A newer installed CLI on a managed server is reported as a pending idle
 restart. Unmanaged servers and disabled automatic updates show the manual command.
 
@@ -233,7 +233,7 @@ Missing secret storage is not permission to retry without authentication.
 Before ordinary REST requests, event subscriptions, cleanup, or incompatible-server
 remediation, attachment checks the listener's OS account in the workspace
 extension host. Verified same-user attachment is quiet. Different-user and unknown
-ownership use distinct native modal warnings for unregistered servers. A Varro-started
+ownership use distinct native modal warnings for unregistered servers. A Loomery-started
 server reconnects quietly when fresh verification of its private lease identifies
 the exact sole listener, executable, and process birth identity, even if account
 inspection is unavailable. This does not invent same-user evidence or grant new
@@ -241,7 +241,7 @@ lifecycle rights. Positive different-user evidence still requires consent. Dismi
 leaves the server untouched.
 Admission rechecks discovery registration before consent when no lease was loaded,
 including records published during editor handoff or stored under another port key.
-A surviving private Varro marker with the same complete listener identity also
+A surviving private Loomery marker with the same complete listener identity also
 admits quietly before background ownership preparation recreates its missing lease.
 Each strict admission and reconnect revalidates that marker and the sole listener;
 this attachment check does not write records or claim lifecycle ownership.
@@ -252,7 +252,7 @@ A migrated automatic-mode user can instead choose to start their own server on
 another port, but cannot abandon a registered live process through this action.
 
 After a reboot or process replacement, the saved PID or birth identity can differ.
-Varro reconnects quietly on the exact saved port when the private lease credentials
+Loomery reconnects quietly on the exact saved port when the private lease credentials
 still work and the server rejects both anonymous requests and an incorrect password.
 The authenticated response must identify a supported OpenCode API family, and the
 lease's port and credentials must remain unchanged through verification. These
@@ -267,7 +267,7 @@ verification rather than reusing PID-based connection confirmation; SSE reconnec
 recheck enforced credentials. Endpoint or saved-credential changes revoke attachment.
 
 Automatic discovery can also recover a changed service port when its exact
-username and password match a private Varro lease or credential companion. The
+username and password match a private Loomery lease or credential companion. The
 discovered endpoint must be loopback and must enforce those credentials. Failed
 Windows process inspection, changed process ancestry, or a still-live old listener
 does not block this read-only fallback. It grants no authority over either process
@@ -306,7 +306,7 @@ a stopped or restarting server never produces the unknown-owner warning. A port 
 accepts connections while process inspection shows no listener, such as another
 user's process hidden from `lsof`, remains unknown and keeps the consent rules below.
 
-Every window attached to a Varro-registered server follows that registration across
+Every window attached to a Loomery-registered server follows that registration across
 restarts. When the registered listener closes or is replaced, or the event stream
 degrades after the registered PID exits (a signal-0 probe, no OS inspection command),
 a non-owning window uses the same bounded restart path as the owner. It resets
@@ -323,7 +323,7 @@ relaunched implicitly; a closed external endpoint reports a connection error.
 Before requesting new uncertainty consent, admission retries one fresh account
 inspection. Strict request rechecks inspect at least every second, but persistent
 uncertainty does not repeat an already approved warning within that connection.
-Registered unknown-account connections instead revalidate their private Varro lease
+Registered unknown-account connections instead revalidate their private Loomery lease
 and complete listener identity on every strict admission and reconnect. They never
 transfer that provenance into uncertainty consent if the registration disappears.
 Newly identified foreign listeners still require consent. If inspection recovers

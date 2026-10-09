@@ -129,9 +129,9 @@ export interface NotificationGate {
   shouldShow(sessionID: string): boolean;
 }
 
-const INTERRUPTED_SESSIONS_KEY = 'varro.interruptedSessions';
-const BLOCKING_REQUESTS_KEY = 'varro.blockingRequests';
-const ACKNOWLEDGED_COMPLETIONS_KEY = 'varro.acknowledgedCompletions';
+const INTERRUPTED_SESSIONS_KEY = 'loomery.interruptedSessions';
+const BLOCKING_REQUESTS_KEY = 'loomery.blockingRequests';
+const ACKNOWLEDGED_COMPLETIONS_KEY = 'loomery.acknowledgedCompletions';
 const MAX_PERSISTED_INTERRUPTED_SESSIONS = 50;
 const MAX_PERSISTED_BLOCKING_REQUESTS = 100;
 const MAX_PERSISTED_METADATA_ENTRIES = 20;
@@ -2018,12 +2018,14 @@ export class SessionStateManager {
     if (!this.notificationGate.shouldShow(sessionID)) return;
 
     const prefix =
-      kind === 'question' ? 'Varro is waiting for your input' : 'Varro needs permission approval';
+      kind === 'question'
+        ? 'Loomery is waiting for your input'
+        : 'Loomery needs permission approval';
     const message = `${prefix}${this.describeSessionSuffix(sessionID)}.`;
 
     void vscode.window.showWarningMessage(message, 'Open Chat').then((action) => {
       if (action === 'Open Chat') {
-        void vscode.commands.executeCommand('varro.chat.focus');
+        void vscode.commands.executeCommand('loomery.chat.focus');
       }
     });
   }
@@ -2032,10 +2034,10 @@ export class SessionStateManager {
     if (!this.isPlanSession(sessionID)) return;
     if (!this.notificationGate.shouldShow(sessionID)) return;
 
-    const message = `Varro has a plan ready for review${this.describeSessionSuffix(sessionID)}.`;
+    const message = `Loomery has a plan ready for review${this.describeSessionSuffix(sessionID)}.`;
     void vscode.window.showInformationMessage(message, 'Open Chat').then((action) => {
       if (action === 'Open Chat') {
-        void vscode.commands.executeCommand('varro.chat.focus');
+        void vscode.commands.executeCommand('loomery.chat.focus');
       }
     });
   }
@@ -2045,11 +2047,11 @@ export class SessionStateManager {
 
     const suffix = this.describeSessionSuffix(sessionID);
     const message = detail?.trim()
-      ? `Varro hit an error${suffix}: ${detail.trim()}`
-      : `Varro hit an error${suffix}.`;
+      ? `Loomery hit an error${suffix}: ${detail.trim()}`
+      : `Loomery hit an error${suffix}.`;
     void vscode.window.showErrorMessage(message, 'Open Chat').then((action) => {
       if (action === 'Open Chat') {
-        void vscode.commands.executeCommand('varro.chat.focus');
+        void vscode.commands.executeCommand('loomery.chat.focus');
       }
     });
   }

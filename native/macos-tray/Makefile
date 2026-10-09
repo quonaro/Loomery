@@ -1,8 +1,8 @@
 SHELL := /bin/bash
-APP := build/Varro.app
+APP := build/Loomery.app
 CONTENTS := $(APP)/Contents
 INSTALL_DIR ?= $(HOME)/Applications
-DATA_DIR := $(HOME)/Library/Application Support/Varro/tray
+DATA_DIR := $(HOME)/Library/Application Support/Loomery/tray
 ARCH ?= $(shell uname -m)
 SWIFTC := xcrun swiftc
 FLAGS := -swift-version 5 -warnings-as-errors -target $(ARCH)-apple-macosx13.0 -module-cache-path build/module-cache
@@ -13,25 +13,25 @@ SOURCES := $(wildcard Sources/*.swift)
 build: build/.built
 
 build/.built: $(SOURCES) Resources/Info.plist ../../assets/icon.png Makefile
-	mkdir -p "$(CONTENTS)/MacOS" "$(CONTENTS)/Resources" build/Varro.iconset
-	$(SWIFTC) $(FLAGS) -O -framework Cocoa -framework SwiftUI -framework ServiceManagement $(SOURCES) -o "$(CONTENTS)/MacOS/varro-tray"
+	mkdir -p "$(CONTENTS)/MacOS" "$(CONTENTS)/Resources" build/Loomery.iconset
+	$(SWIFTC) $(FLAGS) -O -framework Cocoa -framework SwiftUI -framework ServiceManagement $(SOURCES) -o "$(CONTENTS)/MacOS/loomery-tray"
 	cp Resources/Info.plist "$(CONTENTS)/Info.plist"
-	rm -f "$(CONTENTS)/Resources/VarroTemplate.png"
+	rm -f "$(CONTENTS)/Resources/LoomeryTemplate.png"
 	@for size in 16 32 128 256 512; do \
-		sips -z $$size $$size ../../assets/icon.png --out "build/Varro.iconset/icon_$${size}x$${size}.png" >/dev/null; \
+		sips -z $$size $$size ../../assets/icon.png --out "build/Loomery.iconset/icon_$${size}x$${size}.png" >/dev/null; \
 		double=$$((size * 2)); \
-		sips -z $$double $$double ../../assets/icon.png --out "build/Varro.iconset/icon_$${size}x$${size}@2x.png" >/dev/null; \
+		sips -z $$double $$double ../../assets/icon.png --out "build/Loomery.iconset/icon_$${size}x$${size}@2x.png" >/dev/null; \
 	done
-	iconutil -c icns build/Varro.iconset -o "$(CONTENTS)/Resources/Varro.icns"
+	iconutil -c icns build/Loomery.iconset -o "$(CONTENTS)/Resources/Loomery.icns"
 	codesign --force --sign - --timestamp=none "$(APP)"
 	codesign --verify --deep --strict "$(APP)"
 	touch "$@"
 
 install: build
-	@test ! -e "$(INSTALL_DIR)/Varro.app" || test "$$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$(INSTALL_DIR)/Varro.app/Contents/Info.plist")" = com.koltyakov.varro.tray
+	@test ! -e "$(INSTALL_DIR)/Loomery.app" || test "$$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$(INSTALL_DIR)/Loomery.app/Contents/Info.plist")" = com.quonaro.loomery.tray
 	mkdir -p "$(INSTALL_DIR)"
-	ditto "$(APP)" "$(INSTALL_DIR)/Varro.app"
-	@echo "Installed $(INSTALL_DIR)/Varro.app. Quit a running copy before reopening."
+	ditto "$(APP)" "$(INSTALL_DIR)/Loomery.app"
+	@echo "Installed $(INSTALL_DIR)/Loomery.app. Quit a running copy before reopening."
 
 run: build
 	open "$(APP)"
@@ -55,6 +55,6 @@ clean:
 	rm -rf build
 
 uninstall:
-	@test ! -e "$(INSTALL_DIR)/Varro.app" || test "$$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$(INSTALL_DIR)/Varro.app/Contents/Info.plist")" = com.koltyakov.varro.tray
-	rm -rf "$(INSTALL_DIR)/Varro.app"
+	@test ! -e "$(INSTALL_DIR)/Loomery.app" || test "$$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$(INSTALL_DIR)/Loomery.app/Contents/Info.plist")" = com.quonaro.loomery.tray
+	rm -rf "$(INSTALL_DIR)/Loomery.app"
 	rm -rf "$(DATA_DIR)"

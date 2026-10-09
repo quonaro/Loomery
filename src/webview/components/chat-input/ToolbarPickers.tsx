@@ -35,7 +35,7 @@ import { isFunction } from '../../lib/runtime-values';
 import { QUEUE_ONLY_SELECTION_TOOLTIP } from './active-turn-selection';
 
 const FAST_MODE_COST_WARNING = 'Fast mode may consume usage limits faster and cost more.';
-const PERMISSIONS_DOCS_URL = 'https://github.com/koltyakov/varro/blob/main/docs/permissions.md';
+const PERMISSIONS_DOCS_URL = 'https://github.com/quonaro/loomery/blob/main/docs/permissions.md';
 const MAX_COMPLETED_AUTO_APPROVE_ACTIVITY = 5;
 
 function isFastModelName(name: string) {

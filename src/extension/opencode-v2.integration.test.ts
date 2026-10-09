@@ -38,7 +38,7 @@ vi.mock('vscode', () => ({
 
 vi.mock('./logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
-const binary = process.env.VARRO_OPENCODE_TEST_BINARY;
+const binary = process.env.LOOMERY_OPENCODE_TEST_BINARY;
 
 describe.skipIf(!binary)('released OpenCode adapter contract', () => {
   let child: ChildProcess;
@@ -196,7 +196,7 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
       authorization = basicAuthorization(password);
     });
     const version =
-      process.env.VARRO_OPENCODE_TEST_VERSION ??
+      process.env.LOOMERY_OPENCODE_TEST_VERSION ??
       spawnSync(binary!, ['--version'], { encoding: 'utf8', timeout: 10000 }).stdout.trim();
     if (/^(?:opencode\s+v?)?2\./.test(version)) {
       await mkdir(join(root, 'config/opencode'), { recursive: true });
@@ -276,9 +276,9 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
     await vi.waitFor(async () => expect((await transport.readHealthInfo()).healthy).toBe(true), {
       timeout: 20000,
     });
-    if (process.env.VARRO_OPENCODE_TEST_VERSION)
+    if (process.env.LOOMERY_OPENCODE_TEST_VERSION)
       expect((await transport.readHealthInfo()).version).toBe(
-        process.env.VARRO_OPENCODE_TEST_VERSION
+        process.env.LOOMERY_OPENCODE_TEST_VERSION
       );
     void transport.startEventStream();
     await vi.waitFor(() => expect(events.length).toBeGreaterThan(0));
@@ -464,7 +464,7 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
       });
       await vi.waitFor(
         async () => {
-          // SAFETY: The real adapter returns the canonical Varro message-entry contract.
+          // SAFETY: The real adapter returns the canonical Loomery message-entry contract.
           const messages = (await transport.request(
             'GET',
             `/session/${id}/message`
@@ -598,8 +598,8 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
     // Exercise the webview's public health route, not only the process startup probe.
     const health = parseHealthResponse(await transport.request('GET', '/global/health'));
     expect(health?.healthy).toBe(true);
-    if (process.env.VARRO_OPENCODE_TEST_VERSION)
-      expect(health?.version).toBe(process.env.VARRO_OPENCODE_TEST_VERSION);
+    if (process.env.LOOMERY_OPENCODE_TEST_VERSION)
+      expect(health?.version).toBe(process.env.LOOMERY_OPENCODE_TEST_VERSION);
     const agents = await transport.request('GET', '/agent');
     expect(Array.isArray(agents)).toBe(true);
     const commands = (await transport.request('GET', '/command')) as UnknownRecord[];
@@ -704,7 +704,7 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
     const session = asRecord(
       await transport.request('POST', '/session', {
         title: 'Adapter fixture',
-        metadata: { varro: { permissionMode: 'default' } },
+        metadata: { loomery: { permissionMode: 'default' } },
       })
     );
     expect(session?.directory).toBe(join(root, 'workspace'));
@@ -712,12 +712,12 @@ describe.skipIf(!binary)('released OpenCode adapter contract', () => {
     const updated = asRecord(
       await transport.request('PATCH', `/session/${sessionID}`, {
         title: 'Adapter renamed',
-        metadata: { varro: { permissionMode: 'full' } },
+        metadata: { loomery: { permissionMode: 'full' } },
         permission: [{ permission: '*', pattern: '*', action: 'allow' }],
       })
     );
     expect(updated?.title).toBe('Adapter renamed');
-    expect(updated?.metadata).toEqual({ varro: { permissionMode: 'full' } });
+    expect(updated?.metadata).toEqual({ loomery: { permissionMode: 'full' } });
     expect(updated?.permission).toEqual([{ permission: '*', pattern: '*', action: 'allow' }]);
   }, 30000);
 

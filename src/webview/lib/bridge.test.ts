@@ -28,7 +28,7 @@ declare global {
   }
 }
 
-const BRIDGE_CLEANUP_KEY = '__cleanupVarroBridge';
+const BRIDGE_CLEANUP_KEY = '__cleanupLoomeryBridge';
 // SAFETY: The fixture provides the unknown fields read by this statement.
 const bridgeWindow = fixture<TestRuntimeRecord>(window);
 
@@ -478,7 +478,7 @@ describe('bridge', () => {
       throw new Error('Webview is disposed');
     });
 
-    // oxlint-disable-next-line require-post-message-target-origin -- This is Varro's typed extension bridge, not Window.postMessage.
+    // oxlint-disable-next-line require-post-message-target-origin -- This is Loomery's typed extension bridge, not Window.postMessage.
     expect(bridge.postMessage({ type: 'ready' })).toBe(false);
   });
 

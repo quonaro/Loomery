@@ -67,7 +67,7 @@ for (const measured of [false, true]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated E2E harness reads this fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       {
@@ -88,8 +88,8 @@ for (const measured of [false, true]) {
       ({ info }) => {
         // SAFETY: The isolated E2E page installs this fixture-only transport.
         const harness = (
-          window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-        ).__varroE2E!;
+          window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+        ).__loomeryE2E!;
         harness.replayServerEvent({
           type: 'session.status',
           properties: { sessionID: info.sessionID, status: { type: 'busy' } },
@@ -136,8 +136,8 @@ for (const measured of [false, true]) {
       async ({ part, info }) => {
         // SAFETY: The isolated E2E page installs this fixture-only transport.
         const harness = (
-          window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-        ).__varroE2E!;
+          window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+        ).__loomeryE2E!;
         const list = document.querySelector<HTMLElement>('.interactive-list')!;
         const marker = [...list.querySelectorAll('.rendered-markdown p')].at(-1)!;
         const sample = () => ({
@@ -185,8 +185,8 @@ for (const measured of [false, true]) {
     const completionSamples = await page.evaluate(async (part) => {
       // SAFETY: Only the isolated harness receives these synthetic tool events.
       const harness = (
-        window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-      ).__varroE2E!;
+        window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+      ).__loomeryE2E!;
       const list = document.querySelector<HTMLElement>('.interactive-list')!;
       const marker = [...list.querySelectorAll('.rendered-markdown p')].at(-1)!;
       const sample = () => ({
@@ -251,12 +251,12 @@ test('keeps Thinking aligned as an inline edit appears in a measured transcript'
     // SAFETY: The isolated E2E page installs these fixture-only methods.
     const harness = (
       window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages(sessionID: string): MessageEntry[];
           replayServerEvent(event: ServerEvent): void;
         };
       }
-    ).__varroE2E!;
+    ).__loomeryE2E!;
     const sessionID = 'session-large-transcript';
     const info = harness.getSessionMessages(sessionID).at(-1)!.info;
     if (info.role !== 'assistant') throw new Error('Missing assistant fixture');
@@ -276,8 +276,8 @@ test('keeps Thinking aligned as an inline edit appears in a measured transcript'
   const samples = await page.evaluate(async () => {
     // SAFETY: The isolated E2E page installs this fixture-only method.
     const harness = (
-      window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-    ).__varroE2E!;
+      window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+    ).__loomeryE2E!;
     const sessionID = 'session-large-transcript';
     harness.replayServerEvent({
       type: 'message.part.updated',

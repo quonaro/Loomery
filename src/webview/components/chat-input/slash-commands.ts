@@ -149,7 +149,7 @@ export function getSlashCommands(props: {
     {
       name: 'settings',
       aliases: [],
-      description: 'Open VS Code settings for Varro',
+      description: 'Open VS Code settings for Loomery',
       action: () => props.onOpenSettings(),
     },
     {

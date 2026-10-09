@@ -73,8 +73,8 @@ describe('OpenCodeV2SessionState', () => {
   });
 
   it('does not contend with a normal editor lock when an AI fixture uses the same session ID', async () => {
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', undefined);
-    vi.stubEnv('VARRO_TEST_SERVER_URL', undefined);
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', undefined);
+    vi.stubEnv('LOOMERY_TEST_SERVER_URL', undefined);
     vi.stubEnv('XDG_STATE_HOME', join(directory, 'normal-editor'));
     vi.stubEnv('LOCALAPPDATA', join(directory, 'normal-editor-appdata'));
     vi.mocked(os.homedir).mockReturnValue(join(directory, 'normal-editor-home'));
@@ -91,8 +91,8 @@ describe('OpenCodeV2SessionState', () => {
     const pending = normal.update('ses_shared', { normalEditor: true });
     try {
       await entered.promise;
-      vi.stubEnv('VARRO_TEST_SERVER_URL', 'http://127.0.0.1:49999');
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', join(directory, 'ai-profile'));
+      vi.stubEnv('LOOMERY_TEST_SERVER_URL', 'http://127.0.0.1:49999');
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(directory, 'ai-profile'));
       const fixture = new OpenCodeV2SessionState();
       await fixture.update('ses_shared', { aiFixture: true });
       expect(await fixture.read('ses_shared')).toEqual({ aiFixture: true, time: {} });
@@ -127,7 +127,7 @@ describe('OpenCodeV2SessionState', () => {
       }
     );
     expect(compilation.status, compilation.stderr).toBe(0);
-    const editors = ['VSCode', 'VSCode-Nightly', 'VSCodium', 'Varro-OpenJet'];
+    const editors = ['VSCode', 'VSCode-Nightly', 'VSCodium', 'Loomery-OpenJet'];
     const children = editors.map((editor) => {
       const script = `
         const { pathToFileURL } = await import('node:url');
@@ -297,7 +297,7 @@ describe('OpenCodeV2SessionState', () => {
     const store = new OpenCodeV2SessionState(directory);
 
     await expect(store.update('ses_fixture', { unexpected: true })).rejects.toMatchObject({
-      message: 'Timed out waiting to update Varro session annotations',
+      message: 'Timed out waiting to update Loomery session annotations',
       cause: error,
     });
     expect(existsSync(join(lock, owner))).toBe(true);
@@ -335,7 +335,7 @@ describe('OpenCodeV2SessionState', () => {
     const store = new OpenCodeV2SessionState(directory);
 
     await expect(store.update('ses_fixture', { preserved: true })).rejects.toMatchObject({
-      message: 'Timed out waiting to update Varro session annotations',
+      message: 'Timed out waiting to update Loomery session annotations',
       cause: error,
     });
   });

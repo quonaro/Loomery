@@ -4,16 +4,16 @@ import { readFile, writeFile } from 'node:fs/promises';
 const TESTED_VERSION = process.env.TESTED_OPENCODE_VERSION || 'unknown';
 const BASE_URL = 'http://127.0.0.1:4096';
 const DIRECTORY = '/workspace';
-const MCP_FIXTURE_NAME = 'varro-compat';
-const MCP_FIXTURE_PATH = '/opt/varro/mcp-fixture.mjs';
-const MCP_PAGE_MARKER_PATH = '/tmp/varro-mcp-pages';
-const MISSING_PERMISSION_ID = 'per_varro_missing_permission';
-const MISSING_QUESTION_ID = 'que_varro_missing_question';
+const MCP_FIXTURE_NAME = 'loomery-compat';
+const MCP_FIXTURE_PATH = '/opt/loomery/mcp-fixture.mjs';
+const MCP_PAGE_MARKER_PATH = '/tmp/loomery-mcp-pages';
+const MISSING_PERMISSION_ID = 'per_loomery_missing_permission';
+const MISSING_QUESTION_ID = 'que_loomery_missing_question';
 const MCP_CHECK_REQUIRED = TESTED_VERSION === process.env.DECLARED_OPENCODE_CEILING;
-const RESULT_PREFIX = 'VARRO_COMPAT_RESULT=';
+const RESULT_PREFIX = 'LOOMERY_COMPAT_RESULT=';
 const START_TIMEOUT_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 10_000;
-const BASE_CONFIG_PATH = '/tmp/varro-opencode-base.json';
+const BASE_CONFIG_PATH = '/tmp/loomery-opencode-base.json';
 const INLINE_CONFIG_CONTENT = JSON.stringify({ compaction: { reserved: 3333 } });
 
 const checks = [];
@@ -47,7 +47,7 @@ await writeFile(
 await writeFile(MCP_PAGE_MARKER_PATH, '');
 await writeFile(
   `${DIRECTORY}/opencode.jsonc`,
-  '{\n  // Project config must override Varro\'s pre-project layer.\n  "compaction": { "auto": true, "reserved": 2222 },\n}\n'
+  '{\n  // Project config must override Loomery\'s pre-project layer.\n  "compaction": { "auto": true, "reserved": 2222 },\n}\n'
 );
 
 const server = spawn('opencode', ['serve', '--hostname', '0.0.0.0', '--port', '4096'], {
@@ -461,7 +461,7 @@ async function runProbe() {
   let forkSessionID;
   try {
     const session = await request('POST /session', 'POST', '/session', {
-      body: { title: 'Varro compatibility probe' },
+      body: { title: 'Loomery compatibility probe' },
       // oxlint-disable-next-line anti-slop/no-runtime-typeof -- The session response is external JSON and its identifier must be validated.
       validate: (value) => isRecord(value) && typeof value.id === 'string',
     });
@@ -482,7 +482,7 @@ async function runProbe() {
         validate: (value) => isRecord(value) && value.id === sessionID,
       });
       await request('PATCH /session/:id', 'PATCH', `/session/${encodedID}`, {
-        body: { title: 'Varro compatibility probe renamed' },
+        body: { title: 'Loomery compatibility probe renamed' },
         validate: isRecord,
       });
       await request(
@@ -506,7 +506,7 @@ async function runProbe() {
         {
           body: {
             noReply: true,
-            parts: [{ type: 'text', text: 'Varro compatibility probe' }],
+            parts: [{ type: 'text', text: 'Loomery compatibility probe' }],
           },
           validate: (value) => value === null,
         }

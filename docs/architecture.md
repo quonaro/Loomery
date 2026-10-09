@@ -1,6 +1,6 @@
 # Architecture Guide
 
-This document maps the current Varro codebase to the runtime behavior of the extension.
+This document maps the current Loomery codebase to the runtime behavior of the extension.
 
 ## High-Level Flow
 
@@ -10,7 +10,7 @@ This document maps the current Varro codebase to the runtime behavior of the ext
 4. `src/webview/index.tsx` mounts `AppRoot`; the runtime installs bridge listeners and sends `ready` to the extension host.
 5. The host replays current context, config, status, recovery, and Ralph state, then lazily attaches to a running OpenCode server or spawns `opencode serve`.
 6. Once the server is running, the webview loads sessions, agents, providers, MCP status, questions, and session statuses through the request bridge.
-7. `RestProxy` handles allowed OpenCode and local `/varro/*` requests, while `ServerEventBridge` forwards workspace-scoped SSE events.
+7. `RestProxy` handles allowed OpenCode and local `/loomery/*` requests, while `ServerEventBridge` forwards workspace-scoped SSE events.
 8. The webview stores transport data and derives higher-level running, attention-needed, failed, completed, and plan-ready UI states.
 9. Interrupted sessions can resume after reload, while Ralph loops continue independently in the extension host.
 
@@ -22,33 +22,34 @@ Server startup is deferred: activation only constructs `OpenCodeServer`; `Sideba
 
 #### `src/extension/extension.ts`
 
-- Reads extension configuration from `varro.*`
+- Reads extension configuration from `loomery.*`
 - Instantiates `OpenCodeServer`, `ContextProvider`, and `SidebarProvider`
 - Registers the webview view provider and VS Code commands
-- Sets the `varro:activated` context key
+- Sets the `loomery:activated` context key
 - Does not start the OpenCode server directly; startup is deferred until the webview first needs it
 
 #### `src/extension/commands.ts`
 
 Registers the VS Code command surface that surrounds the chat UI.
 
-- `varro.chat.focus`
-- `varro.chat.statusBarClick`
-- `varro.chat.newSession`
-- `varro.chat.searchSessions`
-- `varro.chat.abort`
-- `varro.chat.previousSession`
-- `varro.chat.nextSession`
-- `varro.server.restart`
-- `varro.about`
-- `varro.showOutput`
-- `varro.openSourceControl`
-- `varro.generateCommitMessage`
-- `varro.agents.openGlobal`
-- `varro.agents.initializeProject`
-- `varro.chat.addToContext`
-- `varro.chat.addSelectionToContext`
-- `varro.chat.addTerminalSelectionToContext`
+- `loomery.chat.focus`
+- `loomery.chat.statusBarClick`
+- `loomery.chat.newSession`
+- `loomery.chat.searchSessions`
+- `loomery.chat.openSessions`
+- `loomery.chat.abort`
+- `loomery.chat.previousSession`
+- `loomery.chat.nextSession`
+- `loomery.server.restart`
+- `loomery.about`
+- `loomery.showOutput`
+- `loomery.openSourceControl`
+- `loomery.generateCommitMessage`
+- `loomery.agents.openGlobal`
+- `loomery.agents.initializeProject`
+- `loomery.chat.addToContext`
+- `loomery.chat.addSelectionToContext`
+- `loomery.chat.addTerminalSelectionToContext`
 
 Chat and context commands route through `SidebarProvider` and `ContextProvider`; server, output, Source Control, About, and `AGENTS.md` actions use their corresponding extension-host services.
 
@@ -64,11 +65,11 @@ The implementation is split across focused components: `open-code-process.ts` ow
 Important behavior:
 
 - Workspace-sensitive requests carry an authoritative directory through both the request bridge and OpenCode transport. `RestProxy` resolves the persisted session-history preference, aggregates lists and statuses using exact-directory, project, or cross-project catalogs, and filters cross-project catalogs to the selected directory for Nested scope. This includes sessions from nested Git projects without exposing sibling directories. It filters hidden and recycled sessions before global sorting and pagination, then authorizes direct session operations from the validated catalog. Permissions, questions, messages, tools, and diffs remain directory-owned.
-- If the SSE stream drops while the server is running, Varro retries with exponential backoff.
-- If the event stream drops but REST still works, Varro marks the event stream as degraded so the UI can show a reconnecting banner.
-- If the child process exits after startup, Varro attempts a limited restart sequence.
-- If the configured port is already in use by another process during Varro-managed startup, the server layer can retry on nearby ports.
-- A maintenance loop compares installed CLI and server versions, suggests `opencode upgrade` when a newer CLI exists, and can restart a Varro-managed idle server onto the newer version.
+- If the SSE stream drops while the server is running, Loomery retries with exponential backoff.
+- If the event stream drops but REST still works, Loomery marks the event stream as degraded so the UI can show a reconnecting banner.
+- If the child process exits after startup, Loomery attempts a limited restart sequence.
+- If the configured port is already in use by another process during Loomery-managed startup, the server layer can retry on nearby ports.
+- A maintenance loop compares installed CLI and server versions, suggests `opencode upgrade` when a newer CLI exists, and can restart a Loomery-managed idle server onto the newer version.
 
 #### `src/extension/context-provider.ts`
 
@@ -77,7 +78,7 @@ Important behavior:
 - Captures terminal selection by temporarily invoking the VS Code terminal copy command
 - Reads and opens files requested by the webview
 
-Clipboard-sensitive terminal capture is implemented here: Varro reads the terminal selection, then restores the previous clipboard contents when possible.
+Clipboard-sensitive terminal capture is implemented here: Loomery reads the terminal selection, then restores the previous clipboard contents when possible.
 
 #### `src/extension/sidebar-provider.ts`
 
@@ -93,7 +94,7 @@ Supporting host components define the main boundaries:
 - `src/extension/webview-session.ts`: webview resolution, recovery snapshots, initial state, ready/visibility handling, and queued commands
 - `src/extension/sidebar-provider-bridge.ts` and `webview-html.ts`: resource URIs, CSP, HTML, and extension/webview posting
 - `src/extension/message-router.ts` and `sidebar-provider-actions.ts`: validated webview command dispatch
-- `src/extension/rest-proxy.ts`: OpenCode REST forwarding and local `/varro/*` endpoints
+- `src/extension/rest-proxy.ts`: OpenCode REST forwarding and local `/loomery/*` endpoints
 - `src/extension/hidden-session-manager.ts`: internal helper-session identification, user-visible
   filtering, and stale permission-judge cleanup
 - `src/extension/server-event-bridge.ts`: server status and event normalization; `SidebarProvider` keeps detailed events directory-scoped and broadcasts sequence-free lifecycle/status summaries across open roots
@@ -103,35 +104,35 @@ Supporting host components define the main boundaries:
 - `src/extension/provider-file-refresh-controller.ts`: OpenCode config and auth file observation, provider invalidation, server revalidation, and immediate acknowledgement of completed embedded reauthentication
 - `src/extension/session-diff-document-provider.ts` and `tool-output-document-provider.ts`: read-only editor documents opened from the webview
 
-It also exposes the Varro extension-host API namespace, `/varro/*`.
+It also exposes the Loomery extension-host API namespace, `/loomery/*`.
 
-- `GET /varro/provider-limit`
-- `POST /varro/plan/open`
-- `GET /varro/opencode-config`
-- `POST /varro/opencode-config/model-routing`
-- `GET /varro/workspace-file`
-- `GET /varro/workspace-file/pick`
-- `GET /varro/workspace-path/resolve`
-- `POST /varro/permission/judge`
-- `GET /varro/permission/judge/model`
-- `GET /varro/session/:sessionID/diff-summary`
-- `POST /varro/session/:sessionID/pin`
-- `POST /varro/session/:sessionID/rename-if-untitled`
-- `POST /varro/session/:sessionID/activate`
-- `DELETE /varro/session/:sessionID/delete`
-- `GET /varro/session-trash`
-- `POST /varro/session-trash/:rootID/restore`
-- `DELETE /varro/session-trash/:rootID/delete`
-- `DELETE /varro/session-trash`
+- `GET /loomery/provider-limit`
+- `POST /loomery/plan/open`
+- `GET /loomery/opencode-config`
+- `POST /loomery/opencode-config/model-routing`
+- `GET /loomery/workspace-file`
+- `GET /loomery/workspace-file/pick`
+- `GET /loomery/workspace-path/resolve`
+- `POST /loomery/permission/judge`
+- `GET /loomery/permission/judge/model`
+- `GET /loomery/session/:sessionID/diff-summary`
+- `POST /loomery/session/:sessionID/pin`
+- `POST /loomery/session/:sessionID/rename-if-untitled`
+- `POST /loomery/session/:sessionID/activate`
+- `DELETE /loomery/session/:sessionID/delete`
+- `GET /loomery/session-trash`
+- `POST /loomery/session-trash/:rootID/restore`
+- `DELETE /loomery/session-trash/:rootID/delete`
+- `DELETE /loomery/session-trash`
 
 Those paths share the same `api/request` bridge as OpenCode REST calls, but the extension host resolves them locally instead of forwarding them to OpenCode.
 
-Commit-message generation is invoked by a VS Code command. Usage reports, opening a session in the OpenCode TUI, and read-only tool-output documents use dedicated webview messages rather than `/varro/*` routes.
+Commit-message generation is invoked by a VS Code command. Usage reports, opening a session in the OpenCode TUI, and read-only tool-output documents use dedicated webview messages rather than `/loomery/*` routes.
 
 Drag and drop has two paths here.
 
 - Path-based drops are normalized and attached directly.
-- Content-only drops are written into a temporary `varro-drops` directory before being attached.
+- Content-only drops are written into a temporary `loomery-drops` directory before being attached.
 
 #### `src/extension/session-state-manager.ts`
 
@@ -156,7 +157,7 @@ Defines:
 
 The protocol is intentionally transport-oriented. Shared OpenCode domain and event types such as `Session`, `Message`, and `Part` live in `src/shared/opencode-types.ts`. `src/webview/types/index.ts` re-exports those contracts for webview consumers.
 
-Next to the `/varro/*` namespace, the architectural choice is explicit: Varro treats the extension host as the authorization and routing boundary. It forwards raw detailed events only to the endpoint that owns their execution directory, projects safe session lifecycle/status summaries across open roots, and serves local `/varro/*` requests. The webview derives UI facts like pending attention and recycle-bin views from those transport primitives plus targeted REST reloads.
+Next to the `/loomery/*` namespace, the architectural choice is explicit: Loomery treats the extension host as the authorization and routing boundary. It forwards raw detailed events only to the endpoint that owns their execution directory, projects safe session lifecycle/status summaries across open roots, and serves local `/loomery/*` requests. The webview derives UI facts like pending attention and recycle-bin views from those transport primitives plus targeted REST reloads.
 
 #### `src/shared/context-files.ts`
 
@@ -321,28 +322,28 @@ Typical part sequence:
 
 1. user text
 2. working directory marker
-3. active file or active selection marker, if current-document context is enabled for the session
+3. active selection marker, if current-document context is enabled for the session
 4. terminal selection block
 5. explicitly attached diagnostics
 6. explicit context files and folders, pasted images, and native PDFs in attachment order; unsupported path-backed PDFs become text references, images require vision support, and native PDFs require PDF support
 
-This is where Varro turns live VS Code context into OpenCode-compatible prompt parts.
+This is where Loomery turns live VS Code context into OpenCode-compatible prompt parts.
 
-### Varro API namespace
+### Loomery API namespace
 
-`/varro/*` is a documented extension-host namespace on top of the shared webview `api/request` transport.
+`/loomery/*` is a documented extension-host namespace on top of the shared webview `api/request` transport.
 
-- `/varro/provider-limit` returns best-effort provider quota metadata for the current provider and model.
-- `/varro/plan/open` normalizes a plan response, saves it into the local OpenCode plans directory, and opens the file in VS Code.
-- `/varro/opencode-config` and `/varro/opencode-config/model-routing` read and update Varro-managed OpenCode model routing.
-- `/varro/workspace-file`, `/varro/workspace-file/pick`, and `/varro/workspace-path/resolve` provide workspace-scoped file selection and path resolution.
-- `/varro/permission/judge` evaluates eligible automatic permission decisions in the extension host, while `/varro/permission/judge/model` reports the model Varro resolves for that judge.
-- `/varro/session/:sessionID/*` handles diff summaries, pinning, conditional renaming, and deletion.
-- `/varro/session-trash` and its child paths expose the recycle-bin workflow managed by the extension host.
+- `/loomery/provider-limit` returns best-effort provider quota metadata for the current provider and model.
+- `/loomery/plan/open` normalizes a plan response, saves it into the local OpenCode plans directory, and opens the file in VS Code.
+- `/loomery/opencode-config` and `/loomery/opencode-config/model-routing` read and update Loomery-managed OpenCode model routing.
+- `/loomery/workspace-file`, `/loomery/workspace-file/pick`, and `/loomery/workspace-path/resolve` provide workspace-scoped file selection and path resolution.
+- `/loomery/permission/judge` evaluates eligible automatic permission decisions in the extension host, while `/loomery/permission/judge/model` reports the model Loomery resolves for that judge.
+- `/loomery/session/:sessionID/*` handles diff summaries, pinning, conditional renaming, and deletion.
+- `/loomery/session-trash` and its child paths expose the recycle-bin workflow managed by the extension host.
 
 ## Session And Attention Model
 
-Varro distinguishes several session states in the UI:
+Loomery distinguishes several session states in the UI:
 
 - running
 - attention needed
@@ -364,7 +365,7 @@ That information drives both:
 The webview independently derives its attention and recycle-bin UI from transport data.
 
 - `attention needed` is computed from raw `permission.*` and `question.*` events plus the initial pending snapshots embedded into the HTML payload.
-- recycle-bin state is loaded through `/varro/session-trash` instead of being mirrored through a second extension push channel.
+- recycle-bin state is loaded through `/loomery/session-trash` instead of being mirrored through a second extension push channel.
 
 The webview adds more derived states on top of that data.
 
@@ -380,7 +381,7 @@ The webview adds more derived states on top of that data.
 - Session lists aggregate exact open workspace roots. Unrelated OpenCode history is rejected, and an optional webview filter narrows the catalog without changing execution scope.
 - Queued follow-up prompts are persisted in extension-host workspace state and auto-dispatched once their owning session is connected and idle, including background sessions. The browser-side mirror excludes image-bearing entries from synchronous local storage.
 - Message loads are windowed: opening a session fetches the newest 200 messages, reaching the top automatically prepends the next 200-message page while preserving the visible anchor, and the boundary banner becomes a `Retry` action only after a page request fails.
-- Finder or browser drops that do not expose file paths fall back to temporary file writes in `varro-drops`.
+- Finder or browser drops that do not expose file paths fall back to temporary file writes in `loomery-drops`.
 - The event stream can be degraded while REST remains healthy, so the UI treats live updates and request availability separately.
 - Provider limits are best-effort metadata; they are not guaranteed for every provider or model.
 - Provider connection management calls OpenCode's `/provider`, `/provider/auth`, provider OAuth, and `/auth/:providerID` endpoints through the existing request bridge. The extension host never receives API keys or authorization codes as dedicated protocol messages.

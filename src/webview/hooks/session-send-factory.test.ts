@@ -297,7 +297,7 @@ describe('SessionSendOperations', () => {
         size: 10,
         attachmentSequence: 2,
         contextFile: {
-          path: '/tmp/varro-drops/image.png',
+          path: '/tmp/loomery-drops/image.png',
           relativePath: 'image.png',
           type: 'file',
         },
@@ -312,7 +312,7 @@ describe('SessionSendOperations', () => {
         size: 5,
         attachmentSequence: 3,
         contextFile: {
-          path: '/tmp/varro-drops/spec.pdf',
+          path: '/tmp/loomery-drops/spec.pdf',
           relativePath: 'spec.pdf',
           type: 'file',
         },
@@ -369,7 +369,7 @@ describe('SessionSendOperations', () => {
           filename: 'image.png',
           url: 'blob:image-1',
         },
-        { type: 'text', text: '[Attached file: /tmp/varro-drops/spec.pdf]' },
+        { type: 'text', text: '[Attached file: /tmp/loomery-drops/spec.pdf]' },
       ],
     });
     expect(appStore.state.droppedFiles).toEqual([]);
@@ -388,7 +388,7 @@ describe('SessionSendOperations', () => {
     expect(postMessage).toHaveBeenCalledWith({
       type: 'images/release',
       payload: {
-        paths: ['/tmp/varro-drops/image.png', '/tmp/varro-drops/spec.pdf'],
+        paths: ['/tmp/loomery-drops/image.png', '/tmp/loomery-drops/spec.pdf'],
         deferred: true,
         sessionId: 'session-1',
       },
@@ -1071,7 +1071,7 @@ describe('SessionSendOperations', () => {
             filename: 'Image 1',
             size: 5,
             contextFile: {
-              path: '/tmp/varro-drops/repo-a/Image 1.png',
+              path: '/tmp/loomery-drops/repo-a/Image 1.png',
               relativePath: 'Image 1.png',
               type: 'file',
             },
@@ -1099,8 +1099,8 @@ describe('SessionSendOperations', () => {
           {
             type: 'text',
             text:
-              '[Image for @vision: /tmp/varro-drops/repo-a/Image 1.png]\n' +
-              'When calling the vision subagent, include {file:/tmp/varro-drops/repo-a/Image 1.png} in its task prompt.',
+              '[Image for @vision: /tmp/loomery-drops/repo-a/Image 1.png]\n' +
+              'When calling the vision subagent, include {file:/tmp/loomery-drops/repo-a/Image 1.png} in its task prompt.',
           },
         ]),
       }),

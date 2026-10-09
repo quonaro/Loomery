@@ -74,9 +74,7 @@ for (const theme of ['dark', 'light', 'high-contrast', 'high-contrast-light']) {
 test('planning mode ends up with a plan using realistic provider models', async ({ page }) => {
   await page.goto('/e2e/harness/index.html?scenario=plan-ready');
 
-  await expect(
-    page.getByLabel('Back to sessions').locator('..').getByText('Plan migration rollout')
-  ).toBeVisible();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText('Plan migration rollout');
   await expect(page.getByRole('button', { name: 'Open plan' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Implement the plan' })).toBeVisible();
   await expect(page.locator('.assistant-turn-content').last()).toContainText('Migration Plan');
@@ -110,9 +108,9 @@ test('planning mode ends up with a plan using realistic provider models', async 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { planOpenRequests: string[] };
+            __loomeryE2E?: { planOpenRequests: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.planOpenRequests[0] || null;
       })
     )
@@ -137,12 +135,12 @@ test('implementing a plan sends the build prompt', async ({ page }) => {
   const promptBody = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests
       .filter((request) =>
-        new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+        new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
       )
       .at(-1)?.body as { agent?: string } | undefined;
   });
@@ -209,8 +207,8 @@ test('skipped plan actions appear on hover and keyboard focus without moving the
   await expect
     .poll(() =>
       getE2EState(page, () => {
-        const value = (window as Window & { __varroE2E?: { planOpenRequests: string[] } })
-          .__varroE2E;
+        const value = (window as Window & { __loomeryE2E?: { planOpenRequests: string[] } })
+          .__loomeryE2E;
         return value?.planOpenRequests.length ?? 0;
       })
     )

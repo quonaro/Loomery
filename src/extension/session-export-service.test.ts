@@ -151,7 +151,7 @@ describe('SessionExportService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.mkdtemp.mockResolvedValue('/tmp/varro-opencode-export-123');
+    mocks.mkdtemp.mockResolvedValue('/tmp/loomery-opencode-export-123');
     mocks.open.mockResolvedValue({
       fd: 17,
       write: vi.fn(async (_chunk: Buffer, _offset: number, length: number) => ({
@@ -174,7 +174,7 @@ describe('SessionExportService', () => {
 
     const exportPromise = service.exportSession('session-1');
 
-    const tempFilePath = join('/tmp/varro-opencode-export-123', 'session-export.json');
+    const tempFilePath = join('/tmp/loomery-opencode-export-123', 'session-export.json');
     await vi.waitFor(() => {
       expect(mocks.open).toHaveBeenCalledWith(tempFilePath, 'w');
     });
@@ -199,7 +199,7 @@ describe('SessionExportService', () => {
       { uri: 'untitled:session-export.json' },
       { preview: false }
     );
-    expect(mocks.rm).toHaveBeenCalledWith('/tmp/varro-opencode-export-123', {
+    expect(mocks.rm).toHaveBeenCalledWith('/tmp/loomery-opencode-export-123', {
       recursive: true,
       force: true,
     });
@@ -318,7 +318,7 @@ describe('SessionExportService', () => {
       expect.stringContaining('Failed to export session: OpenCode export returned invalid JSON')
     );
     expect(mocks.openTextDocument).not.toHaveBeenCalled();
-    expect(mocks.rm).toHaveBeenCalledWith('/tmp/varro-opencode-export-123', {
+    expect(mocks.rm).toHaveBeenCalledWith('/tmp/loomery-opencode-export-123', {
       recursive: true,
       force: true,
     });
@@ -411,7 +411,7 @@ describe('SessionExportService', () => {
       'Failed to export session: permission denied'
     );
     expect(mocks.readFile).not.toHaveBeenCalled();
-    expect(mocks.rm).toHaveBeenCalledWith('/tmp/varro-opencode-export-123', {
+    expect(mocks.rm).toHaveBeenCalledWith('/tmp/loomery-opencode-export-123', {
       recursive: true,
       force: true,
     });
@@ -576,7 +576,7 @@ describe('SessionExportService', () => {
 
       await vi.advanceTimersByTimeAsync(1_000);
       await rejection;
-      expect(mocks.rm).toHaveBeenCalledWith('/tmp/varro-opencode-export-123', {
+      expect(mocks.rm).toHaveBeenCalledWith('/tmp/loomery-opencode-export-123', {
         recursive: true,
         force: true,
       });

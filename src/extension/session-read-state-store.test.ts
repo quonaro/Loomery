@@ -35,7 +35,7 @@ describe('SessionReadStateStore', () => {
 
   it('validates saved timestamps and continues after a failed write', async () => {
     const { persistence, values } = storage();
-    values.set('varro.sessionReadState', {
+    values.set('loomery.sessionReadState', {
       valid: 0,
       negative: -1,
       invalid: '100',

@@ -19,7 +19,7 @@ import {
   toLabel,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const COPILOT_USER_ENDPOINT = 'https://api.github.com/copilot_internal/user';
@@ -78,9 +78,9 @@ export function createCopilotAdapter(): ProviderLimitAdapter {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${token}`,
-            'User-Agent': VARRO_USER_AGENT,
+            'User-Agent': LOOMERY_USER_AGENT,
             'Editor-Version': 'vscode/1.91.0',
-            'Editor-Plugin-Version': 'varro/0.1.0',
+            'Editor-Plugin-Version': 'loomery/0.1.0',
           },
           signal: AbortSignal.timeout(10_000),
         });

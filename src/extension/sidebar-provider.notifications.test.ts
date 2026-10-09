@@ -21,7 +21,7 @@ async function createHarness(enabled = true) {
     .mockResolvedValue(false);
   const vscode = getVscodeMock();
   vscode.window.state.focused = false;
-  const config = vscode.workspace.getConfiguration('varro.notifications');
+  const config = vscode.workspace.getConfiguration('loomery.notifications');
   await config.update('native', enabled);
   await config.update('sound', enabled);
   const values = new Map<string, unknown>();
@@ -225,7 +225,7 @@ describe('SidebarProvider desktop notifications', () => {
       const test = await createHarness();
       try {
         const markerAt = Date.now();
-        await test.globalState.update('varro.sessionReadState', { root: markerAt });
+        await test.globalState.update('loomery.sessionReadState', { root: markerAt });
         // Session state can hydrate from events before a webview publishes unread indicators.
         test.state.setSessionUnreadState('root', kind, true, '/repo', markerAt);
         expect(test.state.completed.has('root')).toBe(true);
@@ -464,7 +464,7 @@ describe('SidebarProvider desktop notifications', () => {
       const handler = test.vscode.window.registerUriHandler.mock.calls.at(-1)?.[0];
       if (!handler) throw new Error('Missing notification URI handler');
       const uri = {
-        authority: 'koltyakov.varro',
+        authority: 'quonaro.loomery',
         path: '/notification',
         query: 'session=child&root=root&directory=%2Frepo',
       };
@@ -554,7 +554,9 @@ describe('SidebarProvider desktop notifications', () => {
       try {
         const sound = { permission: true, question: true, completed: true, planReady: true };
         sound[setting] = false;
-        await test.vscode.workspace.getConfiguration('varro.notifications').update('sound', sound);
+        await test.vscode.workspace
+          .getConfiguration('loomery.notifications')
+          .update('sound', sound);
         if (kind === 'permission') {
           test.state.handleServerEvent({
             type: 'permission.asked',
@@ -594,7 +596,7 @@ describe('SidebarProvider desktop notifications', () => {
       }
       expect(test.sound).toHaveBeenCalledTimes(2);
       expect(test.vscode.window.showWarningMessage).toHaveBeenCalledExactlyOnceWith(
-        'Varro could not show a system notification: Notification service unavailable.',
+        'Loomery could not show a system notification: Notification service unavailable.',
         'Show Output'
       );
     } finally {
@@ -611,7 +613,7 @@ describe('SidebarProvider desktop notifications', () => {
   ])('reads the single sound setting $value', async ({ value, plays }) => {
     const test = await createHarness();
     try {
-      await test.vscode.workspace.getConfiguration('varro.notifications').update('sound', value);
+      await test.vscode.workspace.getConfiguration('loomery.notifications').update('sound', value);
       test.state.handleServerEvent({
         type: 'question.asked',
         properties: { id: 'question', sessionID: 'child', questions: [] },

@@ -31,7 +31,7 @@ const slowApiRequests = new Map<number, SlowApiRequest>();
 let disposed = false;
 let bridgeInitialized = false;
 let unsubscribeHost: (() => void) | undefined;
-const BRIDGE_CLEANUP_KEY = '__cleanupVarroBridge';
+const BRIDGE_CLEANUP_KEY = '__cleanupLoomeryBridge';
 type BridgeWindow = Window & {
   [BRIDGE_CLEANUP_KEY]?: () => void;
   __sendToExtension?: (message: WebviewMessage) => void;
@@ -411,7 +411,7 @@ function sanitizeDiagnosticPath(path: string): string {
 
 function parsePathname(path: string): string {
   try {
-    return new URL(path, 'http://varro.local').pathname;
+    return new URL(path, 'http://loomery.local').pathname;
   } catch {
     return path.split(/[?#]/)[0] || '/';
   }

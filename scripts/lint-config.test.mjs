@@ -11,7 +11,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 await test('script promise rules work without Vite and exempt only Node test registrations', async (t) => {
   const parent = path.join(os.tmpdir(), 'opencode');
   await mkdir(parent, { recursive: true });
-  const directory = await mkdtemp(path.join(parent, 'varro-lint-'));
+  const directory = await mkdtemp(path.join(parent, 'loomery-lint-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(path.join(directory, 'scripts'));
   for (const file of [

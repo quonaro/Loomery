@@ -75,9 +75,9 @@ describe('SessionDiffDocumentProvider', () => {
       expect(server.request).toHaveBeenCalledWith('GET', '/session/session%2F1/diff');
       expect(vscodeMock.commands.executeCommand).toHaveBeenCalledWith(
         'vscode.diff',
-        expect.objectContaining({ scheme: 'varro-session-diff' }),
-        expect.objectContaining({ scheme: 'varro-session-diff' }),
-        'app.ts (Varro session)',
+        expect.objectContaining({ scheme: 'loomery-session-diff' }),
+        expect.objectContaining({ scheme: 'loomery-session-diff' }),
+        'app.ts (Loomery session)',
         { preview: true }
       );
       const [, beforeUri, afterUri] = vscodeMock.commands.executeCommand.mock.calls[0]!;

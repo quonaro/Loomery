@@ -13,7 +13,7 @@ import { ProviderQuotaCoordinator } from './provider-quota-coordinator';
 import { createAnthropicAdapter } from './provider-limits/adapters/anthropic';
 import { createCodexAdapter } from './provider-limits/adapters/codex';
 import type { OpenCodeServer } from './server';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 
 const auth = vi.hoisted(() => ({ path: '', home: '' }));
 vi.mock('os', async () => ({
@@ -78,10 +78,10 @@ function server() {
 
 describe.skipIf(process.platform === 'win32')('ProviderQuotaCoordinator', () => {
   beforeEach(async () => {
-    root = await fs.mkdtemp(join(tmpdir(), 'varro-quota-'));
+    root = await fs.mkdtemp(join(tmpdir(), 'loomery-quota-'));
     auth.path = join(root, 'absent-auth.json');
     auth.home = root;
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', join(root, 'varro-state'));
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(root, 'loomery-state'));
     now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now);
   });
@@ -94,9 +94,9 @@ describe.skipIf(process.platform === 'win32')('ProviderQuotaCoordinator', () => 
   });
 
   it('retains legacy quota snapshots and cooldowns behind the native compatibility path', async () => {
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', undefined);
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', undefined);
     vi.stubEnv('XDG_STATE_HOME', join(root, 'xdg-state'));
-    const legacy = join(root, '.varro-provider-quota-v2');
+    const legacy = join(root, '.loomery-provider-quota-v2');
     await fs.mkdir(legacy, { mode: 0o700 });
     const oldCoordinator = new ProviderQuotaCoordinator(legacy);
     const poll = vi.fn(async () => available());
@@ -105,7 +105,7 @@ describe.skipIf(process.platform === 'win32')('ProviderQuotaCoordinator', () => 
     const status = await nativeCoordinator.get('same-secret', null, poll);
     expect(status.status).toBe('available');
     expect(poll).toHaveBeenCalledOnce();
-    expect(await fs.realpath(getVarroStateDirectory('provider-quota-v2'))).toBe(
+    expect(await fs.realpath(getLoomeryStateDirectory('provider-quota-v2'))).toBe(
       await fs.realpath(legacy)
     );
     now += 31_000;

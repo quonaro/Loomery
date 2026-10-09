@@ -192,7 +192,7 @@ async function bringTargetToFront(webSocketDebuggerUrl) {
   }
 }
 
-export function hasRecreatedVarroTarget(originalTargetId, currentTargetId, sawUnavailable) {
+export function hasRecreatedLoomeryTarget(originalTargetId, currentTargetId, sawUnavailable) {
   if (!currentTargetId) return false;
   return originalTargetId ? currentTargetId !== originalTargetId : sawUnavailable;
 }
@@ -202,7 +202,7 @@ export function getVscodeSidebarGeometry(documentValue, viewportWidth) {
     (element) => element.getBoundingClientRect()
   );
   const candidates = [...documentValue.querySelectorAll('iframe.webview')].filter((iframe) => {
-    if (!iframe.src.includes('extensionId=koltyakov.varro') && !iframe.title.includes('Varro')) {
+    if (!iframe.src.includes('extensionId=quonaro.loomery') && !iframe.title.includes('Loomery')) {
       return false;
     }
     const frame = iframe.getBoundingClientRect();
@@ -222,7 +222,7 @@ export function getVscodeSidebarGeometry(documentValue, viewportWidth) {
   });
   if (candidates.length !== 1) {
     return {
-      error: `expected one visible Varro sidebar iframe, found ${String(candidates.length)}`,
+      error: `expected one visible Loomery sidebar iframe, found ${String(candidates.length)}`,
     };
   }
 
@@ -235,7 +235,7 @@ export function getVscodeSidebarGeometry(documentValue, viewportWidth) {
         Math.min(Math.abs(left.x - frame.x), Math.abs(left.x - frame.right)) -
         Math.min(Math.abs(right.x - frame.x), Math.abs(right.x - frame.right))
     )[0];
-  if (!sash) return { error: 'could not find a vertical sash beside the Varro sidebar iframe' };
+  if (!sash) return { error: 'could not find a vertical sash beside the Loomery sidebar iframe' };
   return {
     frame: [frame.x, frame.y, frame.width, frame.height],
     sashX: sash.x,
@@ -292,7 +292,7 @@ export async function executeVscodeCommand(remoteDebuggingPort, commandLabel) {
       );
     } catch (error) {
       if (
-        commandLabel !== 'Varro: Focus on Varro View' ||
+        commandLabel !== 'Loomery: Focus on Loomery View' ||
         !(error instanceof Error) ||
         !error.message.startsWith('VS Code command palette did not find the requested command:')
       )
@@ -308,7 +308,7 @@ export async function executeVscodeCommand(remoteDebuggingPort, commandLabel) {
       }
       const response = await requests.call('Runtime.evaluate', {
         expression: `(() => {
-          const points = [...document.querySelectorAll('a[aria-label="Varro"]')].flatMap(element => {
+          const points = [...document.querySelectorAll('a[aria-label="Loomery"]')].flatMap(element => {
             const rect = element.getBoundingClientRect();
             const x = rect.x + rect.width / 2, y = rect.y + rect.height / 2;
             if (rect.width <= 0 || rect.height <= 0 || x < 0 || x >= innerWidth || y < 0 || y >= innerHeight) return [];
@@ -433,7 +433,7 @@ export async function resizeVscodeSidebar(remoteDebuggingPort, targetWidth, time
         });
         const value = geometry.result.value;
         if (!value || value.error) {
-          throw new Error(value?.error || 'Varro iframe or secondary-sidebar sash is not ready');
+          throw new Error(value?.error || 'Loomery iframe or secondary-sidebar sash is not ready');
         }
 
         lastWidth = value.frame[2];
@@ -463,7 +463,7 @@ export async function resizeVscodeSidebar(remoteDebuggingPort, targetWidth, time
         const measuredValue = measured.result.value;
         if (!measuredValue || measuredValue.error) {
           throw new Error(
-            measuredValue?.error || 'Varro iframe or secondary-sidebar sash is not ready'
+            measuredValue?.error || 'Loomery iframe or secondary-sidebar sash is not ready'
           );
         }
         lastWidth = measuredValue.frame[2];
@@ -482,14 +482,14 @@ export async function resizeVscodeSidebar(remoteDebuggingPort, targetWidth, time
   }
 
   throw new Error(
-    `Could not resize the Varro sidebar to ${String(targetWidth)}px${lastWidth === null ? '' : ` (last measured ${String(lastWidth)}px)`}${lastError === null ? '' : `; last error: ${lastError}`}`
+    `Could not resize the Loomery sidebar to ${String(targetWidth)}px${lastWidth === null ? '' : ` (last measured ${String(lastWidth)}px)`}${lastError === null ? '' : `; last error: ${lastError}`}`
   );
 }
 
 export async function reloadVscodeWindow(
   remoteDebuggingPort,
   timeoutMs = 20_000,
-  expectedVarroTargetId = null
+  expectedLoomeryTargetId = null
 ) {
   const targets = await fetch(`http://127.0.0.1:${String(remoteDebuggingPort)}/json/list`).then(
     (response) => response.json()
@@ -498,16 +498,16 @@ export async function reloadVscodeWindow(
     (target) => target.type === 'page' && target.title.includes('[Extension Development Host]')
   );
   if (!workbench?.webSocketDebuggerUrl) throw new Error('VS Code workbench target is not ready');
-  const originalVarroTargetIds = new Set(
+  const originalLoomeryTargetIds = new Set(
     targets
       .filter(
-        (target) => target.type === 'iframe' && target.url.includes('extensionId=koltyakov.varro')
+        (target) => target.type === 'iframe' && target.url.includes('extensionId=quonaro.loomery')
       )
       .map((target) => target.id)
   );
-  if (expectedVarroTargetId && !originalVarroTargetIds.has(expectedVarroTargetId)) {
+  if (expectedLoomeryTargetId && !originalLoomeryTargetIds.has(expectedLoomeryTargetId)) {
     throw new Error(
-      `Requested Varro target ${expectedVarroTargetId} is not attached to the workbench`
+      `Requested Loomery target ${expectedLoomeryTargetId} is not attached to the workbench`
     );
   }
 
@@ -522,20 +522,20 @@ export async function reloadVscodeWindow(
       const currentWorkbench = currentTargets.find(
         (target) => target.type === 'page' && target.title.includes('[Extension Development Host]')
       );
-      const varroTargets = currentTargets.filter(
-        (target) => target.type === 'iframe' && target.url.includes('extensionId=koltyakov.varro')
+      const loomeryTargets = currentTargets.filter(
+        (target) => target.type === 'iframe' && target.url.includes('extensionId=quonaro.loomery')
       );
-      const hasRecreatedVarro = varroTargets.some(
-        (target) => !originalVarroTargetIds.has(target.id)
+      const hasRecreatedLoomery = loomeryTargets.some(
+        (target) => !originalLoomeryTargetIds.has(target.id)
       );
-      if (currentWorkbench?.webSocketDebuggerUrl && hasRecreatedVarro) {
+      if (currentWorkbench?.webSocketDebuggerUrl && hasRecreatedLoomery) {
         await bringTargetToFront(currentWorkbench.webSocketDebuggerUrl);
         return;
       }
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  throw new Error('VS Code did not finish reloading the Varro webview');
+  throw new Error('VS Code did not finish reloading the Loomery webview');
 }
 
 async function readProcessBirthIdentity(pid) {

@@ -776,7 +776,7 @@ describe('Message user prompt rendering', () => {
           parts: [
             textPart(
               'text-prompt',
-              'All JS should be strongly typed similar as in git@github.com:koltyakov/browser-bridge.git'
+              'All JS should be strongly typed similar as in git@github.com:quonaro/browser-bridge.git'
             ),
             textPart('text-file', '[Attached file: app.js]'),
           ],
@@ -787,7 +787,7 @@ describe('Message user prompt rendering', () => {
     const card = container?.querySelector('.user-message-card');
     expect(card?.classList).not.toContain('user-message-card-wrapperless');
     expect(card?.querySelector('.user-message-text')?.textContent).toContain(
-      'All JS should be strongly typed similar as in git@github.com:koltyakov/browser-bridge.git'
+      'All JS should be strongly typed similar as in git@github.com:quonaro/browser-bridge.git'
     );
     expect(card?.querySelectorAll('.message-attachment-chip')).toHaveLength(1);
     expect(card?.querySelector('.message-attachment-chip')?.textContent).toContain('app.js');
@@ -1004,12 +1004,12 @@ describe('Message user prompt rendering', () => {
     const image = imageFilePart('image-1', '1786723794731-image-1');
     image.source = {
       text: {
-        value: '{file:/tmp/varro-drops/drop-1/1786723794731-image-1}',
+        value: '{file:/tmp/loomery-drops/drop-1/1786723794731-image-1}',
         start: 102,
         end: 162,
       },
       type: 'file',
-      path: '/tmp/varro-drops/drop-1/1786723794731-image-1',
+      path: '/tmp/loomery-drops/drop-1/1786723794731-image-1',
     };
 
     cleanup = render(
@@ -1028,8 +1028,8 @@ describe('Message user prompt rendering', () => {
             },
             textPart(
               'text-2',
-              '[Image for @vision: /tmp/varro-drops/drop-1/1786723794731-image-1]\n' +
-                'When calling the vision subagent, include {file:/tmp/varro-drops/drop-1/1786723794731-image-1} in its task prompt.'
+              '[Image for @vision: /tmp/loomery-drops/drop-1/1786723794731-image-1]\n' +
+                'When calling the vision subagent, include {file:/tmp/loomery-drops/drop-1/1786723794731-image-1} in its task prompt.'
             ),
             image,
           ],

@@ -33,7 +33,7 @@ export async function requireIsolatedTestServer(
   server,
   directory,
   root = testDataRoot,
-  dataDirectory = process.env.VARRO_AI_DATA_DIR
+  dataDirectory = process.env.LOOMERY_AI_DATA_DIR
 ) {
   const serverUrl = testServerOrigin(server);
   const client = new AiOpenCodeClient(serverUrl, directory);
@@ -42,12 +42,12 @@ export async function requireIsolatedTestServer(
   const reportedData = paths.data ?? dataDirectory;
   if (!reportedData) {
     throw new Error(
-      'OpenCode /path does not report its data directory; set VARRO_AI_DATA_DIR to the isolated directory containing opencode.db'
+      'OpenCode /path does not report its data directory; set LOOMERY_AI_DATA_DIR to the isolated directory containing opencode.db'
     );
   }
   const data = await realpath(reportedData);
   if (dataDirectory && (await realpath(dataDirectory)) !== data) {
-    throw new Error('OpenCode data directory does not match VARRO_AI_DATA_DIR');
+    throw new Error('OpenCode data directory does not match LOOMERY_AI_DATA_DIR');
   }
   const expectedRoot = path.resolve(root);
   const relative = path.relative(expectedRoot, data);

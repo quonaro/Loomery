@@ -27,7 +27,7 @@ type ExtensionPackageJson = {
 };
 
 async function setShowFileDiffs(enabled: boolean): Promise<void> {
-  const config = vscode.workspace.getConfiguration('varro');
+  const config = vscode.workspace.getConfiguration('loomery');
   const inspected = config.inspect<boolean>('chat.showFileDiffs');
   const target =
     inspected?.workspaceValue !== undefined
@@ -56,19 +56,19 @@ export function registerCommands(
             token.isCancellationRequested ||
             actionContext.diagnostics.length === 0 ||
             !vscode.workspace
-              .getConfiguration('varro')
+              .getConfiguration('loomery')
               .get<boolean>('chat.enableProblemsContext', true)
           )
             return [];
           // The Problems view includes contributed quick fixes in its context menu.
           return [
             {
-              title: 'Varro: Add to Context',
+              title: 'Loomery: Add to Context',
               kind: vscode.CodeActionKind.QuickFix,
               diagnostics: [...actionContext.diagnostics],
               command: {
-                title: 'Varro: Add to Context',
-                command: 'varro.chat.addProblemsToContext',
+                title: 'Loomery: Add to Context',
+                command: 'loomery.chat.addProblemsToContext',
                 arguments: [
                   {
                     diagnostics: actionContext.diagnostics.map((diagnostic) =>
@@ -84,41 +84,44 @@ export function registerCommands(
       { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }
     ),
 
-    vscode.commands.registerCommand('varro.chat.addProblemsToContext', async (payload: unknown) => {
-      const targetViewId = sidebar.captureContextTarget();
-      try {
-        if (
-          !vscode.workspace
-            .getConfiguration('varro')
-            .get<boolean>('chat.enableProblemsContext', true)
-        ) {
-          throw new Error('Problems context is disabled in settings');
+    vscode.commands.registerCommand(
+      'loomery.chat.addProblemsToContext',
+      async (payload: unknown) => {
+        const targetViewId = sidebar.captureContextTarget();
+        try {
+          if (
+            !vscode.workspace
+              .getConfiguration('loomery')
+              .get<boolean>('chat.enableProblemsContext', true)
+          ) {
+            throw new Error('Problems context is disabled in settings');
+          }
+          const message = parseExtensionMessage({ type: 'command/attach-problems', payload });
+          if (!message || message.type !== 'command/attach-problems') {
+            throw new Error('No valid problem details were provided');
+          }
+          await sidebar.revealContextTarget(targetViewId, async () => {
+            await revealSidebar();
+          });
+          sidebar.postProblems(message.payload.diagnostics, targetViewId);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.error(`loomery.chat.addProblemsToContext: ${message}`);
+          void vscode.window.showWarningMessage(message);
         }
-        const message = parseExtensionMessage({ type: 'command/attach-problems', payload });
-        if (!message || message.type !== 'command/attach-problems') {
-          throw new Error('No valid problem details were provided');
-        }
-        await sidebar.revealContextTarget(targetViewId, async () => {
-          await revealSidebar();
-        });
-        sidebar.postProblems(message.payload.diagnostics, targetViewId);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        logger.error(`varro.chat.addProblemsToContext: ${message}`);
-        void vscode.window.showWarningMessage(message);
       }
-    }),
+    ),
 
-    vscode.commands.registerCommand('varro.chat.focus', async () => {
+    vscode.commands.registerCommand('loomery.chat.focus', async () => {
       try {
         await revealSidebar();
         sidebar.requestInputFocus();
       } catch (err) {
-        logger.error(`varro.chat.focus: ${err instanceof Error ? err.message : String(err)}`);
+        logger.error(`loomery.chat.focus: ${err instanceof Error ? err.message : String(err)}`);
       }
     }),
 
-    vscode.commands.registerCommand('varro.chat.statusBarClick', async () => {
+    vscode.commands.registerCommand('loomery.chat.statusBarClick', async () => {
       try {
         const action = sidebar.getStatusBarClickAction();
         await revealSidebar();
@@ -133,52 +136,63 @@ export function registerCommands(
         sidebar.requestInputFocus();
       } catch (err) {
         logger.error(
-          `varro.chat.statusBarClick: ${err instanceof Error ? err.message : String(err)}`
+          `loomery.chat.statusBarClick: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }),
 
-    vscode.commands.registerCommand('varro.chat.newSession', async () => {
+    vscode.commands.registerCommand('loomery.chat.newSession', async () => {
       sidebar.postCommand('new-session');
       await revealSidebar();
     }),
 
-    vscode.commands.registerCommand('varro.chat.newEditor', async () => {
+    vscode.commands.registerCommand('loomery.chat.newEditor', async () => {
       await sidebar.openNewEditor();
     }),
 
-    vscode.commands.registerCommand('varro.chat.newWindow', async () => {
+    vscode.commands.registerCommand('loomery.chat.newWindow', async () => {
       await sidebar.openNewWindow();
     }),
 
-    vscode.commands.registerCommand('varro.chat.newTerminalEditor', () => {
+    vscode.commands.registerCommand('loomery.chat.newTerminalEditor', () => {
       sidebar.openNewTerminalEditor();
     }),
 
-    vscode.commands.registerCommand('varro.chat.searchSessions', async () => {
+    vscode.commands.registerCommand('loomery.chat.searchSessions', async () => {
       try {
         await revealSidebar();
         sidebar.searchSessions();
       } catch (err) {
         logger.error(
-          `varro.chat.searchSessions: ${err instanceof Error ? err.message : String(err)}`
+          `loomery.chat.searchSessions: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }),
 
-    vscode.commands.registerCommand('varro.chat.openSettings', async () => {
-      await vscode.commands.executeCommand('workbench.action.openSettings', 'Varro >');
+    vscode.commands.registerCommand('loomery.chat.openSessions', async () => {
+      try {
+        await revealSidebar();
+        sidebar.openSessions();
+      } catch (err) {
+        logger.error(
+          `loomery.chat.openSessions: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
     }),
 
-    vscode.commands.registerCommand('varro.chat.showFileDiffs', async () => {
+    vscode.commands.registerCommand('loomery.chat.openSettings', async () => {
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'Loomery >');
+    }),
+
+    vscode.commands.registerCommand('loomery.chat.showFileDiffs', async () => {
       await setShowFileDiffs(true);
     }),
 
-    vscode.commands.registerCommand('varro.chat.hideFileDiffs', async () => {
+    vscode.commands.registerCommand('loomery.chat.hideFileDiffs', async () => {
       await setShowFileDiffs(false);
     }),
 
-    vscode.commands.registerCommand('varro.chat.openStats', async () => {
+    vscode.commands.registerCommand('loomery.chat.openStats', async () => {
       try {
         await sidebar.generateUsageReport();
       } catch (err) {
@@ -187,38 +201,43 @@ export function registerCommands(
       }
     }),
 
-    vscode.commands.registerCommand('varro.chat.abort', async () => {
+    vscode.commands.registerCommand('loomery.chat.abort', async () => {
       sidebar.postCommand('abort');
       await revealSidebar();
     }),
 
-    vscode.commands.registerCommand('varro.chat.previousSession', async () => {
+    vscode.commands.registerCommand('loomery.chat.previousSession', async () => {
       sidebar.switchSession('previous');
       await revealSidebar();
     }),
 
-    vscode.commands.registerCommand('varro.chat.nextSession', async () => {
+    vscode.commands.registerCommand('loomery.chat.nextSession', async () => {
       sidebar.switchSession('next');
       await revealSidebar();
     }),
 
-    vscode.commands.registerCommand('varro.about', async () => {
+    vscode.commands.registerCommand('loomery.about', async () => {
       try {
         const serverInfo = await server.readServerInfo();
         const markdown = renderAboutMarkdown(context, serverInfo);
         aboutDiagnostics = diagnosticTimeline.export(markdown);
         aboutDiagnosticsWithPaths = diagnosticTimeline.export(markdown, false);
-        const uri = await sidebar.openMarkdownDocument(markdown, 'Varro About', false);
+        const uri = await sidebar.openMarkdownDocument(markdown, 'Loomery About', false);
         if (!uri) throw new Error('Could not open the generated about report.');
 
         const pkg = readPackageJson(context);
         const iconPath = vscode.Uri.joinPath(context.extensionUri, 'assets', 'icon.png');
         const panel =
           aboutPanel ??
-          vscode.window.createWebviewPanel('varro.about', 'About Varro', vscode.ViewColumn.Active, {
-            enableScripts: true,
-            localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'assets')],
-          });
+          vscode.window.createWebviewPanel(
+            'loomery.about',
+            'About Loomery',
+            vscode.ViewColumn.Active,
+            {
+              enableScripts: true,
+              localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'assets')],
+            }
+          );
         if (!aboutPanel) {
           aboutPanel = panel;
           panel.iconPath = iconPath;
@@ -249,7 +268,7 @@ export function registerCommands(
                   });
                 } catch (error) {
                   logger.warn(
-                    `Failed to refresh Varro about: ${error instanceof Error ? error.message : String(error)}`
+                    `Failed to refresh Loomery about: ${error instanceof Error ? error.message : String(error)}`
                   );
                 } finally {
                   refreshing = false;
@@ -263,7 +282,7 @@ export function registerCommands(
                   await vscode.env.clipboard.writeText(report);
                 } else {
                   const destination = await vscode.window.showSaveDialog({
-                    title: 'Save Varro diagnostics',
+                    title: 'Save Loomery diagnostics',
                     filters: { Markdown: ['md'] },
                   });
                   if (!destination) return;
@@ -279,7 +298,7 @@ export function registerCommands(
               } catch (error) {
                 const detail = error instanceof Error ? error.message : String(error);
                 void vscode.window.showErrorMessage(
-                  `Could not export Varro diagnostics: ${detail}`
+                  `Could not export Loomery diagnostics: ${detail}`
                 );
                 await panel.webview.postMessage({
                   type: 'diagnostics-result',
@@ -308,32 +327,32 @@ export function registerCommands(
           panel.webview.cspSource
         );
       } catch (err) {
-        const message = `Failed to open Varro about: ${err instanceof Error ? err.message : String(err)}`;
+        const message = `Failed to open Loomery about: ${err instanceof Error ? err.message : String(err)}`;
         logger.error(message);
         vscode.window.showErrorMessage(message);
       }
     }),
 
-    vscode.commands.registerCommand('varro.openGitHub', async () => {
-      await vscode.env.openExternal(vscode.Uri.parse('https://github.com/koltyakov/varro'));
+    vscode.commands.registerCommand('loomery.openGitHub', async () => {
+      await vscode.env.openExternal(vscode.Uri.parse('https://github.com/quonaro/loomery'));
     }),
 
-    vscode.commands.registerCommand('varro.showOutput', () => {
+    vscode.commands.registerCommand('loomery.showOutput', () => {
       logger.show();
     }),
 
-    vscode.commands.registerCommand('varro.openSourceControl', async () => {
+    vscode.commands.registerCommand('loomery.openSourceControl', async () => {
       await vscode.commands.executeCommand('workbench.view.scm');
     }),
 
     vscode.commands.registerCommand(
-      'varro.generateCommitMessage',
-      async (sourceControl?: vscode.SourceControl) => {
-        await sidebar.generateCommitMessage(sourceControl);
+      'loomery.generateCommitMessage',
+      async (rootUri?: vscode.Uri, _context?: unknown, token?: vscode.CancellationToken) => {
+        await sidebar.generateCommitMessage(rootUri, token);
       }
     ),
 
-    vscode.commands.registerCommand('varro.agents.openGlobal', async () => {
+    vscode.commands.registerCommand('loomery.agents.openGlobal', async () => {
       try {
         if (server.isAttachOnly) {
           await vscode.window.showInformationMessage(
@@ -347,10 +366,10 @@ export function registerCommands(
       }
     }),
 
-    vscode.commands.registerCommand('varro.agents.initializeProject', async () => {
+    vscode.commands.registerCommand('loomery.agents.initializeProject', async () => {
       const workspacePath = contextProvider.context.workspacePath;
       if (!workspacePath || contextProvider.context.workspaceFolders?.length === 0) {
-        vscode.window.showWarningMessage('Varro: Open a project before initializing AGENTS.md.');
+        vscode.window.showWarningMessage('Loomery: Open a project before initializing AGENTS.md.');
         return;
       }
 
@@ -365,7 +384,7 @@ export function registerCommands(
     }),
 
     vscode.commands.registerCommand(
-      'varro.server.restart',
+      'loomery.server.restart',
       async (options?: { force?: boolean }) => {
         try {
           const url = await server.restart({ force: options?.force === true });
@@ -388,7 +407,7 @@ export function registerCommands(
       }
     ),
 
-    vscode.commands.registerCommand('varro.chat.addTerminalSelectionToContext', async () => {
+    vscode.commands.registerCommand('loomery.chat.addTerminalSelectionToContext', async () => {
       const targetViewId = sidebar.captureContextTarget();
       try {
         const ok = await captureTerminalSelectionForContext(sidebar, contextProvider, targetViewId);
@@ -400,12 +419,12 @@ export function registerCommands(
         });
       } catch (err) {
         logger.error(
-          `varro.chat.addTerminalSelectionToContext: ${err instanceof Error ? err.message : String(err)}`
+          `loomery.chat.addTerminalSelectionToContext: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }),
 
-    vscode.commands.registerCommand('varro.chat.addSelectionToContext', async () => {
+    vscode.commands.registerCommand('loomery.chat.addSelectionToContext', async () => {
       const targetViewId = sidebar.captureContextTarget();
       try {
         const selectionTarget = await getEditorSelectionTarget();
@@ -417,7 +436,7 @@ export function registerCommands(
         });
       } catch (err) {
         logger.error(
-          `varro.chat.addSelectionToContext: ${err instanceof Error ? err.message : String(err)}`
+          `loomery.chat.addSelectionToContext: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }),
@@ -425,7 +444,7 @@ export function registerCommands(
     ...registerSelectionPromptCommands(sidebar, revealSidebar),
 
     vscode.commands.registerCommand(
-      'varro.chat.addToContext',
+      'loomery.chat.addToContext',
       async (uri?: vscode.Uri, uris?: vscode.Uri[]) => {
         const targetViewId = sidebar.captureContextTarget();
         try {
@@ -470,7 +489,7 @@ export function registerCommands(
           }
         } catch (err) {
           logger.error(
-            `varro.chat.addToContext: ${err instanceof Error ? err.message : String(err)}`
+            `loomery.chat.addToContext: ${err instanceof Error ? err.message : String(err)}`
           );
         }
       }
@@ -480,17 +499,17 @@ export function registerCommands(
 
 const SELECTION_PROMPT_COMMANDS = [
   {
-    id: 'varro.chat.explainSelection',
+    id: 'loomery.chat.explainSelection',
     prompt:
       'Explain the selected code clearly, including its purpose, control flow, important assumptions, and any non-obvious behavior.',
   },
   {
-    id: 'varro.chat.reviewSelection',
+    id: 'loomery.chat.reviewSelection',
     prompt:
       'Review the selected code for correctness, regressions, security, maintainability, and missing tests. Lead with concrete findings ordered by severity.',
   },
   {
-    id: 'varro.chat.improveSelection',
+    id: 'loomery.chat.improveSelection',
     prompt:
       'Improve the selected code. Preserve its intended behavior unless a change is needed to fix a concrete problem, and verify the result.',
   },
@@ -505,7 +524,7 @@ function registerSelectionPromptCommands(
       try {
         const selectionTarget = await getEditorSelectionTarget();
         if (!selectionTarget) {
-          vscode.window.showWarningMessage('Varro: Select text in a saved workspace file first.');
+          vscode.window.showWarningMessage('Loomery: Select text in a saved workspace file first.');
           return;
         }
 
@@ -550,13 +569,13 @@ function showAgentsFileError(scope: 'global' | 'project', err: unknown) {
 type OpenCodeUpdateNotice = {
   title: string;
   headline: string;
-  /** Explains what Varro does on its own, so a manual command is not mistaken for a requirement. */
+  /** Explains what Loomery does on its own, so a manual command is not mistaken for a requirement. */
   note?: string;
   command?: string;
   instruction?: string;
 };
 
-function isVarroManagedServer(serverInfo: OpenCodeServerInfo) {
+function isLoomeryManagedServer(serverInfo: OpenCodeServerInfo) {
   return (
     serverInfo.ownership === 'other-host' ||
     serverInfo.ownership === 'current-host' ||
@@ -571,7 +590,7 @@ function describeOpenCodeUpdate(
   const cliVersion = serverInfo.cliVersion ? extractVersion(serverInfo.cliVersion) : null;
   if (!cliVersion) return null;
   const apiVersion = cliVersion.startsWith('2.') ? 2 : 1;
-  const managed = isVarroManagedServer(serverInfo);
+  const managed = isLoomeryManagedServer(serverInfo);
   const serverVersion =
     serverInfo.health.healthy && serverInfo.health.version
       ? extractVersion(serverInfo.health.version)
@@ -586,7 +605,7 @@ function describeOpenCodeUpdate(
     return {
       title: 'OpenCode update installed',
       headline: `OpenCode ${cliVersion} is installed.`,
-      note: 'Varro restarts the server on it when no sessions are active.',
+      note: 'Loomery restarts the server on it when no sessions are active.',
     };
   }
   const maximumTestedVersion = readMaximumTestedOpenCodeVersion(undefined, apiVersion);
@@ -603,7 +622,7 @@ function describeOpenCodeUpdate(
   // Mirrors background maintenance: only managed servers update, and Windows v1 asks first.
   if (managed && autoUpdate && (process.platform !== 'win32' || apiVersion === 2)) {
     notice.note =
-      'Varro installs it automatically and restarts the server when no sessions are active.';
+      'Loomery installs it automatically and restarts the server when no sessions are active.';
   }
   if (command) notice.command = command;
   else
@@ -613,12 +632,12 @@ function describeOpenCodeUpdate(
 
 function renderAboutMarkdown(context: vscode.ExtensionContext, serverInfo: OpenCodeServerInfo) {
   const pkg = readPackageJson(context);
-  const name = getString(pkg.displayName) || getString(pkg.name) || 'Varro';
+  const name = getString(pkg.displayName) || getString(pkg.name) || 'Loomery';
   const description =
     getString(pkg.description) || 'An OpenCode agent workbench built for Visual Studio Code.';
   const version = getString(pkg.version) || 'unknown';
   const autoUpdate = vscode.workspace
-    .getConfiguration('varro')
+    .getConfiguration('loomery')
     .get<boolean>('server.autoUpdate', true);
   const cliVersion = serverInfo.cliVersionError
     ? `error: ${serverInfo.cliVersionError}`
@@ -646,7 +665,7 @@ function renderAboutMarkdown(context: vscode.ExtensionContext, serverInfo: OpenC
             ]
           : ['', [update.note, update.instruction].filter(Boolean).join(' ')]),
       ];
-  const ownership = isVarroManagedServer(serverInfo) ? 'managed by Varro' : 'unmanaged';
+  const ownership = isLoomeryManagedServer(serverInfo) ? 'managed by Loomery' : 'unmanaged';
   const serverStatus =
     serverInfo.status.state === 'running'
       ? `running, event stream ${serverInfo.status.eventStream || 'unknown'}`
@@ -658,11 +677,11 @@ function renderAboutMarkdown(context: vscode.ExtensionContext, serverInfo: OpenC
     '',
     `> ${description}`,
     '',
-    '| Varro | OpenCode CLI | Server |',
+    '| Loomery | OpenCode CLI | Server |',
     '| :--- | :--- | :--- |',
     `| ${markdownCode(version)} | ${markdownCode(installedVersion || 'unavailable')} | **${serverInfo.health.healthy ? 'Healthy' : 'Needs attention'}** |`,
     '',
-    '[GitHub](https://github.com/koltyakov/varro) / [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=koltyakov.varro) / [Open VSX Registry](https://open-vsx.org/extension/koltyakov/varro)',
+    '[GitHub](https://github.com/quonaro/loomery) / [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=quonaro.loomery) / [Open VSX Registry](https://open-vsx.org/extension/quonaro/loomery)',
     '',
     '---',
     '',
@@ -698,7 +717,7 @@ function createAboutViewData(
   serverInfo: OpenCodeServerInfo,
   logoUri: string
 ) {
-  const ownership = isVarroManagedServer(serverInfo) ? 'Managed by Varro' : 'Unmanaged';
+  const ownership = isLoomeryManagedServer(serverInfo) ? 'Managed by Loomery' : 'Unmanaged';
   const serverStatus =
     serverInfo.status.state === 'running'
       ? `Running, event stream ${serverInfo.status.eventStream || 'unknown'}`
@@ -707,16 +726,16 @@ function createAboutViewData(
         : serverInfo.status.state;
   const cliVersion = serverInfo.cliVersion ? extractVersion(serverInfo.cliVersion) : null;
   const autoUpdate = vscode.workspace
-    .getConfiguration('varro')
+    .getConfiguration('loomery')
     .get<boolean>('server.autoUpdate', true);
   const update = describeOpenCodeUpdate(serverInfo, autoUpdate);
 
   return {
-    name: getString(pkg.displayName) || getString(pkg.name) || 'Varro',
+    name: getString(pkg.displayName) || getString(pkg.name) || 'Loomery',
     description:
       'OpenCode agent workbench with project-aware chat, parallel sessions, plan and change review, model and permission controls, commit messages, and usage insights.',
     logoUri,
-    varroVersion: getString(pkg.version) || 'unknown',
+    loomeryVersion: getString(pkg.version) || 'unknown',
     cliVersion: cliVersion || (serverInfo.cliVersionError ? 'Unavailable' : 'Not found'),
     installMethod: describeInstallMethod(serverInfo.installMethod),
     installedOn: formatAboutDateTime(serverInfo.cliInstalledAt),
@@ -830,7 +849,7 @@ async function captureTerminalSelectionForContext(
         result.reason === 'no-terminal'
           ? 'Open and focus a terminal first.'
           : 'Select text in the terminal first.';
-      vscode.window.showWarningMessage(`Varro: ${message}`);
+      vscode.window.showWarningMessage(`Loomery: ${message}`);
     }
     return false;
   }

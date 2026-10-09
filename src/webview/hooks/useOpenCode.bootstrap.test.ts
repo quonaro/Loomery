@@ -90,7 +90,7 @@ describe('useOpenCode initialization', () => {
     fixture.stateModule.setPermissionModeForSession('session-1', 'auto');
     clientMocks.permissionList.mockResolvedValue([permission]);
     let finishJudge!: (verdict: { decision: 'ask'; reason: string }) => void;
-    clientMocks.varroJudgePermission.mockImplementation(
+    clientMocks.loomeryJudgePermission.mockImplementation(
       () =>
         new Promise((resolve) => {
           finishJudge = resolve;
@@ -100,7 +100,7 @@ describe('useOpenCode initialization', () => {
       fixture.recover('session-1');
       fixture.start();
       await vi.waitFor(() => expect(fixture.stateModule.connectionInitialized()).toBe(true));
-      expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce();
+      expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce();
       expect(clientMocks.sessionRespondPermission).not.toHaveBeenCalled();
       expect(clientMocks.sessionSendAsync).not.toHaveBeenCalled();
       finishJudge({ decision: 'ask', reason: 'Please review' });
@@ -136,7 +136,7 @@ describe('useOpenCode initialization', () => {
           })
         : Promise.resolve(session(id))
     );
-    clientMocks.varroJudgePermission.mockResolvedValue({
+    clientMocks.loomeryJudgePermission.mockResolvedValue({
       decision: 'ask',
       reason: 'Please review',
     });
@@ -148,9 +148,9 @@ describe('useOpenCode initialization', () => {
         expect.objectContaining({ id: 'perm-child' })
       );
       expect(clientMocks.sessionSendAsync).not.toHaveBeenCalled();
-      expect(clientMocks.varroJudgePermission).not.toHaveBeenCalled();
+      expect(clientMocks.loomeryJudgePermission).not.toHaveBeenCalled();
       finishChild({ ...session('unknown-child'), parentID: 'session-1' });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
     } finally {
       fixture.dispose();
     }
@@ -285,7 +285,7 @@ describe('useOpenCode initialization', () => {
       },
     };
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([{ id: 'stale', sessionId: 'session-1', text: 'Stale queue' }])
     );
 
@@ -301,7 +301,7 @@ describe('useOpenCode initialization', () => {
       );
     } finally {
       dispose();
-      window.localStorage.removeItem('varro.queuedMessages');
+      window.localStorage.removeItem('loomery.queuedMessages');
     }
   });
 
@@ -316,7 +316,7 @@ describe('useOpenCode initialization', () => {
       },
     };
     window.localStorage.setItem(
-      'varro.sessionSelectedModels',
+      'loomery.sessionSelectedModels',
       JSON.stringify({
         'session-1': { providerID: 'openai', modelID: 'gpt-5.6', variant: 'high' },
       })
@@ -343,7 +343,7 @@ describe('useOpenCode initialization', () => {
       expect(() => structuredClone(migration)).not.toThrow();
     } finally {
       dispose();
-      window.localStorage.removeItem('varro.sessionSelectedModels');
+      window.localStorage.removeItem('loomery.sessionSelectedModels');
     }
   });
 
@@ -358,7 +358,7 @@ describe('useOpenCode initialization', () => {
       sessionPermissionModes: { 'session-current': 'auto' },
     };
     window.localStorage.setItem(
-      'varro.sessionPermissionModes',
+      'loomery.sessionPermissionModes',
       JSON.stringify({ 'session-current': 'full', 'session-legacy': 'edits' })
     );
 
@@ -378,7 +378,7 @@ describe('useOpenCode initialization', () => {
       );
     } finally {
       dispose();
-      window.localStorage.removeItem('varro.sessionPermissionModes');
+      window.localStorage.removeItem('loomery.sessionPermissionModes');
     }
   });
 
@@ -439,7 +439,7 @@ describe('useOpenCode initialization', () => {
       };
     });
 
-    window.localStorage.setItem('varro.selectedAgent', JSON.stringify(savedAgent));
+    window.localStorage.setItem('loomery.selectedAgent', JSON.stringify(savedAgent));
 
     clientMocks.health.mockResolvedValue({ healthy: true, version: '1.0.0' });
     clientMocks.sessionList.mockResolvedValue([]);

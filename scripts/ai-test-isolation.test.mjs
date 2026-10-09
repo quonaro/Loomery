@@ -76,7 +76,7 @@ test(
     reportedData = undefined;
     await assert.rejects(
       requireIsolatedTestServer(url, '/fixture', testRoot, null),
-      /VARRO_AI_DATA_DIR/
+      /LOOMERY_AI_DATA_DIR/
     );
     const explicitlyVerified = await requireIsolatedTestServer(url, '/fixture', testRoot, data);
     assert.equal(explicitlyVerified.serverPid, process.pid);
@@ -190,7 +190,7 @@ test('v2 HTML fallback uses native location/status while preserving database own
     await rm(root, { recursive: true, force: true });
   });
   const url = `http://127.0.0.1:${server.address().port}`;
-  await assert.rejects(requireIsolatedTestServer(url, '/fixture', root, null), /VARRO_AI_DATA_DIR/);
+  await assert.rejects(requireIsolatedTestServer(url, '/fixture', root, null), /LOOMERY_AI_DATA_DIR/);
   const result = await requireIsolatedTestServer(url, '/fixture', root, data);
   assert.deepEqual(result.backend, { apiVersion: 2, version: '2.0.15' });
   assert.deepEqual(result.activeSessionIds, ['ses_busy']);

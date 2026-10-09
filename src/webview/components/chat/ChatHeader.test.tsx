@@ -40,7 +40,7 @@ function session(overrides: Partial<Session> = {}): Session {
 
 function renderHeader(
   activeSubagentRootId: string | null = null,
-  options: { showActions?: boolean; onCreateSession?: () => void; failedCount?: number } = {}
+  options: { showActions?: boolean; failedCount?: number } = {}
 ) {
   cleanup = render(
     () => (
@@ -66,7 +66,6 @@ function renderHeader(
           onOpenCompletedSessions={vi.fn()}
           onOpenRunningSessions={vi.fn()}
           onOpenPendingSessions={vi.fn()}
-          onCreateSession={options.onCreateSession ?? vi.fn()}
         />
         <SessionActionFeedback />
       </>
@@ -251,24 +250,6 @@ describe('ActiveChatHeader', () => {
     }
   });
 
-  it('renders a plain new-chat tooltip without a modifier shortcut', async () => {
-    vi.useFakeTimers();
-    try {
-      renderHeader(null, { showActions: true });
-      container
-        .querySelector<HTMLButtonElement>('[aria-label="New chat"]')!
-        .dispatchEvent(new MouseEvent('mouseenter'));
-      vi.advanceTimersByTime(1000);
-      await Promise.resolve();
-
-      const tooltip = document.body.querySelector<HTMLElement>('[role="tooltip"]');
-      expect(tooltip?.textContent).toBe('New chat');
-      expect(tooltip?.textContent).not.toContain('click to open in editor');
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it('opens the session context menu from the title', () => {
     renderHeader();
 
@@ -352,56 +333,11 @@ describe('ActiveChatHeader', () => {
     expect(showSessionPicker()).toBe(true);
   });
 
-  it('keeps all plus clicks local and offers new-chat actions from the context menu', () => {
+  it('keeps the picker plus local and offers new-chat actions from the context menu', () => {
     const send = vi.fn<(message: WebviewMessage) => void>();
-    const createActiveSession = vi.fn();
     const createPickerSession = vi.fn();
     // SAFETY: The fixture provides the bridge callback used by postMessage.
     (window as { __sendToExtension?: (message: WebviewMessage) => void }).__sendToExtension = send;
-    renderHeader(null, { showActions: true, onCreateSession: createActiveSession });
-
-    const activePlus = container.querySelector<HTMLButtonElement>('[aria-label="New chat"]')!;
-    activePlus.click();
-    activePlus.dispatchEvent(new MouseEvent('click', { bubbles: true, altKey: true }));
-
-    expect(createActiveSession).toHaveBeenCalledTimes(2);
-    expect(send.mock.calls.some(([message]) => message.type === 'chat/new-editor')).toBe(false);
-
-    activePlus.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: 30,
-        clientY: 40,
-      })
-    );
-    let menu = document.body.querySelector<HTMLElement>('[aria-label="New chat actions"]')!;
-    expect(
-      Array.from(menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).map((button) =>
-        button.textContent?.trim()
-      )
-    ).toEqual(['New Chat', 'New Chat Editor', 'New Chat Window']);
-    expect(menu.style.left).toBe('30px');
-    expect(menu.style.top).toBe('40px');
-    menu.querySelector<HTMLButtonElement>('[role="menuitem"]')!.click();
-    expect(createActiveSession).toHaveBeenCalledTimes(3);
-
-    activePlus.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
-    menu = document.body.querySelector<HTMLElement>('[aria-label="New chat actions"]')!;
-    Array.from(menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
-      .find((button) => button.textContent?.trim() === 'New Chat Editor')!
-      .click();
-    expect(send).toHaveBeenCalledWith({ type: 'chat/new-editor' });
-
-    activePlus.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
-    menu = document.body.querySelector<HTMLElement>('[aria-label="New chat actions"]')!;
-    Array.from(menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
-      .find((button) => button.textContent?.trim() === 'New Chat Window')!
-      .click();
-    expect(send).toHaveBeenCalledWith({ type: 'chat/new-window' });
-    expect(document.body.querySelector('[aria-label="New chat actions"]')).toBeNull();
-
-    cleanup?.();
     cleanup = render(
       () => (
         <SessionPickerHeader
@@ -437,10 +373,12 @@ describe('ActiveChatHeader', () => {
 
     expect(createPickerSession).toHaveBeenCalledTimes(2);
     pickerPlus.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
-    expect(document.body.querySelector('[aria-label="New chat actions"]')).not.toBeNull();
-    expect(send.mock.calls.filter(([message]) => message.type === 'chat/new-editor')).toEqual([
-      [{ type: 'chat/new-editor' }],
-    ]);
+    const menu = document.body.querySelector<HTMLElement>('[aria-label="New chat actions"]');
+    expect(menu).not.toBeNull();
+    Array.from(menu!.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+      .find((button) => button.textContent?.trim() === 'New Chat Editor')!
+      .click();
+    expect(send).toHaveBeenCalledWith({ type: 'chat/new-editor' });
   });
 
   it('returns to the sessions list after deleting from the header menu', async () => {
@@ -461,7 +399,7 @@ describe('ActiveChatHeader', () => {
 
   it('shows the pinned marker and toggles pinning from the context menu', async () => {
     setState('pinnedSessionIds', ['session-1']);
-    const setPinned = vi.spyOn(client.varro.session, 'setPinned').mockResolvedValueOnce([]);
+    const setPinned = vi.spyOn(client.loomery.session, 'setPinned').mockResolvedValueOnce([]);
     renderHeader();
 
     const pinnedIcon = container.querySelector<HTMLElement>(
@@ -527,7 +465,7 @@ describe('ActiveChatHeader', () => {
   });
 
   it('shows cumulative worked duration next to the title', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -558,7 +496,7 @@ describe('ActiveChatHeader', () => {
       durationMs: 10_000,
       activeStartedAt: null,
     };
-    const request = vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue(summary);
+    const request = vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue(summary);
     setState('sessionStatus', 'session-1', { type: 'idle' });
     renderHeader();
     await vi.waitFor(() =>
@@ -568,7 +506,7 @@ describe('ActiveChatHeader', () => {
     try {
       const pausedAt = Date.now();
       setState('sessions', 0, 'metadata', {
-        varro: { pauses: [{ messageId: 'paused', pausedAt }] },
+        loomery: { pauses: [{ messageId: 'paused', pausedAt }] },
       });
       await vi.advanceTimersByTimeAsync(3_600_000);
       expect(request).toHaveBeenLastCalledWith('session-1', pausedAt, { directory: '/repo' });

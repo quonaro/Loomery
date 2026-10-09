@@ -332,7 +332,7 @@ export function promptModelFailures(messages, markers, requestedModel) {
 
 export function buildDuplicateDeliveryObserverExpression(marker, tokens) {
   return `(() => {
-    globalThis.__varroDuplicateDeliveryObserver?.stop();
+    globalThis.__loomeryDuplicateDeliveryObserver?.stop();
     const marker = ${JSON.stringify(marker)};
     const tokens = ${JSON.stringify(tokens)};
     const rowId = (row) => row.closest('[data-msg-id]')?.getAttribute('data-msg-id') ?? null;
@@ -399,7 +399,7 @@ export function buildDuplicateDeliveryObserverExpression(marker, tokens) {
       }
       requestAnimationFrame(sample);
     };
-    globalThis.__varroDuplicateDeliveryObserver = {
+    globalThis.__loomeryDuplicateDeliveryObserver = {
       observation,
       stop() { active = false; },
     };
@@ -460,7 +460,7 @@ function describeTarget(descriptor) {
   return `${descriptor.id} (${context?.surface ?? 'unknown'}/${context?.viewId ?? 'unknown'}, ${route?.type === 'session' ? `session ${route.sessionId}` : (route?.type ?? 'unknown')})`;
 }
 
-export function selectVarroTargetDescriptor(descriptors, requested) {
+export function selectLoomeryTargetDescriptor(descriptors, requested) {
   const viable = descriptors.filter((descriptor) => !descriptor.error && descriptor.context);
   const matching = viable.filter((descriptor) => {
     if (requested.surface && descriptor.context.surface !== requested.surface) return false;
@@ -485,11 +485,11 @@ export function selectVarroTargetDescriptor(descriptors, requested) {
     .join(', ');
   if (matching.length === 0) {
     throw new Error(
-      `No Varro iframe matched ${wanted || 'the requested target'}; inspected: ${inspected}`
+      `No Loomery iframe matched ${wanted || 'the requested target'}; inspected: ${inspected}`
     );
   }
   throw new Error(
-    `Varro iframe target is ambiguous for ${wanted || 'the requested target'}; matches: ${matching.map(describeTarget).join(', ')}`
+    `Loomery iframe target is ambiguous for ${wanted || 'the requested target'}; matches: ${matching.map(describeTarget).join(', ')}`
   );
 }
 
@@ -498,7 +498,7 @@ function getContentFrameId(frameTree) {
   return children[0]?.frame?.id ?? null;
 }
 
-async function inspectVarroTarget(port, target) {
+async function inspectLoomeryTarget(port, target) {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
@@ -530,11 +530,11 @@ async function inspectVarroTarget(port, target) {
         const context = globalThis.__initialWebviewState?.webviewContext ?? null;
         let persisted = null;
         try {
-          persisted = globalThis.__vscodeWebviewState?.getState?.()?.['varro.lastOpenedView'] ?? null;
+          persisted = globalThis.__vscodeWebviewState?.getState?.()?.['loomery.lastOpenedView'] ?? null;
         } catch {}
         if (!persisted) {
           try {
-            const raw = localStorage.getItem('varro.lastOpenedView');
+            const raw = localStorage.getItem('loomery.lastOpenedView');
             persisted = raw ? JSON.parse(raw) : null;
           } catch {}
         }
@@ -552,7 +552,7 @@ async function inspectVarroTarget(port, target) {
     }
     const world = await controller.call('Page.createIsolatedWorld', {
       frameId,
-      worldName: `varro-ai-fuzzy-${String(Date.now())}`,
+      worldName: `loomery-ai-fuzzy-${String(Date.now())}`,
       grantUniveralAccess: true,
     });
     controller.contextId = world.executionContextId;
@@ -636,15 +636,15 @@ export class CdpController {
           response.json()
         );
         const matchingTargets = targets.filter(
-          (item) => item.type === 'iframe' && item.url.includes('extensionId=koltyakov.varro')
+          (item) => item.type === 'iframe' && item.url.includes('extensionId=quonaro.loomery')
         );
         if (matchingTargets.length === 0) {
-          throw new Error('The tracked host has no Varro iframe target');
+          throw new Error('The tracked host has no Loomery iframe target');
         }
         const descriptors = await Promise.all(
           matchingTargets.map(async (target) => {
             try {
-              return await inspectVarroTarget(port, target);
+              return await inspectLoomeryTarget(port, target);
             } catch (error) {
               return {
                 id: target.id,
@@ -658,7 +658,7 @@ export class CdpController {
         );
         let selected;
         try {
-          selected = selectVarroTargetDescriptor(descriptors, requested);
+          selected = selectLoomeryTargetDescriptor(descriptors, requested);
         } catch (error) {
           for (const descriptor of descriptors) descriptor.controller?.close();
           throw error;
@@ -673,7 +673,7 @@ export class CdpController {
       }
     }
     throw new Error(
-      `Could not connect to the recreated Varro content frame: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+      `Could not connect to the recreated Loomery content frame: ${lastError instanceof Error ? lastError.message : String(lastError)}`
     );
   }
 
@@ -707,7 +707,7 @@ export class CdpController {
 
   startSessionEventCapture() {
     return this.evaluate(`(() => {
-      globalThis.__varroSessionEventCapture?.stop();
+      globalThis.__loomerySessionEventCapture?.stop();
       const startedAt = performance.now();
       const events = [];
       const listener = (message) => {
@@ -718,7 +718,7 @@ export class CdpController {
         });
       };
       window.addEventListener('message', listener);
-      globalThis.__varroSessionEventCapture = {
+      globalThis.__loomerySessionEventCapture = {
         events,
         stop() { window.removeEventListener('message', listener); },
       };
@@ -728,10 +728,10 @@ export class CdpController {
 
   finishSessionEventCapture() {
     return this.evaluate(`(() => {
-      const capture = globalThis.__varroSessionEventCapture;
+      const capture = globalThis.__loomerySessionEventCapture;
       if (!capture) return [];
       capture.stop();
-      delete globalThis.__varroSessionEventCapture;
+      delete globalThis.__loomerySessionEventCapture;
       return capture.events;
     })()`);
   }
@@ -748,10 +748,10 @@ export class CdpController {
   async refreshContext() {
     const tree = await this.call('Page.getFrameTree');
     const frameId = tree.frameTree.childFrames?.[0]?.frame.id;
-    if (!frameId) throw new Error('The recreated Varro content frame is unavailable');
+    if (!frameId) throw new Error('The recreated Loomery content frame is unavailable');
     const world = await this.call('Page.createIsolatedWorld', {
       frameId,
-      worldName: `varro-ai-fuzzy-${String(Date.now())}`,
+      worldName: `loomery-ai-fuzzy-${String(Date.now())}`,
       grantUniveralAccess: true,
     });
     this.frameId = frameId;
@@ -760,7 +760,7 @@ export class CdpController {
 
   async rebind() {
     const viewId = this.targetContext?.viewId;
-    if (!viewId) throw new Error('Cannot rebind a Varro iframe without a stable viewId');
+    if (!viewId) throw new Error('Cannot rebind a Loomery iframe without a stable viewId');
     const rebound = await CdpController.connect(this.port, { viewId }, 20_000);
     this.requests.dispose();
     this.socket.close();
@@ -843,10 +843,10 @@ export class CdpController {
     const route = await this.call('Runtime.evaluate', {
       contextId: this.mainContextId,
       expression: `(() => {
-        let persisted = globalThis.__vscodeWebviewState?.getState?.()?.['varro.lastOpenedView'] ?? null;
+        let persisted = globalThis.__vscodeWebviewState?.getState?.()?.['loomery.lastOpenedView'] ?? null;
         if (!persisted) {
           try {
-            const raw = localStorage.getItem('varro.lastOpenedView');
+            const raw = localStorage.getItem('loomery.lastOpenedView');
             persisted = raw ? JSON.parse(raw) : null;
           } catch {}
         }
@@ -1532,7 +1532,7 @@ export class CdpController {
 
   finishDuplicateDeliveryObservation() {
     return this.evaluate(`(() => {
-      const observer = globalThis.__varroDuplicateDeliveryObserver;
+      const observer = globalThis.__loomeryDuplicateDeliveryObserver;
       if (!observer) return null;
       observer.stop();
       return observer.observation;
@@ -2541,7 +2541,7 @@ async function waitForSessionSnapshot(cdp, title, sessionId, port, timeoutMs = 1
   return snapshot;
 }
 
-async function varroEditorTargetIds(port) {
+async function loomeryEditorTargetIds(port) {
   const targets = await fetch(`http://127.0.0.1:${String(port)}/json/list`).then((response) =>
     response.json()
   );
@@ -2549,7 +2549,7 @@ async function varroEditorTargetIds(port) {
     .filter(
       (target) =>
         target.type === 'iframe' &&
-        target.url.includes('extensionId=koltyakov.varro') &&
+        target.url.includes('extensionId=quonaro.loomery') &&
         !target.url.includes('purpose=webviewView')
     )
     .map((target) => target.id);
@@ -2611,10 +2611,10 @@ async function closeVscodeSessionEditorTabs(port, titles) {
   return closed;
 }
 
-async function waitForNoVarroEditorTargets(port, timeoutMs) {
+async function waitForNoLoomeryEditorTargets(port, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if ((await varroEditorTargetIds(port)).length === 0) return true;
+    if ((await loomeryEditorTargetIds(port)).length === 0) return true;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   return false;
@@ -2637,7 +2637,7 @@ async function openAi18SidebarSession(cdp, sessionId, title, port, sessionTitles
       }
     }
     await closeVscodeSessionEditorTabs(port, sessionTitles);
-    if (!(await waitForNoVarroEditorTargets(port, 10_000))) {
+    if (!(await waitForNoLoomeryEditorTargets(port, 10_000))) {
       throw new Error('AI-18 stale editor target did not close before opening the sidebar');
     }
     await new Promise((resolve) => setTimeout(resolve, 2_000));
@@ -2651,7 +2651,7 @@ async function openAi18SidebarSession(cdp, sessionId, title, port, sessionTitles
       const snapshot = await cdp.snapshot();
       lastTitle = snapshot.title;
       if (sessionSnapshotMatches(snapshot, sessionId, title)) return;
-      if ((await varroEditorTargetIds(port)).length > 0) break;
+      if ((await loomeryEditorTargetIds(port)).length > 0) break;
     }
   }
   throw new Error(
@@ -2690,7 +2690,7 @@ async function openSessionEditorWithRetry(
     } catch (error) {
       lastError = error;
       await closeVscodeSessionEditorTabs(port, [title, ...sessionTitles]);
-      if (!(await waitForNoVarroEditorTargets(port, 10_000))) {
+      if (!(await waitForNoLoomeryEditorTargets(port, 10_000))) {
         throw new Error(`The stale ${title} editor target did not close before retrying`, {
           cause: error,
         });
@@ -3148,7 +3148,7 @@ async function runMultiWebviewScenario({
     }
     // The palette only offers Show when inline diffs are currently disabled.
     if (!(await editor.point('.file-change-inline-diffs', 'center', childEditScope))) {
-      await executeVscodeCommand(launch.remoteDebuggingPort, 'Varro: Show File Diffs');
+      await executeVscodeCommand(launch.remoteDebuggingPort, 'Loomery: Show File Diffs');
     }
     const inlineBefore = await waitForScopedCount(
       editor,
@@ -3160,14 +3160,14 @@ async function runMultiWebviewScenario({
     if (!(await editor.point('.file-change-inline-diffs', 'center', childEditScope))) {
       throw new Error('AI-18 could not reveal the current child inline file changes');
     }
-    await executeVscodeCommand(launch.remoteDebuggingPort, 'Varro: Hide File Diffs');
+    await executeVscodeCommand(launch.remoteDebuggingPort, 'Loomery: Hide File Diffs');
     const inlineHidden = await waitForScopedCount(
       editor,
       '.file-change-inline-diffs',
       childEditScope,
       (count) => count === 0
     );
-    await executeVscodeCommand(launch.remoteDebuggingPort, 'Varro: Show File Diffs');
+    await executeVscodeCommand(launch.remoteDebuggingPort, 'Loomery: Show File Diffs');
     const inlineShown = await waitForScopedCount(
       editor,
       '.file-change-inline-diffs',
@@ -3935,7 +3935,7 @@ async function runLive(options) {
   if (playbackLabel && !['AI-07', 'AI-08'].includes(scenario)) {
     throw new Error('--playback-label is supported for AI-07 and AI-08');
   }
-  const playbackDatabase = path.resolve(options['playback-db'] ?? 'varro-playback.db');
+  const playbackDatabase = path.resolve(options['playback-db'] ?? 'loomery-playback.db');
   const maxPrompts = Number(options['max-prompts'] ?? DEFAULT_MAX_PROMPTS);
   const timeoutMs = Number(options['gate-timeout-ms'] ?? DEFAULT_GATE_TIMEOUT_MS);
   const restartCount = parseRestartCount(options['restart-count']);
@@ -4051,7 +4051,7 @@ async function runLive(options) {
           `!!document.querySelector('.file-change-inline-diffs')`
         );
         if (!diffsVisible) {
-          await executeVscodeCommand(launch.remoteDebuggingPort, 'Varro: Show File Diffs');
+          await executeVscodeCommand(launch.remoteDebuggingPort, 'Loomery: Show File Diffs');
         }
         await new Promise((resolve) => setTimeout(resolve, 300));
         manifest.hostState = {
@@ -4235,7 +4235,7 @@ async function runLive(options) {
       let activityExecution = null;
       if (scenario === 'AI-07' || scenario === 'AI-08') {
         await cdp.evaluate(
-          `(() => { (${installObserver.toString()})(); globalThis.varroAiStreamingObserver.start(); })()`
+          `(() => { (${installObserver.toString()})(); globalThis.loomeryAiStreamingObserver.start(); })()`
         );
         activityObservationStarted = true;
       }
@@ -4377,7 +4377,7 @@ async function runLive(options) {
       let activityObservation = null;
       if (activityObservationStarted) {
         await new Promise((resolve) => setTimeout(resolve, 250));
-        activityObservation = await cdp.evaluate('globalThis.varroAiStreamingObserver.stop()');
+        activityObservation = await cdp.evaluate('globalThis.loomeryAiStreamingObserver.stop()');
         activityObservationStarted = false;
       }
       if (activityExecution) {
@@ -4476,7 +4476,7 @@ async function runLive(options) {
   if (activityObservationStarted) {
     try {
       manifest.livePreparation[scenario].activityObservation = await cdp.evaluate(
-        'globalThis.varroAiStreamingObserver.stop()'
+        'globalThis.loomeryAiStreamingObserver.stop()'
       );
       await writeJsonAtomic(manifestPath, manifest);
     } catch (error) {

@@ -57,7 +57,7 @@ test('shows a background process card until the resumed response finishes', asyn
   await page.addInitScript(
     (fixture) => {
       // SAFETY: The isolated playback harness reads this fixture before mounting.
-      (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+      (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
         fixture;
     },
     { session, initialMessages }
@@ -86,9 +86,9 @@ test('shows a background process card until the resumed response finishes', asyn
       // SAFETY: The controlled playback page exposes the mock event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent(event: ServerEvent): void };
+          __loomeryE2E: { replayServerEvent(event: ServerEvent): void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       for (const event of batch) harness.replayServerEvent(event);
     }, events);
   const backgroundWork = new OpenCodeV2BackgroundWork();

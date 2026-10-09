@@ -1182,7 +1182,7 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
   border-top: 1px solid var(--color-vscode-border-soft);
   background: var(--color-vscode-surface-subtle-alt);
   color: var(--color-vscode-fg-muted);
-  font-size: var(--varro-chat-editor-font-size, 12px);
+  font-size: var(--loomery-chat-editor-font-size, 12px);
   line-height: 1.5;
   overflow-wrap: anywhere;
   user-select: text;
@@ -1985,8 +1985,8 @@ body:is(.vscode-light, .vscode-high-contrast-light) .chat-empty-logo {
   /* Linux uses the configured chat size directly; other platforms retain the
      half-pixel increase over UI chrome. */
   font-size: calc(
-    var(--varro-chat-font-size, var(--vscode-font-size, 13px)) +
-      var(--varro-chat-prose-font-size-offset, 0.5px)
+    var(--loomery-chat-font-size, var(--vscode-font-size, 13px)) +
+      var(--loomery-chat-prose-font-size-offset, 0.5px)
   );
   font-family: var(--font-chat);
   font-weight: 400;
@@ -2870,7 +2870,7 @@ body.vscode-dark:is(
   color: var(--color-vscode-fg);
 }
 
-body.vscode-dark.varro-flat-dark .interactive-session .chat-input-container {
+body.vscode-dark.loomery-flat-dark .interactive-session .chat-input-container {
   background: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--color-vscode-fg) 6%, var(--color-vscode-input-bg)),

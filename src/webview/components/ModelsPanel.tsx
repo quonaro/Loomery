@@ -88,8 +88,8 @@ type ModelRouteTag = {
 const MIN_RELOAD_INDICATOR_MS = 500;
 const CONTEXT_MENU_VIEWPORT_MARGIN = 8;
 const MODEL_CATALOG_RESULT_LIMIT = 50;
-const PROVIDER_DRAG_TYPE = 'application/x-varro-provider';
-const MODEL_DRAG_TYPE = 'application/x-varro-model';
+const PROVIDER_DRAG_TYPE = 'application/x-loomery-provider';
+const MODEL_DRAG_TYPE = 'application/x-loomery-model';
 
 function routableAgents() {
   return state.allAgents.filter((agent) => agent.mode === 'subagent');
@@ -144,7 +144,7 @@ export function ModelsPanel() {
 
   async function loadJevStatus() {
     try {
-      setJevStatus((await client.varro.decisionProviders.status()).jev);
+      setJevStatus((await client.loomery.decisionProviders.status()).jev);
     } catch {
       // Decision providers are optional; without a status the section stays hidden.
     }
@@ -152,7 +152,7 @@ export function ModelsPanel() {
 
   async function connectDecisionModel() {
     try {
-      setJevStatus((await client.varro.decisionProviders.update({ action: 'connect' })).jev);
+      setJevStatus((await client.loomery.decisionProviders.update({ action: 'connect' })).jev);
     } catch {
       // The extension host reports connection failures with a VS Code notification.
     }
@@ -279,7 +279,7 @@ export function ModelsPanel() {
 
   async function loadRouting() {
     try {
-      setRouting(normalizeModelRouting(await client.varro.openCodeConfig()));
+      setRouting(normalizeModelRouting(await client.loomery.openCodeConfig()));
     } catch {
       setRouting(createEmptyRouting());
     }
@@ -297,7 +297,7 @@ export function ModelsPanel() {
     if (updatesOpenCodeConfig && !previousRouting()) setPreviousRouting(routing());
     setIsSaving(true);
     try {
-      const nextRouting = normalizeModelRouting(await client.varro.saveModelRouting(body));
+      const nextRouting = normalizeModelRouting(await client.loomery.saveModelRouting(body));
       setRouting(nextRouting);
       if (updatesOpenCodeConfig && !state.providerRefreshPending) setPreviousRouting(null);
       await refreshRoutingState();

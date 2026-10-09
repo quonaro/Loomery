@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import {
   getScrollMetrics,
   getVisibleMessageAnchor,
+  openSessions,
   sampleMessageTopAcrossFrames,
   waitForAnimationFrame,
   waitForAnimationFrames,
@@ -330,7 +331,7 @@ test.describe('auto-scroll', () => {
   });
 
   test('starts an active reasoning row without a full-shell jump', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('varro.showThinking', 'true'));
+    await page.addInitScript(() => localStorage.setItem('loomery.showThinking', 'true'));
     await page.goto('/e2e/harness/index.html?scenario=large-transcript&activeReasoningEntrance=1');
     const previousMessage = page.locator('[data-msg-id="message-large-assistant-238"]');
     await expect(page.locator('.interactive-list-track')).toHaveClass(/virtualized/);
@@ -385,7 +386,7 @@ test.describe('auto-scroll', () => {
       const sessionID = 'session-large-transcript';
       const messageID = 'message-large-assistant-active';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
+        __loomeryE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
       };
       const part = {
         id: 'reasoning-bottom-follow',
@@ -395,7 +396,7 @@ test.describe('auto-scroll', () => {
         text: 'Planning offscreen message expansion',
         time: { start: Date.now() },
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       window.postMessage(
         { type: 'server/event', payload: { type: 'message.part.updated', properties: { part } } },
         '*'
@@ -445,9 +446,9 @@ test.describe('auto-scroll', () => {
       const messageID = 'message-large-assistant-active';
       const harness = (
         window as Window & {
-          __varroE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
+          __loomeryE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const part = {
         id: 'text-bottom-follow-final',
         sessionID,
@@ -479,13 +480,13 @@ test.describe('auto-scroll', () => {
       const messageID = 'message-large-assistant-active';
       const harnessWindow = window as Window & {
         completionSlotSamples?: Array<{ top: number; slotHeight: number }>;
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (sessionId: string) => Array<{ info: Record<string, unknown> }>;
           updateMessageInfo?: (info: Record<string, unknown>) => void;
           updateSessionStatus?: (sessionId: string, status: { type: string }) => void;
         };
       };
-      const harness = harnessWindow.__varroE2E;
+      const harness = harnessWindow.__loomeryE2E;
       const container = document.querySelector<HTMLElement>('.interactive-list')!;
       const anchor = container.querySelector<HTMLElement>(
         '[data-msg-id="message-large-assistant-238"]'
@@ -610,14 +611,14 @@ test.describe('auto-scroll', () => {
           request.type === 'api/request' &&
           request.payload?.method === 'POST' &&
           request.payload.path &&
-          new URL(request.payload.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+          new URL(request.payload.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
         ) {
           replacementMessageId = request.payload.body?.messageID ?? null;
         }
         await originalSend?.(message);
         if (isMessageDelete) {
           const path = request.payload?.path
-            ? new URL(request.payload.path, 'http://varro.test').pathname
+            ? new URL(request.payload.path, 'http://loomery.test').pathname
             : '';
           const match = path.match(/^\/session\/([^/]+)\/message\/([^/]+)$/);
           if (!match) throw new Error('Edited-message delete path is invalid');
@@ -725,7 +726,7 @@ test.describe('auto-scroll', () => {
   test('does not move the transcript backward when streamed text moves reasoning into Explored', async ({
     page,
   }) => {
-    await page.addInitScript(() => localStorage.setItem('varro.showThinking', 'true'));
+    await page.addInitScript(() => localStorage.setItem('loomery.showThinking', 'true'));
     await page.goto('/e2e/harness/index.html?scenario=large-transcript&activeReasoningEntrance=1');
     const anchor = page.locator('[data-msg-id="message-large-assistant-238"]');
     const activeReasoning = page.locator('[data-activity-part-id="reasoning-stream-to-text"]');
@@ -747,11 +748,11 @@ test.describe('auto-scroll', () => {
       };
       const harness = (
         window as typeof window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             updateMessagePart?: (updatedPart: Record<string, unknown>) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const textPart = {
         id: 'text-stream-after-reasoning',
         sessionID: part.sessionID,
@@ -809,14 +810,14 @@ test.describe('auto-scroll', () => {
       const container = element.closest<HTMLElement>('.interactive-list')!;
       const harness = (
         window as typeof window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages?: (
               sessionId: string
             ) => Array<{ parts: Array<Record<string, unknown>> }>;
             updateMessagePart?: (updatedPart: Record<string, unknown>) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const reasoning = harness
         ?.getSessionMessages?.('session-large-transcript')
         .flatMap((message) => message.parts)
@@ -931,9 +932,9 @@ test.describe('auto-scroll', () => {
     await page.evaluate(() => {
       const sessionID = 'session-tool-cards-large-transcript';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateSessionStatus?: (id: string, status: { type: 'busy' }) => void };
+        __loomeryE2E?: { updateSessionStatus?: (id: string, status: { type: 'busy' }) => void };
       };
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionID, { type: 'busy' });
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionID, { type: 'busy' });
       window.postMessage(
         {
           type: 'server/event',
@@ -966,7 +967,7 @@ test.describe('auto-scroll', () => {
         tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
       });
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           updateMessageInfo?: (info: ReturnType<typeof messageInfo>) => void;
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
@@ -1005,7 +1006,7 @@ test.describe('auto-scroll', () => {
                 time: { start: Date.now() - 2, end: Date.now() - 1 },
               },
       }));
-      harnessWindow.__varroE2E?.updateMessageInfo?.(firstInfo);
+      harnessWindow.__loomeryE2E?.updateMessageInfo?.(firstInfo);
       window.postMessage(
         {
           type: 'server/event',
@@ -1014,7 +1015,7 @@ test.describe('auto-scroll', () => {
         '*'
       );
       for (const part of [reasoningPart, ...activityParts]) {
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         window.postMessage(
           {
             type: 'server/event',
@@ -1040,7 +1041,7 @@ test.describe('auto-scroll', () => {
               time: { start: Date.now() - 2, end: Date.now() - 1 },
             },
           };
-          harnessWindow.__varroE2E?.updateMessagePart?.(completedPart);
+          harnessWindow.__loomeryE2E?.updateMessagePart?.(completedPart);
           window.postMessage(
             {
               type: 'server/event',
@@ -1125,7 +1126,7 @@ test.describe('auto-scroll', () => {
         if (
           request.type === 'api/request' &&
           request.payload?.path &&
-          new URL(request.payload.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+          new URL(request.payload.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
         ) {
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
@@ -1699,12 +1700,12 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
       };
-      const part = harnessWindow.__varroE2E
+      const part = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.('session-tool-cards-large-transcript')
         .flatMap((message) => message.parts)
         .find((candidate) => candidate.id === 'message-tool-cards-assistant-20-tool');
@@ -1718,7 +1719,7 @@ test.describe('auto-scroll', () => {
         metadata: {},
         time: { start: Date.now() - 1_000, end: Date.now() },
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     });
 
     // Cover the full active hold, exit animation, and grouped settle window.
@@ -1773,12 +1774,12 @@ test.describe('auto-scroll', () => {
       .locator('.interactive-list')
       .evaluate(async (element, anchorId) => {
         const harnessWindow = window as typeof window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
             updateMessagePart?: (part: Record<string, unknown>) => void;
           };
         };
-        const part = harnessWindow.__varroE2E
+        const part = harnessWindow.__loomeryE2E
           ?.getSessionMessages?.('session-tool-cards-large-transcript')
           .flatMap((message) => message.parts)
           .find((candidate) => candidate.id === 'message-tool-cards-assistant-69-tool');
@@ -1792,7 +1793,7 @@ test.describe('auto-scroll', () => {
           metadata: {},
           time: { start: Date.now() - 1_000, end: Date.now() },
         };
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         // Persistence updates alone wait for polling. Deliver the event and sample in the same
         // browser turn so retention, exit, and the reserve handoff cannot escape the assertions.
         window.postMessage(
@@ -1864,9 +1865,9 @@ test.describe('auto-scroll', () => {
         text: '',
       };
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       window.postMessage(
         {
           type: 'server/event',
@@ -1913,12 +1914,12 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
       };
-      const part = harnessWindow.__varroE2E
+      const part = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.('session-tool-cards-large-transcript')
         .flatMap((message) => message.parts)
         .find((candidate) => candidate.id === 'message-tool-cards-assistant-69-tool');
@@ -1932,7 +1933,7 @@ test.describe('auto-scroll', () => {
         metadata: {},
         time: { start: Date.now() - 1_000, end: Date.now() },
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       window.postMessage(
         { type: 'server/event', payload: { type: 'message.part.updated', properties: { part } } },
         '*'
@@ -1953,9 +1954,9 @@ test.describe('auto-scroll', () => {
         ).join('\n\n'),
       };
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       window.postMessage(
         {
           type: 'server/event',
@@ -1985,7 +1986,7 @@ test.describe('auto-scroll', () => {
       await page.evaluate(() => {
         const harnessWindow = window as typeof window & {
           __sendToExtension?: (message: unknown) => void | Promise<void>;
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages?: (sessionId: string) => Array<{
               info: Record<string, unknown>;
               parts: Array<Record<string, unknown>>;
@@ -2007,7 +2008,7 @@ test.describe('auto-scroll', () => {
             payload?: { path?: string; body?: Record<string, unknown> };
           };
           const path = request.payload?.path
-            ? new URL(request.payload.path, 'http://varro.test').pathname
+            ? new URL(request.payload.path, 'http://loomery.test').pathname
             : '';
           const match = path.match(/^\/session\/([^/]+)\/prompt_async$/);
           if (request.type !== 'api/request' || !match) {
@@ -2017,7 +2018,7 @@ test.describe('auto-scroll', () => {
 
           const sessionId = decodeURIComponent(match[1]!);
           await originalSend?.(message);
-          const assistant = harnessWindow.__varroE2E
+          const assistant = harnessWindow.__loomeryE2E
             ?.getSessionMessages?.(sessionId)
             .findLast((entry) => entry.info.role === 'assistant');
           if (!assistant) throw new Error('Persisted first-turn assistant is missing');
@@ -2057,10 +2058,10 @@ test.describe('auto-scroll', () => {
             },
           }));
           harnessWindow.firstTurnActivityFixture = { sessionId, info, running };
-          harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
-          harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-          harnessWindow.__varroE2E?.updateMessagePart?.(completed);
-          for (const part of running) harnessWindow.__varroE2E?.updateMessagePart?.(part);
+          harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'busy' });
+          harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+          harnessWindow.__loomeryE2E?.updateMessagePart?.(completed);
+          for (const part of running) harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
           for (const payload of [
             {
               type: 'session.status',
@@ -2118,7 +2119,7 @@ test.describe('auto-scroll', () => {
       const completeAndSample = (indexes: number[]) =>
         list.evaluate(async (element, completedIndexes) => {
           const harnessWindow = window as typeof window & {
-            __varroE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
+            __loomeryE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
             firstTurnActivityFixture?: { running: Array<Record<string, unknown>> };
           };
           const fixture = harnessWindow.firstTurnActivityFixture;
@@ -2139,7 +2140,7 @@ test.describe('auto-scroll', () => {
               },
             };
             fixture.running[index] = completed;
-            harnessWindow.__varroE2E?.updateMessagePart?.(completed);
+            harnessWindow.__loomeryE2E?.updateMessagePart?.(completed);
             window.postMessage(
               {
                 type: 'server/event',
@@ -2181,7 +2182,7 @@ test.describe('auto-scroll', () => {
 
       await page.evaluate(() => {
         const harnessWindow = window as typeof window & {
-          __varroE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
+          __loomeryE2E?: { updateMessagePart?: (part: Record<string, unknown>) => void };
           firstTurnActivityFixture?: {
             sessionId: string;
             info: Record<string, unknown>;
@@ -2209,7 +2210,7 @@ test.describe('auto-scroll', () => {
         });
         fixture.running.push(...next);
         for (const part of next) {
-          harnessWindow.__varroE2E?.updateMessagePart?.(part);
+          harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
           window.postMessage(
             {
               type: 'server/event',
@@ -2252,7 +2253,7 @@ test.describe('auto-scroll', () => {
 
       const samples = await list.evaluate(async (element) => {
         const harnessWindow = window as typeof window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             updateMessageInfo?: (info: Record<string, unknown>) => void;
             updateSessionStatus?: (sessionId: string, status: { type: 'idle' }) => void;
           };
@@ -2268,8 +2269,8 @@ test.describe('auto-scroll', () => {
           time: { created: Date.now() - 2_000, completed: Date.now() },
           finish: 'stop',
         };
-        harnessWindow.__varroE2E?.updateMessageInfo?.(completedInfo);
-        harnessWindow.__varroE2E?.updateSessionStatus?.(fixture.sessionId, { type: 'idle' });
+        harnessWindow.__loomeryE2E?.updateMessageInfo?.(completedInfo);
+        harnessWindow.__loomeryE2E?.updateSessionStatus?.(fixture.sessionId, { type: 'idle' });
         window.postMessage(
           {
             type: 'server/event',
@@ -2333,7 +2334,7 @@ test.describe('auto-scroll', () => {
     });
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
       for (let index = 1; index <= 2; index += 1) {
         const part = {
@@ -2350,7 +2351,7 @@ test.describe('auto-scroll', () => {
             time: { start: Date.now() + index },
           },
         };
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         window.postMessage(
           {
             type: 'server/event',
@@ -2366,12 +2367,12 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
       };
-      const parts = harnessWindow.__varroE2E
+      const parts = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.('session-tool-cards-large-transcript')
         .flatMap((message) => message.parts)
         .filter(
@@ -2390,7 +2391,7 @@ test.describe('auto-scroll', () => {
           metadata: {},
           time: { start: Date.now() - 1_000, end: Date.now() },
         };
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         window.postMessage(
           { type: 'server/event', payload: { type: 'message.part.updated', properties: { part } } },
           '*'
@@ -2437,9 +2438,9 @@ test.describe('auto-scroll', () => {
         },
       };
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(part);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
       window.postMessage(
         {
           type: 'server/event',
@@ -2492,7 +2493,7 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
       for (let index = 1; index < 8; index += 1) {
         const part = {
@@ -2512,7 +2513,7 @@ test.describe('auto-scroll', () => {
             time: { start: Date.now() - 1_000 + index },
           },
         };
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         window.postMessage(
           {
             type: 'server/event',
@@ -2539,12 +2540,12 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ parts: Array<Record<string, unknown>> }>;
           updateMessagePart?: (updatedPart: unknown) => void;
         };
       };
-      const part = harnessWindow.__varroE2E
+      const part = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.('session-tool-cards-large-transcript')
         .flatMap((message) => message.parts)
         .find((candidate) => candidate.id === 'message-tool-cards-assistant-69-tool');
@@ -2561,7 +2562,7 @@ test.describe('auto-scroll', () => {
           time: { start: Date.now() - 1_000, end: Date.now() },
         },
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(completed);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(completed);
       window.postMessage(
         {
           type: 'server/event',
@@ -2590,11 +2591,11 @@ test.describe('auto-scroll', () => {
     await page.evaluate(() => {
       const sessionId = 'session-tool-cards-large-transcript';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           updateSessionStatus?: (id: string, status: { type: 'idle' }) => void;
         };
       };
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'idle' });
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'idle' });
       window.postMessage(
         {
           type: 'server/event',
@@ -2674,11 +2675,11 @@ test.describe('auto-scroll', () => {
         },
       };
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           updateSessionStatus?: (id: string, status: { type: 'busy' }) => void;
         };
       };
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionID, { type: 'busy' });
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionID, { type: 'busy' });
       window.postMessage(
         {
           type: 'server/event',
@@ -2735,9 +2736,9 @@ test.describe('auto-scroll', () => {
     await page.evaluate(() => {
       const sessionID = 'session-tool-cards-large-transcript';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateSessionStatus?: (id: string, status: { type: 'idle' }) => void };
+        __loomeryE2E?: { updateSessionStatus?: (id: string, status: { type: 'idle' }) => void };
       };
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionID, { type: 'idle' });
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionID, { type: 'idle' });
       window.postMessage(
         {
           type: 'server/event',
@@ -2890,7 +2891,7 @@ test.describe('auto-scroll', () => {
     await page.addInitScript(() => {
       const originalAddEventListener = EventTarget.prototype.addEventListener;
       const listenerOptions: Array<{ passive: boolean; target: EventTarget }> = [];
-      Object.defineProperty(window, 'varroWheelListenerOptions', {
+      Object.defineProperty(window, 'loomeryWheelListenerOptions', {
         configurable: true,
         value: listenerOptions,
       });
@@ -2916,16 +2917,16 @@ test.describe('auto-scroll', () => {
       .poll(() =>
         page.evaluate(() => {
           const harness = window as Window & {
-            __varroE2E?: { pendingHistoryRequestCount?: () => number };
+            __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
           };
-          return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+          return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
         })
       )
       .toBe(1);
 
     const result = await list.evaluate(async (element) => {
       const harness = window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           pendingHistoryRequestCount?: () => number;
           releaseNextHistoryRequest?: () => boolean;
           requests?: Array<{ path: string }>;
@@ -2934,7 +2935,7 @@ test.describe('auto-scroll', () => {
       const waitForFrame = () =>
         new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(() => resolve(), 0)));
       const getRequestCount = () =>
-        (harness.__varroE2E?.requests ?? []).filter((request) =>
+        (harness.__loomeryE2E?.requests ?? []).filter((request) =>
           request.path.includes('/session/session-cold-large-history/message')
         ).length;
       const getVisibleRow = () => {
@@ -3008,14 +3009,14 @@ test.describe('auto-scroll', () => {
         element.scrollTop = Math.max(0, previousScrollTop - movement);
         element.dispatchEvent(new Event('scroll'));
 
-        if ((harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0) > 0) {
+        if ((harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0) > 0) {
           pendingSince ??= performance.now();
           // This fixture defers successful history responses, not network failures.
           // A slow host can take longer than the bridge's 35s request deadline to
           // traverse a page. Bound the artificial delay so retries do not replace
           // the history owner in the middle of this painted-anchor scenario.
           if (element.scrollTop <= 1 || performance.now() - pendingSince >= 10_000) {
-            if (harness.__varroE2E?.releaseNextHistoryRequest?.()) {
+            if (harness.__loomeryE2E?.releaseNextHistoryRequest?.()) {
               releasedPages += 1;
               releasePositions.push(element.scrollTop);
             }
@@ -3071,7 +3072,7 @@ test.describe('auto-scroll', () => {
         if (
           element.scrollTop <= 1 &&
           releasedPages === 2 &&
-          (harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0) === 0 &&
+          (harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0) === 0 &&
           !element.querySelector('.message-history-banner')
         ) {
           break;
@@ -3098,19 +3099,19 @@ test.describe('auto-scroll', () => {
     expect(result.peakMountedRows).toBeLessThan(100);
     expect(result.pinnedGapMounts).toBeGreaterThanOrEqual(2);
 
-    await page.getByLabel('Back to sessions').click();
+    await openSessions(page);
     await page.locator('.session-item').filter({ hasText: 'History switch target' }).click();
     await expect(
       page.getByText('The history switch target is ready.', { exact: true })
     ).toBeVisible();
-    await page.getByLabel('Back to sessions').click();
+    await openSessions(page);
     await page.locator('.session-item').filter({ hasText: 'Cold large paginated history' }).click();
     await expect(page.locator('.interactive-list-track')).toHaveClass(/virtualized/);
     const wheelListenerOptions = await page.evaluate(() => {
       const instrumentedWindow = window as Window & {
-        varroWheelListenerOptions?: Array<{ passive: boolean; target: EventTarget }>;
+        loomeryWheelListenerOptions?: Array<{ passive: boolean; target: EventTarget }>;
       };
-      return (instrumentedWindow.varroWheelListenerOptions ?? [])
+      return (instrumentedWindow.loomeryWheelListenerOptions ?? [])
         .filter(
           (entry) =>
             entry.target instanceof HTMLElement &&
@@ -3145,9 +3146,9 @@ test.describe('auto-scroll', () => {
     await expect(page.locator('.message-history-banner')).toHaveCount(0);
     const reopenedHistoryRequests = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { requests?: Array<{ path: string }> };
+        __loomeryE2E?: { requests?: Array<{ path: string }> };
       };
-      return (harness.__varroE2E?.requests ?? [])
+      return (harness.__loomeryE2E?.requests ?? [])
         .filter((request) => request.path.includes('/session/session-cold-large-history/message'))
         .map((request) => {
           const params = new URL(request.path, 'https://example.test').searchParams;
@@ -3179,9 +3180,9 @@ test.describe('auto-scroll', () => {
       .poll(() =>
         page.evaluate(() => {
           const harness = window as Window & {
-            __varroE2E?: { pendingHistoryRequestCount?: () => number };
+            __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
           };
-          return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+          return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
         })
       )
       .toBe(1);
@@ -3209,9 +3210,9 @@ test.describe('auto-scroll', () => {
       });
       const released = await page.evaluate(() => {
         const harness = window as Window & {
-          __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+          __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
         };
-        return harness.__varroE2E?.releaseNextHistoryRequest?.() ?? false;
+        return harness.__loomeryE2E?.releaseNextHistoryRequest?.() ?? false;
       });
       expect(released).toBe(true);
       const samples = await sampleMessageTopAcrossFrames(list, anchor.id);
@@ -3229,9 +3230,9 @@ test.describe('auto-scroll', () => {
       .poll(() =>
         page.evaluate(() => {
           const harness = window as Window & {
-            __varroE2E?: { pendingHistoryRequestCount?: () => number };
+            __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
           };
-          return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+          return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
         })
       )
       .toBe(1);
@@ -3273,9 +3274,9 @@ test.describe('auto-scroll', () => {
 
     const historyRequests = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { requests?: Array<{ path: string }> };
+        __loomeryE2E?: { requests?: Array<{ path: string }> };
       };
-      return (harness.__varroE2E?.requests ?? [])
+      return (harness.__loomeryE2E?.requests ?? [])
         .filter((request) =>
           request.path.includes('/session/session-assistant-heavy-history/message')
         )
@@ -3347,9 +3348,9 @@ test.describe('auto-scroll', () => {
 
     const released = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+        __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
       };
-      return harness.__varroE2E?.releaseNextHistoryRequest?.() ?? false;
+      return harness.__loomeryE2E?.releaseNextHistoryRequest?.() ?? false;
     });
     expect(released).toBe(true);
 
@@ -3400,17 +3401,17 @@ test.describe('auto-scroll', () => {
     const pendingHistoryRequestCount = () =>
       page.evaluate(() => {
         const harness = window as Window & {
-          __varroE2E?: { pendingHistoryRequestCount?: () => number };
+          __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
         };
-        return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+        return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
       });
 
     const fixtureMessageCount = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { getSessionMessages?: (sessionId: string) => unknown[] };
+        __loomeryE2E?: { getSessionMessages?: (sessionId: string) => unknown[] };
       };
       return (
-        harness.__varroE2E?.getSessionMessages?.('session-incident-delayed-image-history').length ??
+        harness.__loomeryE2E?.getSessionMessages?.('session-incident-delayed-image-history').length ??
         0
       );
     });
@@ -3453,9 +3454,9 @@ test.describe('auto-scroll', () => {
       });
       const released = await page.evaluate(() => {
         const harness = window as Window & {
-          __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+          __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
         };
-        return harness.__varroE2E?.releaseNextHistoryRequest?.() ?? false;
+        return harness.__loomeryE2E?.releaseNextHistoryRequest?.() ?? false;
       });
       expect(released).toBe(true);
 
@@ -3476,9 +3477,9 @@ test.describe('auto-scroll', () => {
 
     const historyRequests = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { requests?: Array<{ path: string }> };
+        __loomeryE2E?: { requests?: Array<{ path: string }> };
       };
-      return (harness.__varroE2E?.requests ?? [])
+      return (harness.__loomeryE2E?.requests ?? [])
         .filter((request) =>
           request.path.includes('/session/session-incident-delayed-image-history/message')
         )
@@ -3547,9 +3548,9 @@ test.describe('auto-scroll', () => {
       .poll(() =>
         page.evaluate(() => {
           const harness = window as Window & {
-            __varroE2E?: { pendingHistoryRequestCount?: () => number };
+            __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
           };
-          return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+          return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
         })
       )
       .toBe(1);
@@ -3590,9 +3591,9 @@ test.describe('auto-scroll', () => {
     });
     await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+        __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
       };
-      if (!harness.__varroE2E?.releaseNextHistoryRequest?.()) {
+      if (!harness.__loomeryE2E?.releaseNextHistoryRequest?.()) {
         throw new Error('Deferred history page was not pending');
       }
     });
@@ -3683,9 +3684,9 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+        __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
       };
-      if (!harness.__varroE2E?.releaseNextHistoryRequest?.()) {
+      if (!harness.__loomeryE2E?.releaseNextHistoryRequest?.()) {
         throw new Error('Deferred history page was not pending');
       }
     });
@@ -3765,9 +3766,9 @@ test.describe('auto-scroll', () => {
     });
     await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseHistoryRequests?: () => void };
+        __loomeryE2E?: { releaseHistoryRequests?: () => void };
       };
-      harness.__varroE2E?.releaseHistoryRequests?.();
+      harness.__loomeryE2E?.releaseHistoryRequests?.();
     });
 
     await expect(historyBanner).not.toHaveClass(/is-loading/);
@@ -3815,9 +3816,9 @@ test.describe('auto-scroll', () => {
 
     await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseHistoryRequests?: () => void };
+        __loomeryE2E?: { releaseHistoryRequests?: () => void };
       };
-      harness.__varroE2E?.releaseHistoryRequests?.();
+      harness.__loomeryE2E?.releaseHistoryRequests?.();
     });
     await expect(historyBanner).not.toHaveClass(/is-loading/);
     await waitForAnimationFrames(page, 6);

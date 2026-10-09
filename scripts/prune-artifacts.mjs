@@ -86,7 +86,7 @@ async function directorySize(directory) {
 
 async function resolveProtectedPaths() {
   const paths = [];
-  for (const value of [process.env.VARRO_AI_DATA_DIR]) {
+  for (const value of [process.env.LOOMERY_AI_DATA_DIR]) {
     if (!value) continue;
     try {
       paths.push(await realpath(value));

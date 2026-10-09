@@ -4,17 +4,17 @@ import { renderAboutHtml } from './about-view';
 import type { AboutViewData } from './about-view';
 
 const data: AboutViewData = {
-  name: 'Varro',
+  name: 'Loomery',
   description: 'OpenCode workbench',
   logoUri: 'webview:/icon.png',
-  varroVersion: '0.31.0',
+  loomeryVersion: '0.31.0',
   cliVersion: '1.18.4',
   installMethod: 'bun',
   installedOn: 'Oct 1, 2026, 9:45:12 AM',
   binary: '/bin/opencode',
   serverVersion: '1.18.4',
   serverUrl: 'http://localhost:4096',
-  ownership: 'Managed by Varro',
+  ownership: 'Managed by Loomery',
   serverStatus: 'Running',
   healthy: true,
   activeAgents: '0',

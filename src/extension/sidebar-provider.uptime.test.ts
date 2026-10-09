@@ -14,7 +14,9 @@ const NOW = new Date('2026-10-01T12:00:00Z').getTime();
 
 function getVersionItem() {
   const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
-  const index = createStatusBarItem.mock.calls.findIndex(([id]) => id === 'varro.opencode-version');
+  const index = createStatusBarItem.mock.calls.findIndex(
+    ([id]) => id === 'loomery.opencode-version'
+  );
   return createStatusBarItem.mock.results[index]!.value;
 }
 
@@ -49,7 +51,7 @@ describe('SidebarProvider server uptime', () => {
       statusHandler?.({ state: 'running', url: server.url });
       await vi.waitFor(() =>
         expect(getVersionItem().tooltip).toContain(
-          `Server port: 4096\nServer uptime: ${expected}\n\nVarro extension:`
+          `Server port: 4096\nServer uptime: ${expected}\n\nLoomery extension:`
         )
       );
     } finally {

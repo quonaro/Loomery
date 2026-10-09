@@ -148,8 +148,7 @@ the shared invariants below remain true.
   dimensions must not resize the row on arrival. Unsupported formats retain a placeholder until opened.
   Thumbnails are generated on demand in a lazy host-side ImageMagick WASM worker, including for uncached
   sessions created in other clients. The bounded memory cache has fixed expiry and periodic cleanup;
-  generation must not depend on cache contents. See `docs/thumbnail-distribution.md` for runtime limits,
-  lifecycle, packaging and licenses.
+  generation must not depend on cache contents.
 - Sending attachments preserves their image slots through local-to-server acknowledgement, repeated
   events, and overlapping history refreshes. Replacing local part IDs with deferred references must
   neither duplicate images nor consume another pending attachment. Keep an already-painted local
@@ -251,7 +250,7 @@ the shared invariants below remain true.
   virtualized transcripts.
 - Scrollbar inset is layout geometry. Track padding, sticky chrome, and bottom overlays must use the
   same current `offsetWidth - clientWidth` inset.
-- Disable native browser scroll anchoring whenever Varro owns bottom-follow, measurement, history
+- Disable native browser scroll anchoring whenever Loomery owns bottom-follow, measurement, history
   loading, activity exit, or edit geometry. Native anchoring and explicit anchor correction must not
   compensate the same mutation.
 
@@ -1152,10 +1151,10 @@ npm run test:e2e:raster
 npm run test:e2e:raster -- --repeat-each=5
 ```
 
-The script selects `VARRO_E2E_MODE=raster` in `playwright.config.ts`. This mode reuses the same
+The script selects `LOOMERY_E2E_MODE=raster` in `playwright.config.ts`. This mode reuses the same
 application test with strict capture enabled and runs `e2e/tests/diagnostics/viewport-raster.spec.ts`,
 the plain static HTML reproduction without
-Varro code, streaming, containment, or virtualization. The standard config explicitly ignores
+Loomery code, streaming, containment, or virtualization. The standard config explicitly ignores
 the diagnostics directory and does not enable strict capture. The diagnostic uses one worker,
 no retries, and the unchanged standard browser launch settings. Both fixtures retain every
 captured frame in the pixel check, assert a maximum gap of `<= 80`, and save `coverage.json`
@@ -1163,7 +1162,7 @@ and failing `partial-viewport-*.png` images under `tmp/viewport-raster-diagnosti
 images are also Playwright attachments. A reproduced gap exits nonzero; it is not an expected-failure
 annotation or a passing visual check.
 
-The September 8, 2026 investigation found a 410 px first-scroll gap in Varro and a 244 px gap
+The September 8, 2026 investigation found a 410 px first-scroll gap in Loomery and a 244 px gap
 in plain HTML while the application DOM, anchor, mount, and streaming checks passed. A compositor
 trace without image capture also reported a missing tile. Local evidence and experiments are in
 `tmp/viewport-raster-investigation.md`; these ignored files are not required to run either test.

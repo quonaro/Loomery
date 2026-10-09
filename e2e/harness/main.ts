@@ -187,11 +187,11 @@ type HarnessWindow = Window & {
   __initialTheme?: string;
   __initialWebviewState?: InitialWebviewState;
   __sendToExtension?: (message: WebviewMessage) => void | Promise<void>;
-  varroPlaybackCapture?: {
+  loomeryPlaybackCapture?: {
     session: Session;
     initialMessages: MessageEntry[];
   };
-  __varroE2E?: {
+  __loomeryE2E?: {
     requests: RequestLog[];
     permissionResponses: PermissionResponse[];
     externalUrls: string[];
@@ -212,16 +212,17 @@ type HarnessWindow = Window & {
     getSessionMessages?: (sessionId: string) => MessageEntry[];
     getPendingPermissions?: () => Array<Record<string, unknown>>;
     replayServerEvent?: (event: unknown, projectedMessage?: MessageEntry) => void;
+    dispatchExtensionMessage?: (message: unknown) => void;
   };
 };
 
 const NO_PROJECT = new URLSearchParams(window.location.search).get('noProject') === '1';
-const WORKSPACE_PATH = NO_PROJECT ? '/varro/scratch' : '/workspace/varro';
-const TMP_WORKSPACE_PATH = '/workspace/varro/tmp/e2e-workspace';
+const WORKSPACE_PATH = NO_PROJECT ? '/loomery/scratch' : '/workspace/loomery';
+const TMP_WORKSPACE_PATH = '/workspace/loomery/tmp/e2e-workspace';
 const BASE_TIME = Date.now();
 const THEME = getThemeKind();
 const deferredHistoryRequestResolves: Array<() => void> = [];
-const PERSISTED_MESSAGE_STATE_KEY = 'varro.e2ePersistedMessageState';
+const PERSISTED_MESSAGE_STATE_KEY = 'loomery.e2ePersistedMessageState';
 
 function getThemeKind(): WebviewThemeKind {
   const value = new URLSearchParams(window.location.search).get('theme');
@@ -473,7 +474,7 @@ function nextTimestamp(state: ScenarioState) {
 function makeSession(id: string, title: string, updatedAt: number): Session {
   return {
     id,
-    projectID: 'project-varro',
+    projectID: 'project-loomery',
     directory: WORKSPACE_PATH,
     title,
     version: '1',
@@ -818,7 +819,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
   };
 
   if (name === 'session-playback') {
-    const capture = (window as HarnessWindow).varroPlaybackCapture;
+    const capture = (window as HarnessWindow).loomeryPlaybackCapture;
     if (!capture?.session?.id) throw new Error('Session playback capture was not injected');
     state.workspacePath = capture.session.directory;
     state.sessions = [structuredClone(capture.session)];
@@ -1108,7 +1109,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         tool: 'bash',
         state: {
           status: 'running',
-          input: { command: 'rm -rf /tmp/varro-sandbox' },
+          input: { command: 'rm -rf /tmp/loomery-sandbox' },
           title: 'Remove temporary sandbox',
           metadata: {},
           time: { start: BASE_TIME - 4_000 },
@@ -1142,7 +1143,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         permission: 'external_directory',
         sessionID: session.id,
         title: 'Allow access to the temporary sandbox?',
-        metadata: { path: '/tmp/varro-sandbox' },
+        metadata: { path: '/tmp/loomery-sandbox' },
         tool: { messageID: assistant.info.id, callID: 'returning-permission-call-1' },
         time: { created: BASE_TIME - 3_900 },
       },
@@ -1787,7 +1788,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
               status: 'completed',
               input:
                 index % 2 === 0
-                  ? { file_path: `/workspace/varro/src/activity-${index}.ts` }
+                  ? { file_path: `/workspace/loomery/src/activity-${index}.ts` }
                   : { command: `npm run activity-${index}` },
               output: 'Completed',
               title: `Activity ${index + 1}`,
@@ -2584,11 +2585,11 @@ function createScenarioState(name: ScenarioName): ScenarioState {
     state.readyStatus = {
       state: 'error',
       message:
-        'OpenCode CLI not found at the configured path: /opt/nope/opencode. Update varro.server.command to point at your OpenCode executable, or clear it to let Varro search PATH.',
+        'OpenCode CLI not found at the configured path: /opt/nope/opencode. Update loomery.server.command to point at your OpenCode executable, or clear it to let Loomery search PATH.',
       detail: {
         kind: 'cli-path-invalid',
         configuredCommand: '/opt/nope/opencode',
-        settingId: 'varro.server.command',
+        settingId: 'loomery.server.command',
       },
     } as const;
     state.providers = [];
@@ -2601,7 +2602,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
     state.readyStatus = {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed. Windows could not replace opencode.exe because it is still running. Close the OpenCode TUI and any other VS Code window using Varro, then retry. Update it manually with: npm install -g opencode-ai@latest',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed. Windows could not replace opencode.exe because it is still running. Close the OpenCode TUI and any other VS Code window using Loomery, then retry. Update it manually with: npm install -g opencode-ai@latest',
       detail: {
         kind: 'update-failed',
         installMethod: 'npm',
@@ -2619,7 +2620,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
     state.readyStatus = {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the running server is 1.15.13. The old server has active sessions and was not stopped to avoid interrupting work. Finish or close those sessions, then run "Varro: Restart Server" to update.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the running server is 1.15.13. The old server has active sessions and was not stopped to avoid interrupting work. Finish or close those sessions, then run "Loomery: Restart Server" to update.',
       detail: { kind: 'update-blocked', blockedBy: 'active-sessions' },
     } as const;
     state.providers = [];
@@ -2632,11 +2633,11 @@ function createScenarioState(name: ScenarioName): ScenarioState {
     state.readyStatus = {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. Automatic updates are disabled. Enable varro.server.autoUpdate, then restart the Varro server.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. Automatic updates are disabled. Enable loomery.server.autoUpdate, then restart the Loomery server.',
       detail: {
         kind: 'update-blocked',
         blockedBy: 'auto-update-disabled',
-        settingId: 'varro.server.autoUpdate',
+        settingId: 'loomery.server.autoUpdate',
         installMethod: 'brew',
         suggestedCommand: 'brew upgrade opencode',
       },
@@ -2902,7 +2903,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         tool: 'read',
         state: {
           status: 'completed',
-          input: { file_path: '/workspace/varro/src/index.ts', offset: 1, limit: 20 },
+          input: { file_path: '/workspace/loomery/src/index.ts', offset: 1, limit: 20 },
           output: '<type>file</type>\n<content>export const value = 1;</content>',
           title: 'Read file',
           metadata: {},
@@ -2919,11 +2920,11 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         state: {
           status: 'completed',
           input: {
-            file_path: '/workspace/varro/src/index.ts',
+            file_path: '/workspace/loomery/src/index.ts',
             old_string: 'value = 1',
             new_string: 'value = 2',
           },
-          output: 'Updated /workspace/varro/src/index.ts',
+          output: 'Updated /workspace/loomery/src/index.ts',
           title: 'Edit file',
           metadata: {
             files: [
@@ -3081,7 +3082,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
               state: {
                 status: 'completed',
                 input: {
-                  file_path: `/workspace/varro/src/tool-${index}.ts`,
+                  file_path: `/workspace/loomery/src/tool-${index}.ts`,
                   offset: index + 1,
                   limit: 20,
                 },
@@ -3101,11 +3102,11 @@ function createScenarioState(name: ScenarioName): ScenarioState {
               state: {
                 status: 'completed',
                 input: {
-                  file_path: `/workspace/varro/src/tool-${index}.ts`,
+                  file_path: `/workspace/loomery/src/tool-${index}.ts`,
                   old_string: 'stable = false',
                   new_string: 'stable = true',
                 },
-                output: `Updated /workspace/varro/src/tool-${index}.ts`,
+                output: `Updated /workspace/loomery/src/tool-${index}.ts`,
                 title: `Edit tool-${index}.ts`,
                 metadata: { additions: 1, deletions: 1 },
                 time: { start: createdAt + 1, end: createdAt + 2 },
@@ -3327,7 +3328,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         tool: 'read',
         state: {
           status: 'error',
-          input: { file_path: '/workspace/varro/src/missing.ts' },
+          input: { file_path: '/workspace/loomery/src/missing.ts' },
           error: 'aborted',
           metadata: {},
           time: { start: BASE_TIME - 4_000, end: BASE_TIME - 3_900 },
@@ -3456,7 +3457,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         tool: 'read',
         state: {
           status: 'completed',
-          input: { file_path: '/workspace/varro/src/components/App.tsx', offset: 1, limit: 20 },
+          input: { file_path: '/workspace/loomery/src/components/App.tsx', offset: 1, limit: 20 },
           output: '<type>file</type>\n<content>export function App() {}</content>',
           title: 'Read file',
           metadata: {},
@@ -3472,7 +3473,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
         tool: 'read',
         state: {
           status: 'completed',
-          input: { file_path: '/workspace/varro/src/components' },
+          input: { file_path: '/workspace/loomery/src/components' },
           output: '<type>directory</type>\n<entries>App.tsx</entries>',
           title: 'Read directory',
           metadata: {},
@@ -3507,7 +3508,7 @@ function createScenarioState(name: ScenarioName): ScenarioState {
       [
         'This answer verifies rich assistant message controls across a realistic response.',
         '',
-        'Use the [release notes](https://example.com/varro/releases) for the rollout checklist.',
+        'Use the [release notes](https://example.com/loomery/releases) for the rollout checklist.',
         '',
         '```ts',
         "export const useful = 'e2e coverage';",
@@ -5179,7 +5180,7 @@ function dispatchToWebview(message: unknown) {
   if (typed) {
     const dispatchedMessage: DispatchedMessage = { type: typed.type };
     if (typed.payload !== undefined) dispatchedMessage.payload = typed.payload;
-    (window as HarnessWindow).__varroE2E?.dispatchedMessages?.push(dispatchedMessage);
+    (window as HarnessWindow).__loomeryE2E?.dispatchedMessages?.push(dispatchedMessage);
   }
   window.postMessage(message, '*');
 }
@@ -5306,7 +5307,7 @@ function sendApiResponse(id: number, payload: { data?: unknown; error?: string }
 // The harness plays the extension host's role for Ralph orchestration: this
 // localStorage key emulates the host's Memento persistence (the webview no
 // longer reads it directly - it only mirrors `ralph/state` broadcasts).
-const RALPH_RUNS_KEY = 'varro.ralph.runs';
+const RALPH_RUNS_KEY = 'loomery.ralph.runs';
 
 type HarnessRalphRun = {
   config: {
@@ -5387,7 +5388,7 @@ async function handleApiRequest(
   rawPath: string,
   body: unknown
 ) {
-  const url = new URL(rawPath, 'http://varro.test');
+  const url = new URL(rawPath, 'http://loomery.test');
   const path = url.pathname;
 
   const startupOptions = new URLSearchParams(window.location.search);
@@ -5399,7 +5400,7 @@ async function handleApiRequest(
       '/lsp',
       '/provider/auth',
       '/experimental/workspace/status',
-      '/varro/session-trash',
+      '/loomery/session-trash',
     ].includes(path)
   ) {
     // Model optional status that never settles without touching a live backend.
@@ -5437,11 +5438,11 @@ async function handleApiRequest(
     return sessions;
   }
 
-  if (method === 'GET' && path === '/varro/session-trash') {
+  if (method === 'GET' && path === '/loomery/session-trash') {
     return state.recycleBinEntries;
   }
 
-  if (method === 'GET' && path === '/varro/workspace-problems') {
+  if (method === 'GET' && path === '/loomery/workspace-problems') {
     return {
       total: 2,
       diagnostics: [
@@ -5461,7 +5462,7 @@ async function handleApiRequest(
     };
   }
 
-  if (method === 'GET' && path === '/varro/session-history-scope') {
+  if (method === 'GET' && path === '/loomery/session-history-scope') {
     return { scope: 'directory', git: true };
   }
 
@@ -5514,7 +5515,7 @@ async function handleApiRequest(
 
   if (
     method === 'GET' &&
-    path === '/varro/opencode-config' &&
+    path === '/loomery/opencode-config' &&
     new URLSearchParams(window.location.search).get('commitModel') === '1'
   ) {
     return {
@@ -5541,7 +5542,7 @@ async function handleApiRequest(
     return state.pendingPermissions;
   }
 
-  if (method === 'POST' && path === '/varro/permission/judge') {
+  if (method === 'POST' && path === '/loomery/permission/judge') {
     const decision =
       new URLSearchParams(window.location.search).get('judge') === 'ask' ? 'ask' : 'allow';
     return { decision, reason: `Harness judge returned ${decision}.` };
@@ -5569,7 +5570,7 @@ async function handleApiRequest(
     return true;
   }
 
-  if (method === 'GET' && path === '/varro/provider-limit') {
+  if (method === 'GET' && path === '/loomery/provider-limit') {
     if (state.persistedActiveSessionId === 'session-usage-limit') {
       return {
         providerID: url.searchParams.get('providerID') || 'openai',
@@ -5613,7 +5614,7 @@ async function handleApiRequest(
     };
   }
 
-  if (method === 'POST' && path === '/varro/plan/open') {
+  if (method === 'POST' && path === '/loomery/plan/open') {
     const payload = asRecord(body);
     if (typeof payload.content === 'string') {
       state.planOpenRequests.push(payload.content);
@@ -5628,10 +5629,10 @@ async function handleApiRequest(
     const title =
       typeof payload.title === 'string' && payload.title.trim().length > 0
         ? payload.title.trim()
-        : `Mock Session ${state.sessions.length + 1}`;
+        : 'New session';
     const session: Session = {
       id: sessionId,
-      projectID: 'project-varro',
+      projectID: 'project-loomery',
       directory: state.workspacePath,
       title,
       parentID: typeof payload.parentID === 'string' ? payload.parentID : undefined,
@@ -5674,12 +5675,12 @@ async function handleApiRequest(
     return message;
   }
 
-  const activationMatch = path.match(/^\/varro\/session\/([^/]+)\/activate$/);
+  const activationMatch = path.match(/^\/loomery\/session\/([^/]+)\/activate$/);
   if (activationMatch && method === 'POST') {
     return getSession(state, decodeURIComponent(activationMatch[1]!));
   }
 
-  const permissionModeMatch = path.match(/^\/varro\/session\/([^/]+)\/permission-mode$/);
+  const permissionModeMatch = path.match(/^\/loomery\/session\/([^/]+)\/permission-mode$/);
   if (permissionModeMatch && method === 'POST') {
     const sessionId = decodeURIComponent(permissionModeMatch[1]!);
     const mode = asRecord(body).mode;
@@ -5727,8 +5728,8 @@ async function handleApiRequest(
     return true;
   }
 
-  if (method === 'POST' && path.match(/^\/varro\/session-trash\/[^/]+\/restore$/)) {
-    const match = path.match(/^\/varro\/session-trash\/([^/]+)\/restore$/);
+  if (method === 'POST' && path.match(/^\/loomery\/session-trash\/[^/]+\/restore$/)) {
+    const match = path.match(/^\/loomery\/session-trash\/([^/]+)\/restore$/);
     const rootID = match ? decodeURIComponent(match[1]!) : null;
     const entry = rootID ? state.recycleBinEntries.find((item) => item.rootID === rootID) : null;
     if (!entry) return false;
@@ -5740,8 +5741,8 @@ async function handleApiRequest(
     return true;
   }
 
-  if (method === 'DELETE' && path.match(/^\/varro\/session-trash\/[^/]+\/delete$/)) {
-    const match = path.match(/^\/varro\/session-trash\/([^/]+)\/delete$/);
+  if (method === 'DELETE' && path.match(/^\/loomery\/session-trash\/[^/]+\/delete$/)) {
+    const match = path.match(/^\/loomery\/session-trash\/([^/]+)\/delete$/);
     const rootID = match ? decodeURIComponent(match[1]!) : null;
     const entry = rootID ? state.recycleBinEntries.find((item) => item.rootID === rootID) : null;
     if (!entry) return false;
@@ -5753,7 +5754,7 @@ async function handleApiRequest(
     return true;
   }
 
-  if (method === 'DELETE' && path === '/varro/session-trash') {
+  if (method === 'DELETE' && path === '/loomery/session-trash') {
     for (const entry of state.recycleBinEntries) {
       for (const session of entry.sessions) {
         delete state.messagesBySessionId[session.id];
@@ -6140,7 +6141,7 @@ async function handleApiRequest(
           permission: 'bash',
           sessionID: sessionId,
           title: 'Allow removing the temporary sandbox?',
-          metadata: { command: 'rm -rf /tmp/varro-sandbox' },
+          metadata: { command: 'rm -rf /tmp/loomery-sandbox' },
           time: { created: BASE_TIME - 3_800 },
         };
         state.pendingPermissions = [permission];
@@ -6258,22 +6259,22 @@ function installBridge(state: ScenarioState) {
             command: webviewMessage.payload.command,
           };
           if (webviewMessage.payload.title) terminalCommand.title = webviewMessage.payload.title;
-          harnessWindow.__varroE2E?.terminalCommands?.push(terminalCommand);
+          harnessWindow.__loomeryE2E?.terminalCommands?.push(terminalCommand);
         }
         return;
       case 'vscode/open-settings':
-        harnessWindow.__varroE2E?.settingsQueries?.push(webviewMessage.payload.query || '');
+        harnessWindow.__loomeryE2E?.settingsQueries?.push(webviewMessage.payload.query || '');
         return;
       case 'server/restart':
-        if (harnessWindow.__varroE2E) {
-          harnessWindow.__varroE2E.serverRestartCount =
-            (harnessWindow.__varroE2E.serverRestartCount || 0) + 1;
+        if (harnessWindow.__loomeryE2E) {
+          harnessWindow.__loomeryE2E.serverRestartCount =
+            (harnessWindow.__loomeryE2E.serverRestartCount || 0) + 1;
         }
         return;
       case 'files/pick':
-        if (harnessWindow.__varroE2E) {
-          harnessWindow.__varroE2E.filePickCount =
-            (harnessWindow.__varroE2E.filePickCount || 0) + 1;
+        if (harnessWindow.__loomeryE2E) {
+          harnessWindow.__loomeryE2E.filePickCount =
+            (harnessWindow.__loomeryE2E.filePickCount || 0) + 1;
         }
         return;
       case 'files/search': {
@@ -6356,7 +6357,7 @@ function installBridge(state: ScenarioState) {
         });
         return;
       case 'session/export':
-        harnessWindow.__varroE2E?.exportSessionIds?.push(webviewMessage.payload.sessionId);
+        harnessWindow.__loomeryE2E?.exportSessionIds?.push(webviewMessage.payload.sessionId);
         return;
       case 'vscode/open':
         {
@@ -6369,7 +6370,7 @@ function installBridge(state: ScenarioState) {
           if (typeof webviewMessage.payload.kind === 'string') {
             openTarget.kind = webviewMessage.payload.kind;
           }
-          harnessWindow.__varroE2E?.openTargets?.push(openTarget);
+          harnessWindow.__loomeryE2E?.openTargets?.push(openTarget);
         }
         if (typeof webviewMessage.payload.requestId === 'number') {
           const status = webviewMessage.payload.path.endsWith('/missing-file.ts')
@@ -6411,7 +6412,7 @@ function setUpHarness() {
   const scenarioName = getScenarioName();
   const scenarioState = createScenarioState(scenarioName);
   const harnessWindow = window as HarnessWindow;
-  const previousScenarioName = window.sessionStorage.getItem('varro.e2eScenario');
+  const previousScenarioName = window.sessionStorage.getItem('loomery.e2eScenario');
   const shouldResetStorage = previousScenarioName !== scenarioName;
 
   if (shouldResetStorage) {
@@ -6422,53 +6423,53 @@ function setUpHarness() {
     }
     if (scenarioState.persistedActiveSessionId) {
       window.localStorage.setItem(
-        'varro.lastActiveSessionId',
+        'loomery.lastActiveSessionId',
         JSON.stringify(scenarioState.persistedActiveSessionId)
       );
     }
     if (scenarioState.storedState.sessionSelectedAgents) {
       window.localStorage.setItem(
-        'varro.sessionSelectedAgents',
+        'loomery.sessionSelectedAgents',
         JSON.stringify(scenarioState.storedState.sessionSelectedAgents)
       );
     }
     if (scenarioState.storedState.sessionSelectedMcps) {
       window.localStorage.setItem(
-        'varro.sessionSelectedMcps',
+        'loomery.sessionSelectedMcps',
         JSON.stringify(scenarioState.storedState.sessionSelectedMcps)
       );
     }
     if (scenarioState.storedState.sessionPermissionModes) {
       window.localStorage.setItem(
-        'varro.sessionPermissionModes',
+        'loomery.sessionPermissionModes',
         JSON.stringify(scenarioState.storedState.sessionPermissionModes)
       );
     }
     if (scenarioState.storedState.lastSeenSessions) {
       window.localStorage.setItem(
-        'varro.lastSeenSessions',
+        'loomery.lastSeenSessions',
         JSON.stringify(scenarioState.storedState.lastSeenSessions)
       );
     }
     if (scenarioState.storedState.lastOpenedView) {
       window.localStorage.setItem(
-        'varro.lastOpenedView',
+        'loomery.lastOpenedView',
         JSON.stringify(scenarioState.storedState.lastOpenedView)
       );
     }
     if (scenarioState.storedState.ralphRuns) {
       window.localStorage.setItem(
-        'varro.ralph.runs',
+        'loomery.ralph.runs',
         JSON.stringify(scenarioState.storedState.ralphRuns)
       );
     }
   } else {
     restoreHarnessMessageState(scenarioState);
   }
-  window.sessionStorage.setItem('varro.e2eScenario', scenarioName);
+  window.sessionStorage.setItem('loomery.e2eScenario', scenarioName);
   harnessWindow.__initialTheme = THEME;
   harnessWindow.__initialWebviewState = buildInitialState(scenarioState);
-  harnessWindow.__varroE2E = {
+  harnessWindow.__loomeryE2E = {
     requests: scenarioState.requests,
     permissionResponses: scenarioState.permissionResponses,
     externalUrls: scenarioState.externalUrls,
@@ -6513,6 +6514,7 @@ function setUpHarness() {
     },
     replayServerEvent: (event, projectedMessage) =>
       replayServerEvent(scenarioState, event, projectedMessage),
+    dispatchExtensionMessage: (message) => dispatchToWebview(message),
   };
   document.body.dataset.vscodeThemeKind = THEME;
   if (THEME !== 'dark') {

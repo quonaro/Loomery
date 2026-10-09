@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public static class VarroDatabaseOwners {
+public static class LoomeryDatabaseOwners {
   [StructLayout(LayoutKind.Sequential)]
   public struct UniqueProcess {
     public uint ProcessId;
@@ -63,5 +63,5 @@ public static class VarroDatabaseOwners {
 '@
 
 # Read-only ownership inspection. Never call Restart Manager shutdown/restart APIs.
-$owners = @([VarroDatabaseOwners]::Read($Database))
+$owners = @([LoomeryDatabaseOwners]::Read($Database))
 @{ databaseOwners = $owners } | ConvertTo-Json -Depth 3 -Compress

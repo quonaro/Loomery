@@ -21,7 +21,7 @@ function availablePort(port) {
 }
 
 // Playback can attach to an existing server; regular runs need their own server.
-if (process.env.VARRO_E2E_PORT === undefined && process.env.VARRO_E2E_MODE !== 'playback') {
+if (process.env.LOOMERY_E2E_PORT === undefined && process.env.LOOMERY_E2E_MODE !== 'playback') {
   let port;
   try {
     port = await availablePort(4174);
@@ -32,7 +32,7 @@ if (process.env.VARRO_E2E_PORT === undefined && process.env.VARRO_E2E_MODE !== '
     port = await availablePort(0);
     process.stderr.write(`E2E port 4174 is occupied; using ${port}.\n`);
   }
-  process.env.VARRO_E2E_PORT = String(port);
+  process.env.LOOMERY_E2E_PORT = String(port);
 }
 
 // Run in this process so Playwright retains control of signals and server cleanup.

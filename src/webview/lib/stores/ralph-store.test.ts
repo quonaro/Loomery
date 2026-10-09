@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RalphConfig, RalphIteration, RalphRun } from '../../../shared/ralph';
 
-const LEGACY_STORAGE_KEY = 'varro.ralph.runs';
+const LEGACY_STORAGE_KEY = 'loomery.ralph.runs';
 
 const { postMessage } = vi.hoisted(() => ({ postMessage: vi.fn() }));
 

@@ -61,9 +61,9 @@ test('discovery isolates standard, playback, and raster modes', () => {
         maxBuffer: 10 * 1024 * 1024,
         env: {
           ...process.env,
-          VARRO_E2E_MODE: mode,
-          VARRO_PLAYBACK_ID: '92',
-          VARRO_PLAYBACK_FILE: path.join(cwd, 'nonexistent-playback-capture.json'),
+          LOOMERY_E2E_MODE: mode,
+          LOOMERY_PLAYBACK_ID: '92',
+          LOOMERY_PLAYBACK_FILE: path.join(cwd, 'nonexistent-playback-capture.json'),
         },
       })
     );
@@ -164,7 +164,7 @@ test('filters another session and removes stream sequence metadata', () => {
 });
 
 test('round trips a capture through SQLite', async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'varro-playback-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'loomery-playback-'));
   const filePath = path.join(directory, 'capture.db');
   try {
     const saved = savePlaybackCapture(filePath, {
@@ -474,7 +474,7 @@ const hangingProcess = `
 `;
 
 async function prepareReplay(t, source) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'varro-playback-test-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'loomery-playback-test-'));
   const database = path.join(directory, 'capture.db');
   const { id } = savePlaybackCapture(database, {
     label: 'subprocess test',
@@ -545,7 +545,7 @@ async function prepareReplay(t, source) {
     tick,
     started: started.promise,
     invocation: () => invocation,
-    async assertClean(replayFile = invocation.options.env.VARRO_PLAYBACK_FILE) {
+    async assertClean(replayFile = invocation.options.env.LOOMERY_PLAYBACK_FILE) {
       await assert.rejects(access(path.dirname(replayFile)), { code: 'ENOENT' });
       assert.deepEqual(process.listeners('SIGINT'), listeners[0]);
       assert.deepEqual(process.listeners('SIGTERM'), listeners[1]);
@@ -602,9 +602,9 @@ for (const reason of ['timeout', 'SIGINT', 'SIGTERM']) {
       assert.equal(command, process.execPath);
       assert.equal(args[0], fileURLToPath(import.meta.resolve('@playwright/test/cli')));
       assert.deepEqual(args.slice(1), ['test']);
-      assert.equal(options.env.VARRO_E2E_MODE, 'playback');
+      assert.equal(options.env.LOOMERY_E2E_MODE, 'playback');
       assert.equal(options.detached, process.platform !== 'win32');
-      const { timeline } = JSON.parse(await readFile(options.env.VARRO_PLAYBACK_FILE, 'utf8'));
+      const { timeline } = JSON.parse(await readFile(options.env.LOOMERY_PLAYBACK_FILE, 'utf8'));
       assert.equal(
         timeline.reduce((total, entry) => total + entry.delayMs, 0),
         1_620

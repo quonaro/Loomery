@@ -12,7 +12,7 @@ export function getWorkspaceProblems(workspacePath: string | undefined): Workspa
   )
     throw new Error('Select an open workspace before attaching problems');
   if (
-    !vscode.workspace.getConfiguration('varro').get<boolean>('chat.enableProblemsContext', true)
+    !vscode.workspace.getConfiguration('loomery').get<boolean>('chat.enableProblemsContext', true)
   ) {
     throw new Error('Problems context is disabled in settings');
   }

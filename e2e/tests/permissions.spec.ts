@@ -1,6 +1,6 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion -- SAFETY: These E2E callbacks inspect and mutate controlled permission fixtures exposed by the harness browser global. */
 import { expect, test } from '@playwright/test';
-import { getE2EState } from './helpers';
+import { getE2EState, openSessions } from './helpers';
 
 test('renders a child permission in its active parent and completes child work after manual approval', async ({
   page,
@@ -9,9 +9,9 @@ test('renders a child permission in its active parent and completes child work a
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto('/e2e/harness/index.html?scenario=subagent-permissions');
 
-  await expect(
-    page.locator('.interactive-session > .chat-header .chat-header-title-text')
-  ).toHaveText('Parent permission orchestration');
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    'Parent permission orchestration'
+  );
   await expect(page.locator('.permission-prompt-text')).toHaveText('Run command');
   await expect(page.locator('.permission-meta-value')).toHaveText(
     'npm run test:e2e -- child-verification'
@@ -25,7 +25,7 @@ test('renders a child permission in its active parent and completes child work a
       getE2EState(page, () => {
         const state = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{
                 sessionId: string;
                 permissionId: string;
@@ -37,7 +37,7 @@ test('renders a child permission in its active parent and completes child work a
               }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const child = state?.getSessionMessages?.('session-child-permissions')[1];
         return {
           response: state?.permissionResponses[0] || null,
@@ -56,7 +56,7 @@ test('renders a child permission in its active parent and completes child work a
       completed: true,
       toolStatus: 'completed',
     });
-  await page.getByLabel('Back to sessions').click();
+  await openSessions(page);
   await expect(
     page
       .locator('.session-item')
@@ -81,9 +81,9 @@ test('responds to a pending permission request', async ({ page }) => {
       page.evaluate(() => {
         const value = (
           window as Window & {
-            __varroE2E?: { permissionResponses: Array<{ response: string }> };
+            __loomeryE2E?: { permissionResponses: Array<{ response: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.permissionResponses[0]?.response || null;
       })
     )
@@ -104,9 +104,9 @@ test('rejects a pending permission request', async ({ page }) => {
       page.evaluate(() => {
         const value = (
           window as Window & {
-            __varroE2E?: { permissionResponses: Array<{ response: string }> };
+            __loomeryE2E?: { permissionResponses: Array<{ response: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.permissionResponses[0]?.response || null;
       })
     )
@@ -138,7 +138,7 @@ test('restores a linked permission to full flow after its tool starts compacting
   await page.waitForTimeout(2_100);
   await page.getByRole('button', { name: 'Allow once' }).click();
   await expect(page.locator('.permission-prompt-text')).toHaveText('Run command');
-  await expect(page.locator('.permission-meta-value')).toHaveText('rm -rf /tmp/varro-sandbox');
+  await expect(page.locator('.permission-meta-value')).toHaveText('rm -rf /tmp/loomery-sandbox');
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
 
   const geometry = await page.locator('.permission-prompt').evaluate((prompt) => {
@@ -183,7 +183,7 @@ test('keeps a linked permission visible when its tool row is hidden in chat', as
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{
                 sessionId: string;
                 permissionId: string;
@@ -191,7 +191,7 @@ test('keeps a linked permission visible when its tool row is hidden in chat', as
               }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.permissionResponses[0] || null;
       })
     )
@@ -241,13 +241,13 @@ test('default permissions defer to OpenCode and surface its bash request', async
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const createRequest = value?.requests.find(
           (request) =>
             request.method === 'POST' &&
-            new URL(request.path, 'http://varro.test').pathname === '/session'
+            new URL(request.path, 'http://loomery.test').pathname === '/session'
         );
         return createRequest?.body || null;
       })
@@ -257,13 +257,13 @@ test('default permissions defer to OpenCode and surface its bash request', async
   const permissionCreateBody = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests.find(
       (request) =>
         request.method === 'POST' &&
-        new URL(request.path, 'http://varro.test').pathname === '/session'
+        new URL(request.path, 'http://loomery.test').pathname === '/session'
     )?.body as
       | { permission?: Array<{ permission: string; action: string; pattern: string }> }
       | undefined;
@@ -274,11 +274,11 @@ test('default permissions defer to OpenCode and surface its bash request', async
   const promptBody = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests.find((request) =>
-      new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+      new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
     )?.body as { agent?: string; model?: { providerID: string; modelID: string } } | undefined;
   });
 
@@ -306,11 +306,11 @@ test('keeps a grouped permission prompt visible after a one-time approval', asyn
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{ permissionId: string; response: string }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (value?.permissionResponses || []).map(({ permissionId, response }) => ({
           permissionId,
           response,
@@ -332,11 +332,11 @@ test('keeps grouped permission prompts bundled when rejecting them', async ({ pa
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{ permissionId: string; response: string }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (value?.permissionResponses || []).map(({ permissionId, response }) => ({
           permissionId,
           response,
@@ -362,12 +362,12 @@ test('clears every covered grouped permission after allowing always', async ({ p
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{ permissionId: string; response: string }>;
               getPendingPermissions?: () => unknown[];
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return {
           pending: value?.getPendingPermissions?.().length ?? -1,
           responses: (value?.permissionResponses || []).map(({ permissionId, response }) => ({
@@ -436,11 +436,11 @@ test('shows distinct permission requests one at a time', async ({ page }) => {
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{ permissionId: string; response: string }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (value?.permissionResponses || []).map(({ permissionId, response }) => ({
           permissionId,
           response,

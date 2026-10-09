@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import process from 'node:process';
 
-const RESULT_PREFIX = 'VARRO_COMPAT_RESULT=';
+const RESULT_PREFIX = 'LOOMERY_COMPAT_RESULT=';
 const DEFAULT_SCAN_COUNT = 12;
 const ROOT = resolve(import.meta.dirname, '../..');
 const DOCKERFILE = resolve(import.meta.dirname, 'Dockerfile');
@@ -117,7 +117,7 @@ function assertDockerAvailable() {
 }
 
 function imageTag(version) {
-  return `varro-opencode-compat:${version.replace(/[^a-zA-Z0-9_.-]/g, '-')}`;
+  return `loomery-opencode-compat:${version.replace(/[^a-zA-Z0-9_.-]/g, '-')}`;
 }
 
 function summarizeChecks(checks) {
@@ -152,7 +152,7 @@ function testVersion(version, declaredCeiling) {
     );
   }
 
-  process.stdout.write(`[${version}] Probing Varro capabilities...\n`);
+  process.stdout.write(`[${version}] Probing Loomery capabilities...\n`);
   const run = runDocker(
     ['run', '--rm', '--env', `DECLARED_OPENCODE_CEILING=${declaredCeiling}`, tag],
     { timeout: 2 * 60_000 }
@@ -226,8 +226,8 @@ const versions = options.versions
 process.stdout.write(
   `Testing ${versions.length} OpenCode releases from ${versions[0]} through ${versions.at(-1)}.\n`
 );
-process.stdout.write(`Declared Varro compatibility floor: ${declaredFloor}.\n`);
-process.stdout.write(`Declared Varro tested ceiling: ${declaredCeiling}.\n`);
+process.stdout.write(`Declared Loomery compatibility floor: ${declaredFloor}.\n`);
+process.stdout.write(`Declared Loomery tested ceiling: ${declaredCeiling}.\n`);
 
 const results = [];
 try {

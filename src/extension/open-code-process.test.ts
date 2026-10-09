@@ -27,7 +27,7 @@ import { getPathVariableKey } from './util/server-path';
 import type * as ServerUtils from './server-utils';
 import { Service } from '@opencode/client/service';
 import * as processInspection from './process-inspection';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 import { ServerConnectionAdmission } from './server-connection-admission';
 
 const { loggerMock, spawnMock, vscodeMock, waitForProcessExitMock } = vi.hoisted(() => ({
@@ -126,7 +126,7 @@ vi.mock('fs/promises', async () => {
 });
 vi.mock('os', async () => {
   const actual = await vi.importActual<typeof OsModule>('os');
-  const root = `${actual.tmpdir()}/varro-process-tests-${process.pid}`;
+  const root = `${actual.tmpdir()}/loomery-process-tests-${process.pid}`;
   const mocked = { ...actual, tmpdir: () => root, homedir: () => `${root}/home` };
   return { ...mocked, default: mocked };
 });
@@ -191,7 +191,7 @@ describe('v2 shared service routing', () => {
       false,
       '',
       false,
-      join(tmpdir(), `varro-credential-diagnostic-${process.pid}.json`)
+      join(tmpdir(), `loomery-credential-diagnostic-${process.pid}.json`)
     );
     vi.stubEnv('OPENCODE_SERVER_PASSWORD', '');
     vi.stubEnv('OPENCODE_SERVER_USERNAME', 'private-user');
@@ -226,7 +226,7 @@ describe('v2 shared service routing', () => {
       true,
       '',
       false,
-      join(tmpdir(), `varro-credential-test-${process.pid}.json`)
+      join(tmpdir(), `loomery-credential-test-${process.pid}.json`)
     );
     vi.mocked(Service.discover).mockResolvedValue({
       url: manager.url,
@@ -243,7 +243,7 @@ describe('v2 shared service routing', () => {
   });
 
   it('does not use discovered credentials for a different endpoint', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'varro-credential-discovery-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-credential-discovery-'));
     const manager = new OpenCodeProcess(4096, true, '', false, join(root, 'lease.json'));
     const originalAuthorization = manager.serverAuthorization;
     vi.mocked(Service.discover).mockResolvedValue({
@@ -283,7 +283,7 @@ describe('v2 shared service routing', () => {
   it.each(['2.0.5', '2.0.7'])(
     'shares validated %s service credentials between extension instances',
     async (version) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-shared-credentials-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-shared-credentials-'));
       vi.stubEnv('XDG_STATE_HOME', root);
       const registration = JSON.stringify({
         url: 'http://127.0.0.1:4096',
@@ -301,7 +301,7 @@ describe('v2 shared service routing', () => {
         return Response.json({ version, pid: process.pid });
       });
       try {
-        const managers = ['varro', 'openjet'].map(
+        const managers = ['loomery', 'openjet'].map(
           (name) => new OpenCodeProcess(4096, true, '', false, join(root, `${name}.json`))
         );
         await Promise.all(managers.map((manager) => manager.discoverServerCredentials()));
@@ -376,7 +376,7 @@ describe('v2 shared service routing', () => {
   ])(
     'validates $name when the newer client cannot discover it',
     async ({ host, pid, version, status, expected }) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-legacy-discovery-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-legacy-discovery-'));
       await mkdir(join(root, 'opencode'));
       const registration = JSON.stringify({
         url: `http://${host}:43123`,
@@ -535,7 +535,7 @@ afterAll(async () => {
 
 it('uses the persistent isolated scratch cwd only when no project folder is open', () => {
   const manager = new OpenCodeProcess(4096, true, 'opencode');
-  const scratch = getVarroStateDirectory('scratch');
+  const scratch = getLoomeryStateDirectory('scratch');
   expect(manager.getWorkspaceCwd()).toBe(scratch);
   vscodeMock.workspace.workspaceFolders = [];
   expect(manager.getWorkspaceCwd()).toBe(scratch);
@@ -620,7 +620,7 @@ describe('OpenCodeProcess port validation', () => {
   it.each([0, -1, 1.5, 65_536, Number.NaN, Number.POSITIVE_INFINITY])(
     'rejects invalid runtime port %s',
     (port) => {
-      expect(() => new OpenCodeProcess(port, true)).toThrow('varro.server.port');
+      expect(() => new OpenCodeProcess(port, true)).toThrow('loomery.server.port');
     }
   );
 
@@ -768,7 +768,7 @@ describe('OpenCodeProcess Windows termination', () => {
     const manager = new OpenCodeProcess(4096, true);
 
     await expect(manager.stopServerForRestart()).rejects.toThrow(
-      'Port 4096 is occupied by a process Varro does not own'
+      'Port 4096 is occupied by a process Loomery does not own'
     );
     expect(spawnMock).not.toHaveBeenCalledWith(
       'taskkill.exe',
@@ -1077,11 +1077,11 @@ describe('OpenCodeProcess server ownership leases', () => {
       Object.defineProperty(process, 'platform', { value: platform, configurable: true });
       vi.stubEnv('OPENCODE_SERVER_PASSWORD', undefined);
       vi.stubEnv('OPENCODE_SERVER_USERNAME', undefined);
-      const root = await mkdtemp(join(tmpdir(), 'varro-credential-reconnection-'));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), 'loomery-credential-reconnection-'));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
       await mkdir(directory, { recursive: true, mode: 0o700 });
-      const path = join(directory, 'varro-opencode-server-4096.json');
+      const path = join(directory, 'loomery-opencode-server-4096.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid,
@@ -1410,7 +1410,7 @@ describe('OpenCodeProcess server ownership leases', () => {
             '',
             false,
             source === 'different-key'
-              ? join(root, 'servers/varro-opencode-server-4196.json')
+              ? join(root, 'servers/loomery-opencode-server-4196.json')
               : undefined
           );
           if (source === 'legacy-vault')
@@ -1543,14 +1543,14 @@ describe('OpenCodeProcess server ownership leases', () => {
     'reconnects quietly on $platform using real $record ownership records',
     async ({ platform, record }) => {
       Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-      const root = await mkdtemp(join(tmpdir(), `varro-${platform}-reconnect-`));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), `loomery-${platform}-reconnect-`));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
       await mkdir(directory, { recursive: true, mode: 0o700 });
-      const automaticPath = join(directory, 'varro-opencode-server-4096.json');
+      const automaticPath = join(directory, 'loomery-opencode-server-4096.json');
       const path =
         record === 'discovered-marker'
-          ? join(directory, 'varro-opencode-server-4196.json')
+          ? join(directory, 'loomery-opencode-server-4196.json')
           : automaticPath;
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -1561,7 +1561,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           platform === 'win32'
             ? 'win32:639268000000000000'
             : 'linux:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa:12345',
-        owner: 'varro-launch',
+        owner: 'loomery-launch',
         host: 'previous-vscode',
         state: 'relinquished',
         createdAt: Date.now(),
@@ -1641,10 +1641,10 @@ describe('OpenCodeProcess server ownership leases', () => {
     'checks $platform $record ownership handoff during admission with $change',
     async ({ platform, record, change }) => {
       Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-      const root = await mkdtemp(join(tmpdir(), `varro-${platform}-admission-handoff-`));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), `loomery-${platform}-admission-handoff-`));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
-      const path = join(directory, 'varro-opencode-server-4096.json');
+      const path = join(directory, 'loomery-opencode-server-4096.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: 42424,
@@ -1654,7 +1654,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           platform === 'win32'
             ? 'win32:639268000000000000'
             : 'linux:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa:12345',
-        owner: 'original-varro-launch',
+        owner: 'original-loomery-launch',
         host: 'previous-editor',
         state: 'relinquished',
         createdAt: Date.now(),
@@ -1768,16 +1768,16 @@ describe('OpenCodeProcess server ownership leases', () => {
     'recreates a Linux marker lease with credentials confined to the %s',
     async (endpoint) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-linux-marker-credentials-'));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), 'loomery-linux-marker-credentials-'));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
-      const path = join(directory, 'varro-opencode-server-4096.json');
+      const path = join(directory, 'loomery-opencode-server-4096.json');
       const marker = {
         pid: 42424,
         port: 51197,
         executable: '/usr/bin/opencode',
         birthIdentity: 'linux:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa:12345',
-        owner: 'original-varro-launch',
+        owner: 'original-loomery-launch',
         createdAt: Date.now(),
       };
       const password = 'fixture-discovered-password';
@@ -1830,14 +1830,14 @@ describe('OpenCodeProcess server ownership leases', () => {
     'wrong-executable',
   ] as const)('does not quietly admit a Windows ownership marker with %s', async (failure) => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-windows-marker-rejection-'));
-    const path = join(root, 'varro-opencode-server-4096.json');
+    const root = await mkdtemp(join(tmpdir(), 'loomery-windows-marker-rejection-'));
+    const path = join(root, 'loomery-opencode-server-4096.json');
     const marker = {
       pid: 42424,
       port: failure === 'wrong-port' ? 51198 : 51197,
       executable: 'C:\\Users\\fixture\\opencode.exe',
       birthIdentity: 'win32:639268000000000000',
-      owner: 'varro-launch',
+      owner: 'loomery-launch',
       createdAt: Date.now(),
     };
     vi.spyOn(processInspection, 'findListeningPids').mockResolvedValue(
@@ -1872,14 +1872,14 @@ describe('OpenCodeProcess server ownership leases', () => {
     'blocks quiet Windows admission when the marker is %s during inspection',
     async (change) => {
       Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-windows-marker-change-'));
-      const path = join(root, 'varro-opencode-server-4096.json');
+      const root = await mkdtemp(join(tmpdir(), 'loomery-windows-marker-change-'));
+      const path = join(root, 'loomery-opencode-server-4096.json');
       const marker = {
         pid: 42424,
         port: 51197,
         executable: 'C:\\Users\\fixture\\opencode.exe',
         birthIdentity: 'win32:639268000000000000',
-        owner: 'varro-launch',
+        owner: 'loomery-launch',
         createdAt: Date.now(),
       };
       vi.spyOn(processInspection, 'findListeningPids').mockResolvedValue([marker.pid]);
@@ -1916,11 +1916,11 @@ describe('OpenCodeProcess server ownership leases', () => {
   describe('credential-backed shared-service replacement', () => {
     async function fixture(automaticKey = false) {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-credential-replacement-'));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), 'loomery-credential-replacement-'));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
       await mkdir(directory, { recursive: true, mode: 0o700 });
-      const path = join(directory, `varro-opencode-server-${automaticKey ? 4096 : 4196}.json`);
+      const path = join(directory, `loomery-opencode-server-${automaticKey ? 4096 : 4196}.json`);
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: MOCK_LINUX_PID + 1,
@@ -1931,7 +1931,7 @@ describe('OpenCodeProcess server ownership leases', () => {
         host: 'original-editor',
         state: 'relinquished',
         createdAt: Date.now() - 1000,
-        password: 'fixture-varro-password',
+        password: 'fixture-loomery-password',
         configPath: join(root, 'retired-config/opencode.json'),
       };
       await writeFile(path, JSON.stringify(lease), { mode: 0o600 });
@@ -1983,7 +1983,7 @@ describe('OpenCodeProcess server ownership leases', () => {
             );
           }
           if (mode === 'multiple-retired-records') {
-            selectedPath = join(state.directory, 'varro-opencode-server-4197.json');
+            selectedPath = join(state.directory, 'loomery-opencode-server-4197.json');
             await writeFile(
               selectedPath,
               JSON.stringify({ ...lease, owner: 'newer-launch', createdAt: lease.createdAt + 1 }),
@@ -2196,7 +2196,7 @@ describe('OpenCodeProcess server ownership leases', () => {
       }
     });
 
-    it('does not grant managed admission from discovered credentials without a Varro lease', async () => {
+    it('does not grant managed admission from discovered credentials without a Loomery lease', async () => {
       const { root, directory, path, manager } = await fixture();
       try {
         await rm(path);
@@ -2291,7 +2291,7 @@ describe('OpenCodeProcess server ownership leases', () => {
         expect(kill.mock.calls.every(([, signal]) => signal === 0)).toBe(true);
         expect(
           (await readdir(join(root, 'servers'))).filter((name) => name.endsWith('.json'))
-        ).toEqual(['varro-opencode-server-4196.json']);
+        ).toEqual(['loomery-opencode-server-4196.json']);
         await manager.disposeProcess({ stopProcess: false });
         await contender.disposeProcess({ stopProcess: false });
       } finally {
@@ -2304,11 +2304,11 @@ describe('OpenCodeProcess server ownership leases', () => {
     'keeps %s discovery ownership on the same path across editor reconnects',
     async (location) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-reconnect-discovery-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-reconnect-discovery-'));
       vi.stubEnv('XDG_STATE_HOME', root);
-      const directory = location === 'legacy' ? tmpdir() : join(root, 'varro', 'servers');
+      const directory = location === 'legacy' ? tmpdir() : join(root, 'loomery', 'servers');
       await mkdir(directory, { recursive: true, mode: 0o700 });
-      const path = join(directory, 'varro-opencode-server-4194.json');
+      const path = join(directory, 'loomery-opencode-server-4194.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: MOCK_LINUX_PID,
@@ -2338,7 +2338,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           expect(await readFile(path, 'utf8')).toBe(raw);
         }
         await expect(
-          stat(join(root, 'varro/servers/varro-opencode-server-4096.json'))
+          stat(join(root, 'loomery/servers/loomery-opencode-server-4096.json'))
         ).rejects.toMatchObject({ code: 'ENOENT' });
       } finally {
         await rm(path, { force: true });
@@ -2351,16 +2351,16 @@ describe('OpenCodeProcess server ownership leases', () => {
     'recovers a discovered shared service from its original %s coordination key',
     async (record) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-discovered-ownership-'));
-      const automaticPath = join(root, 'varro-opencode-server-4096.json');
-      const discoveredLeasePath = join(root, 'varro-opencode-server-4196.json');
+      const root = await mkdtemp(join(tmpdir(), 'loomery-discovered-ownership-'));
+      const automaticPath = join(root, 'loomery-opencode-server-4096.json');
+      const discoveredLeasePath = join(root, 'loomery-opencode-server-4196.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: MOCK_LINUX_PID,
         port: 49374,
         executable: '/usr/bin/opencode',
         birthIdentity: 'linux:Fri Jul 10 12:00:00 2026',
-        owner: 'original-varro-launch',
+        owner: 'original-loomery-launch',
         host: 'another-editor',
         state: record === 'relinquished-lease' ? 'relinquished' : 'active',
         createdAt: Date.now(),
@@ -2420,11 +2420,11 @@ describe('OpenCodeProcess server ownership leases', () => {
     'does not adopt discovered ownership with a %s mismatch or ambiguity',
     async (mismatch) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-discovered-mismatch-'));
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      const root = await mkdtemp(join(tmpdir(), 'loomery-discovered-mismatch-'));
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       const directory = join(root, 'servers');
       await mkdir(directory, { recursive: true, mode: 0o700 });
-      const discoveredLeasePath = join(directory, 'varro-opencode-server-4196.json');
+      const discoveredLeasePath = join(directory, 'loomery-opencode-server-4196.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: mismatch === 'pid' ? MOCK_LINUX_PID + 1 : MOCK_LINUX_PID,
@@ -2441,7 +2441,7 @@ describe('OpenCodeProcess server ownership leases', () => {
       await writeFile(discoveredLeasePath, raw, { mode: 0o600 });
       if (mismatch === 'public') await chmod(discoveredLeasePath, 0o644);
       if (mismatch === 'conflict')
-        await writeFile(join(directory, 'varro-opencode-server-4197.json'), raw, { mode: 0o600 });
+        await writeFile(join(directory, 'loomery-opencode-server-4197.json'), raw, { mode: 0o600 });
       mockLinuxLeaseProcess({ port: lease.port });
       const manager = new OpenCodeProcess('auto', true);
       manager.port = lease.port;
@@ -2452,7 +2452,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           );
         else if (mismatch === 'conflict')
           await expect(manager.refreshDiscoveredServerRegistration()).rejects.toThrow(
-            'Conflicting Varro registrations'
+            'Conflicting Loomery registrations'
           );
         else await expect(manager.refreshDiscoveredServerRegistration()).resolves.toBe(false);
         expect(manager.port).toBe(lease.port);
@@ -2460,7 +2460,7 @@ describe('OpenCodeProcess server ownership leases', () => {
         expect(manager.hasOwnershipLeaseCandidate).toBe(false);
         expect(await readFile(discoveredLeasePath, 'utf8')).toBe(raw);
         await expect(
-          stat(join(directory, 'varro-opencode-server-4096.json'))
+          stat(join(directory, 'loomery-opencode-server-4096.json'))
         ).rejects.toMatchObject({ code: 'ENOENT' });
       } finally {
         await rm(root, { recursive: true, force: true });
@@ -2470,9 +2470,9 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not discover production or legacy ownership records from an AI test scope', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-discovery-isolation-'));
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
-    const path = join(tmpdir(), 'varro-opencode-server-49374.json');
+    const root = await mkdtemp(join(tmpdir(), 'loomery-discovery-isolation-'));
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
+    const path = join(tmpdir(), 'loomery-opencode-server-49374.json');
     const lease: ManagedServerOwnershipLease = {
       version: 1,
       pid: MOCK_LINUX_PID,
@@ -2500,9 +2500,9 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('rejects public and symlinked default ownership records without altering them', async (context) => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-private-record-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-private-record-'));
     vi.stubEnv('XDG_STATE_HOME', root);
-    const path = join(root, 'varro', 'servers', 'varro-opencode-server-59997.json');
+    const path = join(root, 'loomery', 'servers', 'loomery-opencode-server-59997.json');
     await mkdir(dirname(path), { recursive: true, mode: 0o700 });
     const victim = join(root, 'original');
     await writeFile(victim, 'keep');
@@ -2524,7 +2524,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('uses verified private lease credentials without waiting for the editor vault', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-managed-secrets-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-managed-secrets-'));
     const path = join(root, 'lease.json');
     const lease: ManagedServerOwnershipLease = {
       version: 1,
@@ -2548,7 +2548,7 @@ describe('OpenCodeProcess server ownership leases', () => {
       await expect(manager.recoverManagedServerOwnership()).resolves.toBe(true);
       await manager.persistManagedServerCredentials(secrets);
       expect(secrets.store).toHaveBeenCalledWith(
-        `varro.opencode.managedCredentials:${path}`,
+        `loomery.opencode.managedCredentials:${path}`,
         JSON.stringify({ owner: lease.owner, username: lease.username, password: lease.password })
       );
       const authorization = manager.serverAuthorization;
@@ -2567,7 +2567,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('restores vault credentials only for the matching credentialless lease', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-managed-secrets-fallback-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-managed-secrets-fallback-'));
     const path = join(root, 'lease.json');
     const lease: ManagedServerOwnershipLease = {
       version: 1,
@@ -2632,7 +2632,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'reuses a live legacy fallback with %s without rewriting its lease',
     async (port) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-port-migration-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-port-migration-'));
       const path = join(root, 'lease.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -2675,7 +2675,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'forgets a retired %s lease with its file %s before shared-service attachment',
     async (cache, record) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-retired-cache-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-retired-cache-'));
       const path = join(root, 'lease.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -2733,7 +2733,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'retains cached evidence when a removed lease is %s',
     async (state) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-live-cache-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-live-cache-'));
       const path = join(root, 'lease.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -2778,8 +2778,8 @@ describe('OpenCodeProcess server ownership leases', () => {
     'selects the next launch port after a legacy server exits with setting %s',
     async (port) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-retired-registration-'));
-      const path = join(root, 'varro-opencode-server-4096.json');
+      const root = await mkdtemp(join(tmpdir(), 'loomery-retired-registration-'));
+      const path = join(root, 'loomery-opencode-server-4096.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
         pid: MOCK_LINUX_PID,
@@ -2816,7 +2816,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('restores a marked fallback when its lease was lost', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-marker-migration-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-marker-migration-'));
     const path = join(root, 'lease.json');
     const marker = {
       pid: MOCK_LINUX_PID,
@@ -2850,7 +2850,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'explains a live $record verification failure for $mismatch without changing it',
     async ({ record, mismatch }) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-ownership-diagnostics-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-ownership-diagnostics-'));
       const path = join(root, 'lease.json');
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -2907,7 +2907,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not redirect an explicit port to a newly registered automatic endpoint', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-fixed-migration-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-fixed-migration-'));
     const path = join(root, 'lease.json');
     const lease = {
       version: 1,
@@ -2944,7 +2944,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'retains live ownership credentials during $action with $mismatch evidence',
     async ({ action, mismatch }) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-live-lease-retention-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-live-lease-retention-'));
       const path = join(root, 'lease.json');
       const procRoot = join(root, 'proc');
       const manager = new OpenCodeProcess('auto', true, '', false, path, procRoot);
@@ -2992,7 +2992,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not start over corrupt registration or failed process inspection', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const root = await mkdtemp(join(tmpdir(), 'varro-corrupt-migration-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-corrupt-migration-'));
     const path = join(root, 'lease.json');
     await writeFile(path, '{broken');
     try {
@@ -3029,7 +3029,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     'retires ownership during $action after verified $retirement',
     async ({ action, retirement }) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-retired-lease-cleanup-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-retired-lease-cleanup-'));
       const path = join(root, 'lease.json');
       const manager = new OpenCodeProcess('auto', true, '', false, path, join(root, 'proc'));
       await setAdoptedOwnership(manager, path, 'linux:original-process');
@@ -3055,7 +3055,7 @@ describe('OpenCodeProcess server ownership leases', () => {
   );
 
   it('serializes competing initial launches and releases the claim idempotently', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'varro-launch-claim-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-launch-claim-'));
     const path = join(root, 'lease.json');
     const first = new OpenCodeProcess('auto', true, '', false, path);
     const second = new OpenCodeProcess('auto', true, '', false, path);
@@ -3113,11 +3113,11 @@ describe('OpenCodeProcess server ownership leases', () => {
     const path = (manager as unknown as { ownershipLeasePath: string }).ownershipLeasePath;
     const directory =
       platform === 'win32'
-        ? join(tmpdir(), 'appdata', 'Varro', 'servers')
+        ? join(tmpdir(), 'appdata', 'Loomery', 'servers')
         : platform === 'darwin'
-          ? join(homedir(), 'Library', 'Application Support', 'Varro', 'servers')
-          : join(tmpdir(), 'state', 'varro', 'servers');
-    expect(path).toBe(join(directory, 'varro-opencode-server-49876.json'));
+          ? join(homedir(), 'Library', 'Application Support', 'Loomery', 'servers')
+          : join(tmpdir(), 'state', 'loomery', 'servers');
+    expect(path).toBe(join(directory, 'loomery-opencode-server-49876.json'));
     await expect(stat(path)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
@@ -3125,17 +3125,17 @@ describe('OpenCodeProcess server ownership leases', () => {
     'isolates AI claims from persistent and legacy editor records on %s',
     async (platform) => {
       Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-test-claims-'));
-      const legacy = join(tmpdir(), 'varro-opencode-server-49879.json');
+      const root = await mkdtemp(join(tmpdir(), 'loomery-test-claims-'));
+      const legacy = join(tmpdir(), 'loomery-opencode-server-49879.json');
       const raw = '{existing editor record must remain untouched}';
       await writeFile(legacy, raw);
-      vi.stubEnv('VARRO_TEST_SERVER_URL', 'http://127.0.0.1:49879');
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', root);
+      vi.stubEnv('LOOMERY_TEST_SERVER_URL', 'http://127.0.0.1:49879');
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', root);
       try {
-        const managers = ['VSCode', 'VSCode-Nightly', 'VSCodium', 'Varro-OpenJet'].map(
+        const managers = ['VSCode', 'VSCode-Nightly', 'VSCodium', 'Loomery-OpenJet'].map(
           () => new OpenCodeProcess(49879, true)
         );
-        const expected = join(root, 'servers', 'varro-opencode-server-49879.json');
+        const expected = join(root, 'servers', 'loomery-opencode-server-49879.json');
         for (const manager of managers)
           expect((manager as unknown as { ownershipLeasePath: string }).ownershipLeasePath).toBe(
             expected
@@ -3151,7 +3151,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('keeps an existing legacy lease as the coordination point', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const path = join(tmpdir(), 'varro-opencode-server-49877.json');
+    const path = join(tmpdir(), 'loomery-opencode-server-49877.json');
     const lease: ManagedServerOwnershipLease = {
       version: 1,
       pid: MOCK_LINUX_PID,
@@ -3179,7 +3179,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     const executable = join(root, 'opencode.exe');
     const command = join(root, 'opencode2');
     await writeFile(executable, 'updated binary');
-    const path = join(tmpdir(), 'varro-opencode-server-49878.json');
+    const path = join(tmpdir(), 'loomery-opencode-server-49878.json');
     const marker = {
       pid: MOCK_LINUX_PID,
       port: 49878,
@@ -3264,8 +3264,8 @@ describe('OpenCodeProcess server ownership leases', () => {
           let output = '';
           if (command === 'netstat.exe')
             output = `TCP 127.0.0.1:4096 0.0.0.0:0 LISTENING ${MOCK_LINUX_PID}`;
-          else if (script.includes('VARRO_EXECUTABLE='))
-            output = `VARRO_EXECUTABLE=${executable.toLowerCase()}\nVARRO_BIRTH=123456`;
+          else if (script.includes('LOOMERY_EXECUTABLE='))
+            output = `LOOMERY_EXECUTABLE=${executable.toLowerCase()}\nLOOMERY_BIRTH=123456`;
           else if (
             (command === 'lsof' && args.some((arg) => arg.startsWith('-tiTCP:'))) ||
             script.includes('Get-NetTCPConnection')
@@ -3565,7 +3565,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           if (inspections > 1 && birth) {
             child.stdout.emit(
               'data',
-              Buffer.from(`VARRO_EXECUTABLE=${lease.executable}\nVARRO_BIRTH=${birth}`)
+              Buffer.from(`LOOMERY_EXECUTABLE=${lease.executable}\nLOOMERY_BIRTH=${birth}`)
             );
             child.emit('close', 0);
           } else {
@@ -3596,7 +3596,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('keeps adopted ownership when its listener identity is still alive', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const manager = new OpenCodeProcess(4096, true, 'opencode', false, leasePath);
     await setAdoptedOwnership(manager, leasePath);
@@ -3616,7 +3616,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('cleans adopted ownership when its listener disappears without signalling a PID', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const manager = new OpenCodeProcess(4096, true, 'opencode', false, leasePath);
     await setAdoptedOwnership(manager, leasePath);
@@ -3643,7 +3643,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('cleans a reused adopted PID without signalling the replacement process', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const manager = new OpenCodeProcess(4096, true, 'opencode', false, leasePath);
     await setAdoptedOwnership(manager, leasePath, 'linux:old-process');
@@ -3664,7 +3664,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     if (originalPlatform === 'win32')
       context.skip('Linux procfs fixtures require POSIX socket symlinks');
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const procRoot = join(directory, 'proc');
     const wrapperPid = MOCK_WINDOWS_PID;
@@ -3766,7 +3766,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('lets an attached host claim after the owner relinquishes without reloading', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const procRoot = join(directory, 'proc');
     let listening = true;
@@ -3837,7 +3837,7 @@ describe('OpenCodeProcess server ownership leases', () => {
       state: 'active',
       createdAt: expect.any(Number),
     });
-    expect(serverEnv?.VARRO_SERVER_OWNER).toBe(lease.owner);
+    expect(serverEnv?.LOOMERY_SERVER_OWNER).toBe(lease.owner);
 
     const second = new OpenCodeProcess(4096, true, 'opencode', false, leasePath, procRoot);
     await expect(second.recoverManagedServerOwnership()).resolves.toBe(false);
@@ -3872,7 +3872,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not signal a POSIX listener whose executable does not match the lease', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -3910,7 +3910,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
     await expect(manager.recoverManagedServerOwnership()).resolves.toBe(false);
     await expect(manager.stopServerForRestart()).rejects.toThrow(
-      'Port 4096 is occupied by a process Varro does not own'
+      'Port 4096 is occupied by a process Loomery does not own'
     );
 
     expect(kill).toHaveBeenCalledWith(777, 0);
@@ -3922,7 +3922,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('retries Windows ownership confirmation while the listener becomes visible', async () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const child = Object.assign(new EventEmitter(), {
       pid: MOCK_WINDOWS_PID,
@@ -3954,10 +3954,10 @@ describe('OpenCodeProcess server ownership leases', () => {
             'data',
             Buffer.from(
               [
-                `VARRO_PID=${MOCK_WINDOWS_PID}`,
-                'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe',
-                'VARRO_BIRTH=123456',
-                'VARRO_HOST_BIRTH=654321',
+                `LOOMERY_PID=${MOCK_WINDOWS_PID}`,
+                'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe',
+                'LOOMERY_BIRTH=123456',
+                'LOOMERY_HOST_BIRTH=654321',
               ].join('\n')
             )
           );
@@ -3987,7 +3987,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('uses exact netstat listeners with one Windows process snapshot', async () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const wrapperPid = MOCK_WINDOWS_PID;
     const listenerPid = MOCK_WINDOWS_PID + 1;
@@ -4023,10 +4023,10 @@ describe('OpenCodeProcess server ownership leases', () => {
             'data',
             Buffer.from(
               [
-                `VARRO_PID=${listenerPid}`,
-                'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe',
-                'VARRO_BIRTH=123456',
-                'VARRO_HOST_BIRTH=654321',
+                `LOOMERY_PID=${listenerPid}`,
+                'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe',
+                'LOOMERY_BIRTH=123456',
+                'LOOMERY_HOST_BIRTH=654321',
               ].join('\n')
             )
           );
@@ -4062,7 +4062,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('rejects a netstat listener that is not descended from the launched Windows process', async () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const wrapperPid = MOCK_WINDOWS_PID;
     const listenerPid = MOCK_WINDOWS_PID + 1;
@@ -4113,7 +4113,7 @@ describe('OpenCodeProcess server ownership leases', () => {
   it('allows slow Windows process inspection to finish', async () => {
     vi.useFakeTimers();
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const child = Object.assign(new EventEmitter(), {
       pid: MOCK_WINDOWS_PID,
@@ -4147,10 +4147,10 @@ describe('OpenCodeProcess server ownership leases', () => {
             'data',
             Buffer.from(
               [
-                `VARRO_PID=${MOCK_WINDOWS_PID}`,
-                'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe',
-                'VARRO_BIRTH=123456',
-                'VARRO_HOST_BIRTH=654321',
+                `LOOMERY_PID=${MOCK_WINDOWS_PID}`,
+                'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe',
+                'LOOMERY_BIRTH=123456',
+                'LOOMERY_HOST_BIRTH=654321',
               ].join('\n')
             )
           );
@@ -4179,7 +4179,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('taskkills only a recovered Windows listener matching the lease', async () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -4208,10 +4208,10 @@ describe('OpenCodeProcess server ownership leases', () => {
         if (command === 'netstat.exe') {
           if (listening)
             result.stdout.emit('data', Buffer.from('TCP 127.0.0.1:4096 0.0.0.0:0 LISTENING 777\n'));
-        } else if (command === 'powershell.exe' && script.includes('VARRO_EXECUTABLE=')) {
+        } else if (command === 'powershell.exe' && script.includes('LOOMERY_EXECUTABLE=')) {
           result.stdout.emit(
             'data',
-            Buffer.from('VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456\n')
+            Buffer.from('LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456\n')
           );
         } else if (command === 'powershell.exe' && script.includes('ExecutablePath')) {
           result.stdout.emit('data', Buffer.from('C:\\OpenCode\\opencode.exe\n'));
@@ -4240,7 +4240,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('cleans a stale lease and restores the configured port', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -4282,7 +4282,7 @@ describe('OpenCodeProcess server ownership leases', () => {
   });
 
   it('rejects an old lease without a process birth identity', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -4308,7 +4308,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('rejects a reused PID even when its listener and executable match', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -4340,7 +4340,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('rechecks birth identity immediately before signalling a matching executable', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -4377,7 +4377,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('attaches as unmanaged while another extension host has an active lease', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const procRoot = join(directory, 'proc');
     const activeLease = {
@@ -4419,7 +4419,7 @@ describe('OpenCodeProcess server ownership leases', () => {
     expect(readInstalledCliVersion).not.toHaveBeenCalled();
     expect(restartServerForCliUpdate).not.toHaveBeenCalled();
     await expect(manager.stopServerForRestart()).rejects.toThrow(
-      'Port 4096 is occupied by a process Varro does not own'
+      'Port 4096 is occupied by a process Loomery does not own'
     );
     expect(kill).toHaveBeenCalledWith(process.pid, 0);
     expect(kill.mock.calls.every(([, signal]) => signal === 0)).toBe(true);
@@ -4430,7 +4430,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('reclaims an active lease after its extension host exits unexpectedly', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     const procRoot = join(directory, 'proc');
     const deadHostPid = MOCK_LINUX_PID - 1;
@@ -4716,9 +4716,9 @@ describe('OpenCodeProcess server ownership leases', () => {
     }
   });
 
-  it('recovers and restarts a Varro-marked server when its lease is missing', async () => {
+  it('recovers and restarts a Loomery-marked server when its lease is missing', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await Promise.all([
       writeFile(
@@ -4769,7 +4769,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('keeps a live host claim and does not remove a replacement claim', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       `${leasePath}.managed`,
@@ -4823,7 +4823,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not take ownership of an unmarked listener when auto-start is enabled', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     mockLinuxLeaseProcess();
     const manager = new OpenCodeProcess(4096, true, '/usr/bin/opencode', false, leasePath);
@@ -4837,8 +4837,8 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('recovers a legacy marked server on macOS from its inherited environment', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
-    const configDirectory = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
+    const configDirectory = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
     const leasePath = join(directory, 'lease.json');
     const configPath = join(configDirectory, 'opencode.json');
     const pid = MOCK_WINDOWS_PID;
@@ -4869,7 +4869,7 @@ describe('OpenCodeProcess server ownership leases', () => {
           result.stdout.emit(
             'data',
             Buffer.from(
-              `/usr/bin/opencode serve --port 4096 OPENCODE_CONFIG=${configPath} VARRO_SERVER_OWNER=legacy-owner\n`
+              `/usr/bin/opencode serve --port 4096 OPENCODE_CONFIG=${configPath} LOOMERY_SERVER_OWNER=legacy-owner\n`
             )
           );
         }
@@ -4895,8 +4895,8 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('recovers an identity-marked server on Windows without environment inspection', async () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
-    const configDirectory = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
+    const configDirectory = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
     const leasePath = join(directory, 'lease.json');
     const configPath = join(configDirectory, 'opencode.json');
     const pid = MOCK_WINDOWS_PID;
@@ -4928,10 +4928,10 @@ describe('OpenCodeProcess server ownership leases', () => {
             'data',
             Buffer.from(`TCP 127.0.0.1:4096 0.0.0.0:0 LISTENING ${pid}\n`)
           );
-        } else if (command === 'powershell.exe' && script.includes('VARRO_EXECUTABLE=')) {
+        } else if (command === 'powershell.exe' && script.includes('LOOMERY_EXECUTABLE=')) {
           result.stdout.emit(
             'data',
-            Buffer.from('VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456\n')
+            Buffer.from('LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456\n')
           );
         } else if (command === 'powershell.exe' && script.includes('ExecutablePath')) {
           result.stdout.emit('data', Buffer.from('C:\\OpenCode\\opencode.exe\n'));
@@ -4960,7 +4960,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('does not take ownership of an existing server when auto-start is disabled', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     mockLinuxLeaseProcess({ parentPid: 42 });
     const manager = new OpenCodeProcess(4096, false, '/usr/bin/opencode', false, leasePath);
@@ -4974,7 +4974,7 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('falls back to ss when lsof is unavailable on Linux', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
     await writeFile(
       leasePath,
@@ -5002,9 +5002,9 @@ describe('OpenCodeProcess server ownership leases', () => {
 
   it('rejects a recovered config path outside a direct managed tmp directory', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const leasePath = join(directory, 'lease.json');
-    const victimDirectory = await mkdtemp(join(tmpdir(), 'varro-malicious-config-'));
+    const victimDirectory = await mkdtemp(join(tmpdir(), 'loomery-malicious-config-'));
     const victimConfig = join(victimDirectory, 'opencode.json');
     await writeFile(victimConfig, '{"keep":true}', 'utf-8');
     await writeFile(
@@ -5078,7 +5078,7 @@ describe('OpenCodeProcess config ownership', () => {
   it.each(['missing', 'caller-config', 'native-ask', 'legacy-ask', 'malformed'])(
     'preserves caller configuration during runtime Ask recovery: %s',
     async (scenario) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-ask-recovery-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-ask-recovery-'));
       process.env.XDG_CONFIG_HOME = root;
       if (scenario === 'caller-config') process.env.OPENCODE_CONFIG = '/fixture/opencode.json';
       if (scenario === 'native-ask')
@@ -5101,7 +5101,7 @@ describe('OpenCodeProcess config ownership', () => {
   ])(
     'uses the running $running version instead of installed $installed for runtime rewrites',
     async ({ installed, running, expected }) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-stream-live-version-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-stream-live-version-'));
       process.env.XDG_CONFIG_HOME = root;
       const manager = new OpenCodeProcess(4096, true, 'opencode');
       manager.rememberInstalledCliVersion(installed);
@@ -5127,7 +5127,7 @@ describe('OpenCodeProcess config ownership', () => {
     'untrusted-owner',
     'old-version',
   ])('reconciles an owned reused timeout policy safely: %s', async (scenario) => {
-    const root = await mkdtemp(join(tmpdir(), 'varro-stream-reused-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-stream-reused-'));
     process.env.XDG_CONFIG_HOME = root;
     const manager = new OpenCodeProcess(4096, true, 'opencode', false, join(root, 'lease.json'));
     await manager.syncInjectedConfigFile();
@@ -5218,7 +5218,7 @@ describe('OpenCodeProcess config ownership', () => {
     },
     { name: 'malformed config', content: '{broken', expected: false },
   ])('bounds managed V2 OpenAI silence while preserving $name', async ({ content, expected }) => {
-    const configHome = await mkdtemp(join(tmpdir(), 'varro-stream-timeout-'));
+    const configHome = await mkdtemp(join(tmpdir(), 'loomery-stream-timeout-'));
     process.env.XDG_CONFIG_HOME = configHome;
     process.env.OPENCODE_CONFIG_CONTENT = content;
     const manager = new OpenCodeProcess(4096, true, 'opencode');
@@ -5236,7 +5236,7 @@ describe('OpenCodeProcess config ownership', () => {
   it.each(['opencode.jsonc', '.opencode/opencode.jsonc'])(
     'preserves an ancestor %s OpenAI timeout without modifying its config',
     async (filename) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-stream-ancestor-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-stream-ancestor-'));
       process.env.XDG_CONFIG_HOME = join(root, 'config');
       const workspace = join(root, 'parent/project');
       const configPath = join(root, 'parent', filename);
@@ -5263,7 +5263,7 @@ describe('OpenCodeProcess config ownership', () => {
   it.each(['1.18.33', '2.0.5', '2.0.19'])(
     'does not inject unverified stream settings for OpenCode %s',
     async (version) => {
-      const root = await mkdtemp(join(tmpdir(), 'varro-stream-version-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-stream-version-'));
       process.env.XDG_CONFIG_HOME = root;
       const manager = new OpenCodeProcess(4096, true, 'opencode');
       manager.rememberInstalledCliVersion(version);
@@ -5286,7 +5286,7 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('automatically injects the Ask agent only into the temporary runtime config', async () => {
-    const configHome = await mkdtemp(join(tmpdir(), 'varro-empty-config-'));
+    const configHome = await mkdtemp(join(tmpdir(), 'loomery-empty-config-'));
     process.env.XDG_CONFIG_HOME = configHome;
     const manager = new OpenCodeProcess(4096, true, 'opencode');
 
@@ -5323,7 +5323,7 @@ describe('OpenCodeProcess config ownership', () => {
   );
 
   it('prefers an Ask agent from an ancestor project OpenCode config', async () => {
-    const project = await mkdtemp(join(tmpdir(), 'varro-project-config-'));
+    const project = await mkdtemp(join(tmpdir(), 'loomery-project-config-'));
     const workspace = join(project, 'packages', 'app');
     await mkdir(workspace, { recursive: true });
     await mkdir(join(project, '.git'));
@@ -5332,7 +5332,7 @@ describe('OpenCodeProcess config ownership', () => {
       '{ "agent": { "ask": { "description": "Project agent" } } }',
       'utf-8'
     );
-    const configHome = await mkdtemp(join(tmpdir(), 'varro-empty-config-'));
+    const configHome = await mkdtemp(join(tmpdir(), 'loomery-empty-config-'));
     process.env.XDG_CONFIG_HOME = configHome;
     vscodeMock.workspace.workspaceFolders = [{ uri: { fsPath: workspace } }];
     const manager = new OpenCodeProcess(4096, true, 'opencode');
@@ -5348,7 +5348,7 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('checks nearer JSONC configs before JSON and ancestor configs', async () => {
-    const project = await mkdtemp(join(tmpdir(), 'varro-project-config-'));
+    const project = await mkdtemp(join(tmpdir(), 'loomery-project-config-'));
     const workspace = join(project, 'packages', 'app');
     await mkdir(workspace, { recursive: true });
     await mkdir(join(project, '.git'));
@@ -5361,7 +5361,7 @@ describe('OpenCodeProcess config ownership', () => {
       mkdir(join(workspace, 'opencode.json')),
       mkdir(join(project, 'opencode.jsonc')),
     ]);
-    const configHome = await mkdtemp(join(tmpdir(), 'varro-empty-config-'));
+    const configHome = await mkdtemp(join(tmpdir(), 'loomery-empty-config-'));
     process.env.XDG_CONFIG_HOME = configHome;
     vscodeMock.workspace.workspaceFolders = [{ uri: { fsPath: workspace } }];
     const manager = new OpenCodeProcess(4096, true, 'opencode');
@@ -5378,7 +5378,7 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('does not discover project configs above the git boundary', async () => {
-    const parent = await mkdtemp(join(tmpdir(), 'varro-project-config-'));
+    const parent = await mkdtemp(join(tmpdir(), 'loomery-project-config-'));
     const project = join(parent, 'repo');
     const workspace = join(project, 'packages', 'app');
     await mkdir(workspace, { recursive: true });
@@ -5388,7 +5388,7 @@ describe('OpenCodeProcess config ownership', () => {
       '{ "agent": { "ask": { "description": "Outer agent" } } }',
       'utf-8'
     );
-    const configHome = await mkdtemp(join(tmpdir(), 'varro-empty-config-'));
+    const configHome = await mkdtemp(join(tmpdir(), 'loomery-empty-config-'));
     process.env.XDG_CONFIG_HOME = configHome;
     vscodeMock.workspace.workspaceFolders = [{ uri: { fsPath: workspace } }];
     const manager = new OpenCodeProcess(4096, true, 'opencode');
@@ -5438,7 +5438,7 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('leaves inline and project continuation overrides for OpenCode to apply after defaults', async () => {
-    const project = await mkdtemp(join(tmpdir(), 'varro-project-config-'));
+    const project = await mkdtemp(join(tmpdir(), 'loomery-project-config-'));
     const projectConfig = join(project, 'opencode.json');
     const override = JSON.stringify({ experimental: { continue_loop_on_deny: false } });
     await writeFile(projectConfig, override, 'utf-8');
@@ -5768,7 +5768,7 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('cleans prepared config when attaching to an existing server', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
     const manager = new OpenCodeProcess(
       4096,
       false,
@@ -5790,8 +5790,8 @@ describe('OpenCodeProcess config ownership', () => {
 
   it('takes ownership when attaching to a marked OpenCode server', async () => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-server-lease-test-'));
-    const configDirectory = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-server-lease-test-'));
+    const configDirectory = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
     const leasePath = join(directory, 'lease.json');
     const configPath = join(configDirectory, 'opencode.json');
     await Promise.all([
@@ -5858,11 +5858,11 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('does not recursively delete through a managed-prefix directory symlink', async () => {
-    const victimDirectory = await mkdtemp(join(tmpdir(), 'varro-config-victim-'));
+    const victimDirectory = await mkdtemp(join(tmpdir(), 'loomery-config-victim-'));
     const victimConfig = join(victimDirectory, 'opencode.json');
     const linkedDirectory = join(
       tmpdir(),
-      `varro-opencode-config-linked-${process.pid}-${Date.now()}`
+      `loomery-opencode-config-linked-${process.pid}-${Date.now()}`
     );
     await writeFile(victimConfig, '{"keep":true}', 'utf-8');
     await symlink(
@@ -5884,9 +5884,9 @@ describe('OpenCodeProcess config ownership', () => {
   });
 
   it('sweeps only stale temporary config directories', async () => {
-    const stale = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
-    const live = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
-    const fresh = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
+    const stale = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
+    const live = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
+    const fresh = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
     await writeFile(join(stale, 'owner.json'), JSON.stringify({ pid: 999_999 }), 'utf-8');
     await writeFile(join(live, 'owner.json'), JSON.stringify({ pid: process.pid }), 'utf-8');
     const old = new Date(Date.now() - 8 * 24 * 60 * 60_000);
@@ -5902,7 +5902,7 @@ describe('OpenCodeProcess config ownership', () => {
     await expect(stat(stale)).rejects.toThrow();
     await expect(stat(live)).resolves.toBeTruthy();
     await expect(stat(fresh)).resolves.toBeTruthy();
-    const skipped = await mkdtemp(join(tmpdir(), 'varro-opencode-config-'));
+    const skipped = await mkdtemp(join(tmpdir(), 'loomery-opencode-config-'));
     await writeFile(join(skipped, 'owner.json'), JSON.stringify({ pid: 999_999 }), 'utf-8');
     await utimes(skipped, old, old);
     await sweepStaleInjectedConfigDirectories(sweepTime + 1);
@@ -5925,7 +5925,7 @@ describe('OpenCodeProcess install resolution', () => {
     'verifies shadowed CLI candidates with $configured, $laterVersion, $brokenWrapper',
     async ({ configured, laterVersion, brokenWrapper }) => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-      const root = await mkdtemp(join(tmpdir(), 'varro-shadowed-cli-'));
+      const root = await mkdtemp(join(tmpdir(), 'loomery-shadowed-cli-'));
       const early = join(root, 'early');
       const later = join(root, 'later');
       await mkdir(early);
@@ -5979,7 +5979,7 @@ describe('OpenCodeProcess install resolution', () => {
     { name: 'unmanaged server', configured: false, active: false, managed: false },
   ])('checks a newly installed v2 CLI for $name', async ({ configured, active, managed }) => {
     Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-opencode-discovery-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-opencode-discovery-'));
     const v1 = join(directory, 'opencode');
     const v2 = join(directory, 'opencode2');
     await writeFile(v1, '');
@@ -6048,7 +6048,7 @@ describe('OpenCodeProcess install resolution', () => {
     ['win32', '.bat'],
   ])('prefers v2 across search directories on %s with suffix %s', async (platform, suffix) => {
     Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-    const directory = await mkdtemp(join(tmpdir(), 'varro-opencode-discovery-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-opencode-discovery-'));
     const v1Directory = join(directory, 'v1');
     const v2Directory = join(directory, 'v2');
     await mkdir(v1Directory);
@@ -6090,7 +6090,7 @@ describe('OpenCodeProcess install resolution', () => {
   });
 
   it('reports a configured path that does not exist as missing', () => {
-    const missingPath = join(tmpdir(), 'varro-missing-opencode-binary');
+    const missingPath = join(tmpdir(), 'loomery-missing-opencode-binary');
     const manager = new OpenCodeProcess(4096, true, missingPath);
 
     const info = manager.getInstallInfo();
@@ -6103,7 +6103,7 @@ describe('OpenCodeProcess install resolution', () => {
   });
 
   it('reports a configured bare command that is absent from PATH as missing', () => {
-    const manager = new OpenCodeProcess(4096, true, 'varro-missing-opencode-command');
+    const manager = new OpenCodeProcess(4096, true, 'loomery-missing-opencode-command');
 
     const info = manager.getInstallInfo();
 
@@ -6113,7 +6113,7 @@ describe('OpenCodeProcess install resolution', () => {
   });
 
   it('resolves a configured bare command through the server PATH', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'varro-opencode-path-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-opencode-path-'));
     const binary = join(directory, 'opencode');
     await writeFile(binary, '#!/bin/sh\n', 'utf-8');
     // Windows worker environments are case-sensitive, unlike the native host.
@@ -6129,7 +6129,7 @@ describe('OpenCodeProcess install resolution', () => {
   });
 
   it('accepts a configured path that exists', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'varro-opencode-bin-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-opencode-bin-'));
     const binary = join(directory, 'opencode');
     await writeFile(binary, '#!/bin/sh\n', 'utf-8');
     try {
@@ -6142,7 +6142,7 @@ describe('OpenCodeProcess install resolution', () => {
   });
 
   it('uses updated launch settings without recreating the process manager', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'varro-opencode-settings-'));
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-opencode-settings-'));
     const binary = join(directory, 'opencode');
     await writeFile(binary, '#!/bin/sh\n', 'utf-8');
     try {

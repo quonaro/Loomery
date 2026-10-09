@@ -48,7 +48,7 @@ const CONFIG_PATHS = [
   '/home/tester/.config/opencode/opencode.jsonc',
 ] as const;
 const AUTH_PATH = '/home/tester/.local/share/opencode/auth.json';
-const PENDING_STATE_KEY = 'varro.providerRefresh.pending';
+const PENDING_STATE_KEY = 'loomery.providerRefresh.pending';
 const DEBOUNCE_MS = 250;
 const RETRY_MS = 1_000;
 

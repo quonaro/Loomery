@@ -24,7 +24,7 @@ vi.mock('../lib/client', () => ({
       getPermissionRulesForSession: mocks.loadSessionRules,
       savePermissionRulesForSession: mocks.saveSessionRules,
     },
-    varro: {
+    loomery: {
       openCodePermissionConfig: mocks.load,
       saveOpenCodePermissionConfig: mocks.save,
       serverMemoryPermissions: mocks.loadServerMemory,

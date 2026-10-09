@@ -5,7 +5,7 @@ import { asRecord, isNumber, isString, type UnknownRecord } from '../shared/type
 
 type Fetch = typeof fetch;
 
-export const JEV_API_KEY_SECRET = 'varro.typesafe.apiKey';
+export const JEV_API_KEY_SECRET = 'loomery.typesafe.apiKey';
 export const JEV_API_KEY_ENV = 'TYPESAFE_API_KEY';
 export const JEV_DEFAULT_MODEL = 'jev-latest';
 const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';

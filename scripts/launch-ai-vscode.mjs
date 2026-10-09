@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireIsolatedTestServer, testServerOrigin } from './ai-test-isolation.mjs';
 import { startAiTestServer } from './ai-test-server.mjs';
 import { copyHostModelPreferences } from './ai-test-host-settings.mjs';
-import { isolateVarroTestState } from './varro-test-state.mjs';
+import { isolateLoomeryTestState } from './loomery-test-state.mjs';
 
 import {
   executeVscodeCommand,
@@ -19,7 +19,7 @@ import {
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 async function resolveVscodeExecutable() {
-  const configured = process.env.VARRO_VSCODE_EXECUTABLE?.trim();
+  const configured = process.env.LOOMERY_VSCODE_EXECUTABLE?.trim();
   if (configured) {
     await access(configured);
     return configured;
@@ -43,18 +43,18 @@ async function resolveVscodeExecutable() {
   }
 
   throw new Error(
-    'Could not locate the VS Code application executable; set VARRO_VSCODE_EXECUTABLE to the GUI executable'
+    'Could not locate the VS Code application executable; set LOOMERY_VSCODE_EXECUTABLE to the GUI executable'
   );
 }
 
 const executable = await resolveVscodeExecutable();
-const workspace = path.resolve(process.env.VARRO_AI_WORKSPACE?.trim() || projectRoot);
+const workspace = path.resolve(process.env.LOOMERY_AI_WORKSPACE?.trim() || projectRoot);
 await access(workspace);
-const replayUrl = process.env.VARRO_AI_REPLAY_URL;
+const replayUrl = process.env.LOOMERY_AI_REPLAY_URL;
 const managedServer =
-  !replayUrl && !process.env.VARRO_AI_SERVER_URL ? await startAiTestServer(workspace) : undefined;
+  !replayUrl && !process.env.LOOMERY_AI_SERVER_URL ? await startAiTestServer(workspace) : undefined;
 const testServerUrl = testServerOrigin(
-  replayUrl ?? process.env.VARRO_AI_SERVER_URL ?? managedServer?.url
+  replayUrl ?? process.env.LOOMERY_AI_SERVER_URL ?? managedServer?.url
 );
 // A failed editor launch must not leave its automatically provisioned server running.
 let launchComplete = false;
@@ -79,7 +79,7 @@ process.once('uncaughtException', (error) => {
 });
 let isolation;
 if (replayUrl) {
-  const response = await fetch(new URL('/varro/test-isolation', testServerUrl), {
+  const response = await fetch(new URL('/loomery/test-isolation', testServerUrl), {
     redirect: 'error',
     signal: AbortSignal.timeout(5_000),
   });
@@ -99,7 +99,7 @@ await mkdir(extensions);
 await mkdir(path.join(userData, 'User'));
 if (managedServer) {
   const hostUserData =
-    process.env.VARRO_AI_HOST_USER_DATA ||
+    process.env.LOOMERY_AI_HOST_USER_DATA ||
     (process.platform === 'darwin'
       ? path.join(os.homedir(), 'Library/Application Support/Code')
       : process.platform === 'win32'
@@ -110,28 +110,28 @@ if (managedServer) {
 await writeFile(
   path.join(userData, 'User/settings.json'),
   JSON.stringify({
-    'varro.server.port': Number(new URL(testServerUrl).port),
-    'varro.server.autoStart': false,
-    'varro.server.autoUpdate': false,
+    'loomery.server.port': Number(new URL(testServerUrl).port),
+    'loomery.server.autoStart': false,
+    'loomery.server.autoUpdate': false,
   })
 );
 const remoteDebuggingPort = await reserveLoopbackPort();
-const configuredSidebarWidth = Number(process.env.VARRO_AI_SIDEBAR_WIDTH ?? 486);
+const configuredSidebarWidth = Number(process.env.LOOMERY_AI_SIDEBAR_WIDTH ?? 486);
 if (!Number.isFinite(configuredSidebarWidth) || configuredSidebarWidth < 300) {
-  throw new Error('VARRO_AI_SIDEBAR_WIDTH must be a number of at least 300 CSS pixels');
+  throw new Error('LOOMERY_AI_SIDEBAR_WIDTH must be a number of at least 300 CSS pixels');
 }
 
 const environment = { ...process.env };
 delete environment.ELECTRON_RUN_AS_NODE;
 delete environment.OPENCODE_PID;
-environment.VARRO_TEST_SERVER_URL = testServerUrl;
+environment.LOOMERY_TEST_SERVER_URL = testServerUrl;
 environment.XDG_DATA_HOME = isolation?.xdgDataHome ?? path.join(profileRoot, 'data');
 environment.XDG_STATE_HOME = path.join(profileRoot, 'state');
 environment.XDG_CACHE_HOME = path.join(profileRoot, 'cache');
 environment.XDG_CONFIG_HOME = managedServer?.configHome ?? path.join(profileRoot, 'config');
 environment.OPENCODE_DB = isolation?.sourceDatabase ?? path.join(profileRoot, 'opencode.db');
 environment.OPENCODE_PID = '';
-await isolateVarroTestState(environment, profileRoot);
+await isolateLoomeryTestState(environment, profileRoot);
 
 const vscodeArgs = [
   '--no-sandbox',
@@ -151,6 +151,7 @@ const vscodeArgs = [
   `--user-data-dir=${userData}`,
   `--extensions-dir=${extensions}`,
   `--extensionDevelopmentPath=${projectRoot}`,
+  '--enable-proposed-api=quonaro.loomery',
   workspace,
 ];
 const launchExecutable = process.platform === 'darwin' ? '/usr/bin/open' : executable;
@@ -161,8 +162,8 @@ const launchArgs =
         '-a',
         path.resolve(executable, '../../..'),
         ...[
-          'VARRO_TEST_SERVER_URL',
-          'VARRO_TEST_STATE_ROOT',
+          'LOOMERY_TEST_SERVER_URL',
+          'LOOMERY_TEST_STATE_ROOT',
           'HOME',
           'USERPROFILE',
           'LOCALAPPDATA',
@@ -185,9 +186,9 @@ const launchArgs =
       ]
     : vscodeArgs;
 // Preserve recovery identifiers before macOS hands the launch to LaunchServices.
-if (process.env.VARRO_AI_LAUNCH_INTENT) {
+if (process.env.LOOMERY_AI_LAUNCH_INTENT) {
   await writeFile(
-    process.env.VARRO_AI_LAUNCH_INTENT,
+    process.env.LOOMERY_AI_LAUNCH_INTENT,
     `${JSON.stringify(
       {
         executable,
@@ -244,7 +245,7 @@ const metadata = await writeVscodeLaunchMetadata(metadataPath, {
   remoteDebuggingPort,
 });
 metadata.testServerUrl = testServerUrl;
-metadata.varroTestStateRoot = environment.VARRO_TEST_STATE_ROOT;
+metadata.loomeryTestStateRoot = environment.LOOMERY_TEST_STATE_ROOT;
 metadata.isolation = isolation ?? { kind: 'read-only-replay' };
 if (managedServer) metadata.managedServerRoot = managedServer.root;
 await writeFile(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, { mode: 0o600 });
@@ -252,7 +253,7 @@ const focusDeadline = Date.now() + 30_000;
 let sidebarWidth;
 while (true) {
   try {
-    await executeVscodeCommand(remoteDebuggingPort, 'Varro: Focus on Varro View');
+    await executeVscodeCommand(remoteDebuggingPort, 'Loomery: Focus on Loomery View');
     sidebarWidth = await resizeVscodeSidebar(remoteDebuggingPort, configuredSidebarWidth, 2_000);
     break;
   } catch (error) {
@@ -278,4 +279,4 @@ if (managedServer)
   process.stdout.write(
     `Controller credentials: ${path.join(managedServer.root, 'controller-env.json')}\n`
   );
-process.stdout.write(`Varro sidebar width: ${String(sidebarWidth)}px\n`);
+process.stdout.write(`Loomery sidebar width: ${String(sidebarWidth)}px\n`);

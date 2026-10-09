@@ -171,12 +171,12 @@ for (const scenario of exitCases) {
           }> = [];
           const harness = (
             window as typeof window & {
-              __varroE2E: {
+              __loomeryE2E: {
                 getSessionMessages: (id: string) => MessageEntry[];
                 updateMessagePart: (part: Part) => void;
               };
             }
-          ).__varroE2E;
+          ).__loomeryE2E;
           const running = harness
             .getSessionMessages(options.sessionId)
             .flatMap((message) => message.parts)
@@ -402,8 +402,8 @@ for (const scenario of exitCases) {
               text: payload.text,
             };
             const harness = (
-              window as typeof window & { __varroE2E: { updateMessagePart: (part: Part) => void } }
-            ).__varroE2E;
+              window as typeof window & { __loomeryE2E: { updateMessagePart: (part: Part) => void } }
+            ).__loomeryE2E;
             harness.updateMessagePart(part);
             window.postMessage(
               {
@@ -550,12 +550,12 @@ test('activity exit tolerates persistent summary drift without observer feedback
     try {
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             getSessionMessages: (id: string) => MessageEntry[];
             updateMessagePart: (part: Part) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const running = harness
         .getSessionMessages('session-tool-cards')
         .flatMap((message) => message.parts)

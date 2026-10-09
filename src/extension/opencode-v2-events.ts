@@ -13,7 +13,7 @@ import {
   type V2MessageContext,
 } from './opencode-v2-projection';
 
-/** Translate released v2 events into the existing Varro event vocabulary. */
+/** Translate released v2 events into the existing Loomery event vocabulary. */
 export function projectV2Event(value: unknown, context: V2MessageContext = {}): unknown[] {
   const event = asRecord(value);
   const data = asRecord(event?.data);

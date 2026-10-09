@@ -9996,17 +9996,17 @@ export function MessageList() {
     // oxlint-disable-next-line anti-slop/no-runtime-typeof -- Test renderers may omit the browser Performance Timeline API.
     if (typeof performance.mark !== 'function' || typeof performance.measure !== 'function') return;
     if (hydrating && !measuredHydration) {
-      performance.clearMarks('varro.transcript.hydration-start');
-      performance.clearMarks('varro.transcript.ready');
-      performance.clearMeasures('varro.transcript.hydration');
-      performance.mark('varro.transcript.hydration-start');
+      performance.clearMarks('loomery.transcript.hydration-start');
+      performance.clearMarks('loomery.transcript.ready');
+      performance.clearMeasures('loomery.transcript.hydration');
+      performance.mark('loomery.transcript.hydration-start');
       measuredHydration = true;
     } else if (!hydrating && measuredHydration) {
-      performance.mark('varro.transcript.ready');
+      performance.mark('loomery.transcript.ready');
       performance.measure(
-        'varro.transcript.hydration',
-        'varro.transcript.hydration-start',
-        'varro.transcript.ready'
+        'loomery.transcript.hydration',
+        'loomery.transcript.hydration-start',
+        'loomery.transcript.ready'
       );
       measuredHydration = false;
     }

@@ -11,7 +11,7 @@ import {
   isSessionHistoryScope,
   isSafePersistedSessionId,
   isSessionWorkspaceScope,
-  VARRO_API_ENDPOINTS,
+  LOOMERY_API_ENDPOINTS,
 } from '../shared/protocol';
 import type {
   AutoApproveJudgeReference,
@@ -747,13 +747,13 @@ export class RestProxy {
           ? queuedHistoryWorkspaceDirectory.trim() || null
           : null);
       const sessionPermissionAllowRequest = this.parsePermissionAllowRequest(
-        VARRO_API_ENDPOINTS.permissionSessionAllow,
+        LOOMERY_API_ENDPOINTS.permissionSessionAllow,
         method,
         payload.path,
         payload.body
       );
       const projectPermissionAllowRequest = this.parsePermissionAllowRequest(
-        VARRO_API_ENDPOINTS.permissionProjectAllow,
+        LOOMERY_API_ENDPOINTS.permissionProjectAllow,
         method,
         payload.path,
         payload.body
@@ -798,7 +798,7 @@ export class RestProxy {
       const allowsCrossRootDirectory =
         Boolean(activationRequest || directSessionID || attentionReplyDirectory) ||
         requestPathname === '/session' ||
-        requestPathname === VARRO_API_ENDPOINTS.sessionHistoryScope ||
+        requestPathname === LOOMERY_API_ENDPOINTS.sessionHistoryScope ||
         (method === 'GET' && requestPathname === '/session/status');
       if (
         scopedWorkspaceDirectory &&
@@ -978,7 +978,10 @@ export class RestProxy {
         return;
       }
 
-      if (method === 'POST' && payload.path === VARRO_API_ENDPOINTS.openCodeConfigDisableProvider) {
+      if (
+        method === 'POST' &&
+        payload.path === LOOMERY_API_ENDPOINTS.openCodeConfigDisableProvider
+      ) {
         const providerID = asRecord(payload.body)?.providerID;
         if (
           typeof providerID !== 'string' ||
@@ -1081,7 +1084,7 @@ export class RestProxy {
       // workspace - the extension host must not be a read primitive for
       // arbitrary local files.
       const workspaceFileRequest = this.parseWorkspaceFileRequest(method, payload.path);
-      if (method === 'GET' && payload.path === VARRO_API_ENDPOINTS.workspaceProblems) {
+      if (method === 'GET' && payload.path === LOOMERY_API_ENDPOINTS.workspaceProblems) {
         const data = getWorkspaceProblems(this.getCurrentWorkspaceResolutionRoot());
         this.callbacks.postApiResponse(requestGeneration, { id: payload.id, data });
         return;
@@ -1109,7 +1112,7 @@ export class RestProxy {
         return;
       }
 
-      if (method === 'POST' && payload.path === VARRO_API_ENDPOINTS.copiedSelectionMatch) {
+      if (method === 'POST' && payload.path === LOOMERY_API_ENDPOINTS.copiedSelectionMatch) {
         const body = asRecord(payload.body);
         const text = body?.text;
         if (typeof text !== 'string' || !text.trim() || text.length > 256 * 1024) {
@@ -1276,7 +1279,7 @@ export class RestProxy {
         return;
       }
 
-      if (requestPathname === VARRO_API_ENDPOINTS.decisionProviders) {
+      if (requestPathname === LOOMERY_API_ENDPOINTS.decisionProviders) {
         const decisionProviders = this.callbacks.decisionProviders;
         if (!decisionProviders) throw new Error('Decision providers are unavailable');
         const data =
@@ -1308,7 +1311,7 @@ export class RestProxy {
       }
 
       const pricingUrl = new URL(payload.path, 'http://localhost');
-      if (method === 'GET' && pricingUrl.pathname === VARRO_API_ENDPOINTS.modelPricing) {
+      if (method === 'GET' && pricingUrl.pathname === LOOMERY_API_ENDPOINTS.modelPricing) {
         const data = await this.modelPricing.get(
           pricingUrl.searchParams.get('providerID') ?? '',
           pricingUrl.searchParams.get('modelID') ?? ''
@@ -1646,7 +1649,7 @@ export class RestProxy {
     const pathname = new URL(payload.path, 'http://localhost').pathname;
     if (!isPermissionAutomationRequest(method, payload.path)) return;
     if (lease === undefined) {
-      if (pathname === VARRO_API_ENDPOINTS.permissionJudge) {
+      if (pathname === LOOMERY_API_ENDPOINTS.permissionJudge) {
         throw new Error('Permission automation lease is required');
       }
       return;
@@ -1777,18 +1780,18 @@ export class RestProxy {
 
   private parseRecycleBinRequest(method: string, path: string): RecycleBinRequest | null {
     const url = new URL(path, 'http://localhost');
-    if (url.pathname === VARRO_API_ENDPOINTS.sessionTrash) {
+    if (url.pathname === LOOMERY_API_ENDPOINTS.sessionTrash) {
       if (method === 'GET') return { kind: 'list' };
       if (method === 'DELETE') return { kind: 'empty' };
       return null;
     }
 
-    const restoreMatch = url.pathname.match(/^\/varro\/session-trash\/([^/]+)\/restore$/);
+    const restoreMatch = url.pathname.match(/^\/loomery\/session-trash\/([^/]+)\/restore$/);
     if (restoreMatch && method === 'POST') {
       return { kind: 'restore', rootID: decodeURIComponent(restoreMatch[1]!) };
     }
 
-    const deleteMatch = url.pathname.match(/^\/varro\/session-trash\/([^/]+)\/delete$/);
+    const deleteMatch = url.pathname.match(/^\/loomery\/session-trash\/([^/]+)\/delete$/);
     if (deleteMatch && method === 'DELETE') {
       return { kind: 'delete', rootID: decodeURIComponent(deleteMatch[1]!) };
     }
@@ -2632,7 +2635,7 @@ export class RestProxy {
   private parsePermanentDeleteRequest(method: string, path: string): PermanentDeleteRequest | null {
     if (method !== 'DELETE') return null;
     const url = new URL(path, 'http://localhost');
-    const match = url.pathname.match(/^\/varro\/session\/([^/]+)\/delete$/);
+    const match = url.pathname.match(/^\/loomery\/session\/([^/]+)\/delete$/);
     if (!match) return null;
     return { sessionID: decodeURIComponent(match[1]!) };
   }
@@ -2640,7 +2643,7 @@ export class RestProxy {
   private parseSessionDiffSummaryRequest(method: string, path: string) {
     if (method !== 'GET') return null;
     const url = new URL(path, 'http://localhost');
-    const prefix = `${VARRO_API_ENDPOINTS.session}/`;
+    const prefix = `${LOOMERY_API_ENDPOINTS.session}/`;
     if (!url.pathname.startsWith(prefix)) return null;
     const match = url.pathname.slice(prefix.length).match(/^([^/]+)\/diff-summary$/);
     if (!match?.[1]) return null;
@@ -2660,7 +2663,7 @@ export class RestProxy {
   private parsePinRequest(method: string, path: string, body: unknown) {
     if (method !== 'POST') return null;
     const url = new URL(path, 'http://localhost');
-    const match = url.pathname.match(/^\/varro\/session\/([^/]+)\/pin$/);
+    const match = url.pathname.match(/^\/loomery\/session\/([^/]+)\/pin$/);
     if (!match) return null;
     const record = asRecord(body);
     if (typeof record?.pinned !== 'boolean') throw new Error('Invalid pin request');
@@ -2670,7 +2673,7 @@ export class RestProxy {
   private parseReorderPinRequest(method: string, path: string, body: unknown) {
     if (method !== 'POST') return null;
     const url = new URL(path, 'http://localhost');
-    const match = url.pathname.match(/^\/varro\/session\/([^/]+)\/reorder-pin$/);
+    const match = url.pathname.match(/^\/loomery\/session\/([^/]+)\/reorder-pin$/);
     if (!match) return null;
     const targetSessionID = asRecord(body)?.targetSessionID;
     const targetDirectory = asRecord(body)?.targetDirectory;
@@ -2693,7 +2696,7 @@ export class RestProxy {
   private parseSessionActivationRequest(method: string, path: string, body: unknown) {
     if (method !== 'POST') return null;
     const url = new URL(path, 'http://localhost');
-    const prefix = `${VARRO_API_ENDPOINTS.session}/`;
+    const prefix = `${LOOMERY_API_ENDPOINTS.session}/`;
     if (!url.pathname.startsWith(prefix)) return null;
     const match = url.pathname.slice(prefix.length).match(/^([^/]+)\/activate$/);
     if (!match?.[1]) return null;
@@ -2716,7 +2719,7 @@ export class RestProxy {
   } | null {
     if (method !== 'POST') return null;
     const url = new URL(path, 'http://localhost');
-    const match = url.pathname.match(/^\/varro\/session\/([^/]+)\/permission-mode$/);
+    const match = url.pathname.match(/^\/loomery\/session\/([^/]+)\/permission-mode$/);
     if (!match) return null;
     const record = asRecord(body);
     const mode = record?.mode;
@@ -3477,7 +3480,7 @@ export class RestProxy {
       throw new Error('Malformed session fork response');
     }
     const metadata = asRecord(session.metadata) ?? {};
-    const existingVarro = asRecord(metadata.varro) ?? {};
+    const existingLoomery = asRecord(metadata.loomery) ?? {};
     const scopeMetadata = createSessionWorkspaceMetadata(scope);
     const updated = await this.requestServer(
       'PATCH',
@@ -3485,7 +3488,7 @@ export class RestProxy {
       {
         metadata: {
           ...metadata,
-          varro: { ...existingVarro, ...scopeMetadata.varro },
+          loomery: { ...existingLoomery, ...scopeMetadata.loomery },
         },
       }
     );
@@ -3495,7 +3498,7 @@ export class RestProxy {
         ...session,
         metadata: {
           ...metadata,
-          varro: { ...existingVarro, ...scopeMetadata.varro },
+          loomery: { ...existingLoomery, ...scopeMetadata.loomery },
         },
       },
       scope
@@ -3515,7 +3518,7 @@ export class RestProxy {
     const scopePrompt = noProject
       ? [
           'No project or workspace folder is open in VS Code.',
-          `Your working directory is ${JSON.stringify(workingDirectory)}, a general-purpose Varro scratch folder, not a project root.`,
+          `Your working directory is ${JSON.stringify(workingDirectory)}, a general-purpose Loomery scratch folder, not a project root.`,
           "Do not assume any repository or project is in scope. Access other locations only when needed for the user's request and subject to tool permissions.",
         ].join(' ')
       : scope === 'workspace'
@@ -3839,7 +3842,7 @@ export class RestProxy {
     if (method !== 'GET') return null;
 
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.providerLimit) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.providerLimit) return null;
 
     const providerID = url.searchParams.get('providerID')?.trim();
     if (!providerID) return null;
@@ -3854,7 +3857,7 @@ export class RestProxy {
     if (method !== 'GET') return null;
 
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.workspaceFile) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.workspaceFile) return null;
 
     const filePath = url.searchParams.get('path')?.trim();
     if (!filePath) {
@@ -3865,7 +3868,7 @@ export class RestProxy {
   }
 
   private isWorkspaceFilePickRequest(method: string, path: string) {
-    return method === 'GET' && path === VARRO_API_ENDPOINTS.workspaceFilePick;
+    return method === 'GET' && path === LOOMERY_API_ENDPOINTS.workspaceFilePick;
   }
 
   /**
@@ -3911,7 +3914,7 @@ export class RestProxy {
     if (method !== 'GET') return null;
 
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.workspacePathResolve) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.workspacePathResolve) return null;
 
     const filePath = url.searchParams.get('path')?.trim();
     if (!filePath) {
@@ -3927,7 +3930,7 @@ export class RestProxy {
     body: unknown
   ): SessionHistoryScopeRequest | null {
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.sessionHistoryScope) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.sessionHistoryScope) return null;
     if (method !== 'GET' && method !== 'POST') return null;
     const directory = url.searchParams.get('directory')?.trim();
     if (!directory) throw new Error('Session history scope requires a workspace directory');
@@ -3961,7 +3964,7 @@ export class RestProxy {
   }
 
   private parsePlanOpenRequest(method: string, path: string, body: unknown) {
-    if (method !== 'POST' || path !== VARRO_API_ENDPOINTS.planOpen) return null;
+    if (method !== 'POST' || path !== LOOMERY_API_ENDPOINTS.planOpen) return null;
 
     const payload = asRecord(body);
     const content = typeof payload?.content === 'string' ? payload.content : '';
@@ -3980,11 +3983,11 @@ export class RestProxy {
     path: string,
     body: unknown
   ): OpenCodeConfigRequest | null {
-    if (method === 'GET' && path === VARRO_API_ENDPOINTS.openCodeConfig) {
+    if (method === 'GET' && path === LOOMERY_API_ENDPOINTS.openCodeConfig) {
       return { kind: 'get' };
     }
 
-    if (method !== 'POST' || path !== VARRO_API_ENDPOINTS.openCodeConfigModelRouting) return null;
+    if (method !== 'POST' || path !== LOOMERY_API_ENDPOINTS.openCodeConfigModelRouting) return null;
 
     const payload = asRecord(body);
     const target = typeof payload?.target === 'string' ? payload.target : null;
@@ -4020,7 +4023,7 @@ export class RestProxy {
     path: string,
     body: unknown
   ): OpenCodePermissionConfigRequest | null {
-    if (path !== VARRO_API_ENDPOINTS.openCodeConfigPermissions) return null;
+    if (path !== LOOMERY_API_ENDPOINTS.openCodeConfigPermissions) return null;
     if (method === 'GET') return { kind: 'get' };
     if (method !== 'POST') return null;
 
@@ -4033,7 +4036,7 @@ export class RestProxy {
     body: unknown
   ): SessionPermissionRulesRequest | null {
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.permissionSessionRules) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.permissionSessionRules) return null;
     if (method === 'GET') {
       const sessionID = url.searchParams.get('sessionId')?.trim() ?? '';
       if (!sessionID) throw new Error('Session ID is required');
@@ -4052,7 +4055,7 @@ export class RestProxy {
     body: unknown
   ): ServerMemoryPermissionRequest | null {
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.permissionServerMemory) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.permissionServerMemory) return null;
     if (method === 'GET') {
       const sessionID = url.searchParams.get('sessionId')?.trim() ?? '';
       return sessionID ? { kind: 'list', sessionID } : { kind: 'list' };
@@ -4100,7 +4103,7 @@ export class RestProxy {
     path: string,
     body: unknown
   ): AutoApproveJudgeRequest | null {
-    if (method !== 'POST' || path !== VARRO_API_ENDPOINTS.permissionJudge) return null;
+    if (method !== 'POST' || path !== LOOMERY_API_ENDPOINTS.permissionJudge) return null;
     const payload = asRecord(body);
     const permission = asRecord(payload?.permission);
     if (!permission) throw new Error('Permission context is required');
@@ -4124,7 +4127,7 @@ export class RestProxy {
   private parseJudgeModelRequest(method: string, path: string) {
     if (method !== 'GET') return null;
     const url = new URL(path, 'http://localhost');
-    if (url.pathname !== VARRO_API_ENDPOINTS.permissionJudgeModel) return null;
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.permissionJudgeModel) return null;
 
     const providerID = url.searchParams.get('providerID')?.trim() || '';
     const modelID = url.searchParams.get('modelID')?.trim() || '';
@@ -4140,7 +4143,7 @@ export class RestProxy {
   private parseRenameIfUntitledRequest(method: string, path: string) {
     if (method !== 'POST') return null;
     const match = new URL(path, 'http://localhost').pathname.match(
-      /^\/varro\/session\/([^/?#]+)\/rename-if-untitled$/
+      /^\/loomery\/session\/([^/?#]+)\/rename-if-untitled$/
     );
     return match?.[1] ? decodeURIComponent(match[1]) : null;
   }
@@ -4203,7 +4206,7 @@ function collectDescendantSessions(value: unknown, rootSessionID: string) {
 function parseDirectSessionID(path: string): string | null {
   const pathname = new URL(path, 'http://localhost').pathname;
   if (pathname === '/session/status') return null;
-  const match = pathname.match(/^\/(?:varro\/)?session\/([^/]+)(?:\/|$)/);
+  const match = pathname.match(/^\/(?:loomery\/)?session\/([^/]+)(?:\/|$)/);
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
@@ -4366,7 +4369,7 @@ function isPermissionAutomationRequest(method: string, path: string): boolean {
   if (method !== 'POST') return false;
   const pathname = new URL(path, 'http://localhost').pathname;
   return (
-    pathname === VARRO_API_ENDPOINTS.permissionJudge ||
+    pathname === LOOMERY_API_ENDPOINTS.permissionJudge ||
     /^\/permission\/[^/]+\/reply$/.test(pathname)
   );
 }

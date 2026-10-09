@@ -11,12 +11,12 @@ for (const scenario of ['blank', 'mixed-small-transcript', 'large-transcript']) 
       await page.setViewportSize({ width: 486, height: 850 });
       await page.emulateMedia({ reducedMotion });
       await page.goto(`/e2e/harness/index.html?scenario=${scenario}`);
-      await page.addStyleTag({ content: ':root { --varro-chat-font-size: 13.5px; }' });
+      await page.addStyleTag({ content: ':root { --loomery-chat-font-size: 13.5px; }' });
       await page.evaluate(() => {
         // SAFETY: Acknowledge only the isolated fixture's native send and keep its turn busy.
         const harness = window as {
           __sendToExtension?: (message: WebviewMessage) => void | Promise<void>;
-          __varroE2E?: { replayServerEvent(event: ServerEvent): void };
+          __loomeryE2E?: { replayServerEvent(event: ServerEvent): void };
         };
         const send = harness.__sendToExtension;
         harness.__sendToExtension = (message) => {
@@ -32,7 +32,7 @@ for (const scenario of ['blank', 'mixed-small-transcript', 'large-transcript']) 
               parts: MessageEntry['parts'];
             };
             const sessionID = message.payload.path.split('/')[2]!;
-            harness.__varroE2E!.replayServerEvent({
+            harness.__loomeryE2E!.replayServerEvent({
               type: 'message.updated',
               properties: {
                 info: {
@@ -46,7 +46,7 @@ for (const scenario of ['blank', 'mixed-small-transcript', 'large-transcript']) 
               },
             });
             for (const [index, part] of body.parts.entries()) {
-              harness.__varroE2E!.replayServerEvent({
+              harness.__loomeryE2E!.replayServerEvent({
                 type: 'message.part.updated',
                 properties: {
                   part: {
@@ -58,7 +58,7 @@ for (const scenario of ['blank', 'mixed-small-transcript', 'large-transcript']) 
                 },
               });
             }
-            harness.__varroE2E!.replayServerEvent({
+            harness.__loomeryE2E!.replayServerEvent({
               type: 'session.status',
               properties: { sessionID, status: { type: 'busy' } },
             });

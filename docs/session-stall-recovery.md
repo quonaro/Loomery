@@ -16,7 +16,7 @@ The released source at `8d8a7bc844` has a 30-minute WebSocket no-data default:
   and [`model-request.ts`](https://github.com/anomalyco/opencode/blob/8d8a7bc844/packages/core/src/session/model-request.ts)
   pass `providers.<id>.settings.chunkTimeout` to that transport.
 
-Varro injects a five-minute OpenAI `chunkTimeout` for newly launched managed
+Loomery injects a five-minute OpenAI `chunkTimeout` for newly launched managed
 OpenCode V2 servers from 2.0.20 onward. This bounds one silent WebSocket exchange,
 not the whole execution or the backend's retry policy. Frames reset the bound;
 legitimate reasoning with no frames for five minutes can also time out.

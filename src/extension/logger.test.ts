@@ -30,12 +30,12 @@ describe('logger', () => {
     ({ logger } = await import('./logger'));
   });
 
-  it('creates and writes to the Varro output channel', () => {
+  it('creates and writes to the Loomery output channel', () => {
     logger.info('Started', { requestId: 'abc123' });
     logger.warn('Slow request');
     logger.error('Failed', new Error('boom'));
 
-    expect(createOutputChannelMock).toHaveBeenCalledWith('Varro');
+    expect(createOutputChannelMock).toHaveBeenCalledWith('Loomery');
     expect(appendLineMock).toHaveBeenNthCalledWith(
       1,
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}T.*Z \[INFO\] Started \[\{"requestId":"abc123"\}\]$/)

@@ -10,7 +10,7 @@ export type SessionDeleteTarget = {
   directory?: string;
 };
 
-const SESSION_TRASH_KEY = 'varro.sessionTrash';
+const SESSION_TRASH_KEY = 'loomery.sessionTrash';
 export const SESSION_TRASH_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 export class SessionTrashManager {

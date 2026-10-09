@@ -47,7 +47,7 @@ function decode(url: string) {
 }
 
 beforeAll(async () => {
-  directory = await mkdtemp(join(tmpdir(), 'varro-thumbnail test-'));
+  directory = await mkdtemp(join(tmpdir(), 'loomery-thumbnail test-'));
   await build(thumbnailWorkerBuildOptions(directory));
   await initializeImageMagick(
     await readFile(require.resolve('@imagemagick/magick-wasm/magick.wasm'))

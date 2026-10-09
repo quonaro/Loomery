@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise pasted-context integration with the client module. */
 vi.mock('../../lib/client', () => ({
-  client: { varro: { resolveWorkspacePath: vi.fn() } },
+  client: { loomery: { resolveWorkspacePath: vi.fn() } },
 }));
 
 import { client } from '../../lib/client';
@@ -12,7 +12,7 @@ import {
   resolvePastedMentionContextFiles,
 } from './pasted-context';
 
-const resolveWorkspacePath = vi.mocked(client.varro.resolveWorkspacePath);
+const resolveWorkspacePath = vi.mocked(client.loomery.resolveWorkspacePath);
 
 beforeEach(() => {
   resolveWorkspacePath.mockReset();

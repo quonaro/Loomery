@@ -31,7 +31,7 @@ import type { OpenCodeServer } from './server';
 import { logger } from './logger';
 import { FULL_SESSION_LIST_PATH } from './util/session-list';
 
-const RALPH_RUNS_KEY = 'varro.ralph.runs';
+const RALPH_RUNS_KEY = 'loomery.ralph.runs';
 const MAX_PERSISTED_RALPH_RUNS = 100;
 const MAX_PERSISTED_RALPH_ITERATIONS = MAX_RALPH_ITERATIONS;
 const MAX_RALPH_ID_LENGTH = 512;

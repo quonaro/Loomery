@@ -117,7 +117,7 @@ describe('SessionTitleFallback', () => {
         ];
       }
       if (method === 'POST' && path === '/session') {
-        expect(body).toMatchObject({ title: 'Varro session title fallback: session-1' });
+        expect(body).toMatchObject({ title: 'Loomery session title fallback: session-1' });
         return { id: 'hidden-1' };
       }
       if (method === 'GET' && path === '/config') {
@@ -427,7 +427,7 @@ describe('SessionTitleFallback', () => {
       await vi.advanceTimersByTimeAsync(30_000);
       await expect(timedOut).resolves.toBeNull();
       expect(hiddenSessions.forgetPendingTitle).toHaveBeenCalledWith(
-        'Varro session title fallback: session-1'
+        'Loomery session title fallback: session-1'
       );
 
       hiddenSession.resolve({ id: 'hidden-late' });

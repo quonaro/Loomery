@@ -5,7 +5,7 @@ import { basename, join } from 'node:path';
 import { replacesOpenCodeBinary } from '../shared/opencode-install';
 import { MAX_NATIVE_PDF_TOTAL_BYTES } from '../shared/native-pdf';
 import {
-  mergeVarroSessionMetadata,
+  mergeLoomerySessionMetadata,
   readSessionAgentMetadata,
   readSessionModelMetadata,
 } from '../shared/session-selection-metadata';
@@ -212,8 +212,8 @@ type StatusBarState =
     };
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'varro.chat';
-  public static readonly editorViewType = 'varro.editor';
+  public static readonly viewType = 'loomery.chat';
+  public static readonly editorViewType = 'loomery.editor';
   private static readonly EXPORT_TIMEOUT_MS = 30_000;
   private static readonly RECYCLE_BIN_CLEANUP_INTERVAL_MS = 60_000;
   private static readonly SESSION_RECONCILE_INTERVAL_MS = 10_000;
@@ -350,8 +350,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private readonly extensionId: string,
     private readonly simulateNoProviders = false,
     providerSignatureFileSystem: ProviderSignatureFileSystem = nodeProviderSignatureFileSystem,
-    secrets?: vscode.SecretStorage,
-    globalStorageUri?: vscode.Uri
+    secrets?: vscode.SecretStorage
   ) {
     this.contextProvider = contextProvider;
     const extensionPackageJson: unknown = vscode.extensions.getExtension(extensionId)?.packageJSON;
@@ -397,13 +396,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       server,
       this.hiddenSessions,
       isOpenAIPro,
-      () => vscode.workspace.getConfiguration('varro').get<string>('chat.autoApproveModel', ''),
+      () => vscode.workspace.getConfiguration('loomery').get<string>('chat.autoApproveModel', ''),
       undefined,
       this.jevDecisions
     );
     this.sessionTitleFallback = new SessionTitleFallback(server, this.hiddenSessions, () =>
       vscode.workspace
-        .getConfiguration('varro')
+        .getConfiguration('loomery')
         .get<boolean>('chat.autoRenameUntitledSessions', true)
     );
     this.generatedDependencyTreeGuard = new GeneratedDependencyTreeGuard();
@@ -454,7 +453,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           return this.sessionState.busyEvidenceRevisionFor(sessionID);
         },
         getSettings: () => {
-          const config = vscode.workspace.getConfiguration('varro.notifications');
+          const config = vscode.workspace.getConfiguration('loomery.notifications');
           const configuredSound = config.get<unknown>('sound');
           const sound = asRecord(configuredSound);
           const legacyEnabled = configuredSound === true;
@@ -495,12 +494,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           );
         },
         reportError: (channel, error) => {
-          logger.warn(`Varro ${channel} notification failed`, error);
+          logger.warn(`Loomery ${channel} notification failed`, error);
           if (channel !== 'native' || this.nativeNotificationErrorShown) return;
           this.nativeNotificationErrorShown = true;
           void vscode.window
             .showWarningMessage(
-              `Varro could not show a system notification: ${error.message}`,
+              `Loomery could not show a system notification: ${error.message}`,
               'Show Output'
             )
             .then((action) => {
@@ -517,7 +516,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             : 'Microsoft.VisualStudioCode',
         undefined,
         undefined,
-        globalStorageUri?.fsPath,
         () => this.notificationWindowUrl()
       )
     );
@@ -527,7 +525,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     if (
       process.platform === 'darwin' &&
       !vscode.env.remoteName &&
-      !process.env.VARRO_TEST_STATE_ROOT &&
+      !process.env.LOOMERY_TEST_STATE_ROOT &&
       !process.env.VITEST
     ) {
       this.macOSTray = new MacOSTray(
@@ -567,7 +565,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       () => this.contextProvider.context.workspacePath || undefined,
       () => this.activeChatModel,
       isOpenAIPro,
-      () => vscode.workspace.getConfiguration('varro').get<string>('commitMessage.model', '')
+      () => vscode.workspace.getConfiguration('loomery').get<string>('commitMessage.model', '')
     );
 
     this.serverEventBridge = new ServerEventBridge(
@@ -633,7 +631,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       this.attentionNotifications.update();
     });
     this.configDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration('varro.notifications')) this.attentionNotifications.update();
+      if (event.affectsConfiguration('loomery.notifications')) this.attentionNotifications.update();
       // VS Code can announce the theme kind before it updates the configured theme name.
       // Also refresh the per-view counterpart after the name changes, including same-kind switches.
       if (
@@ -645,10 +643,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       ) {
         for (const endpoint of this.endpoints) endpoint.webviewSession.postThemeUpdate();
       }
-      if (event.affectsConfiguration('varro.server.autoUpdate')) {
+      if (event.affectsConfiguration('loomery.server.autoUpdate')) {
         this.updateStatusBarItem();
       }
-      if (event.affectsConfiguration('varro.server.autoStart')) {
+      if (event.affectsConfiguration('loomery.server.autoStart')) {
         // Activation's configuration listener applies launch settings after this listener.
         queueMicrotask(() => {
           if (this.disposing) return;
@@ -660,16 +658,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         });
       }
       if (
-        event.affectsConfiguration('varro.chat.showFileDiffs') ||
-        event.affectsConfiguration('varro.chat.expandThinking') ||
-        event.affectsConfiguration('varro.chat.fontSize') ||
-        event.affectsConfiguration('varro.chat.showChangedFiles') ||
-        event.affectsConfiguration('varro.chat.showTurnTimer') ||
-        event.affectsConfiguration('varro.debug.showQuotaWarning') ||
-        event.affectsConfiguration('varro.debug.resetWarningDays') ||
-        event.affectsConfiguration('varro.chat.enableProblemsContext') ||
-        event.affectsConfiguration('varro.chat.desktopSessionPaneSide') ||
-        event.affectsConfiguration('varro.chat.defaultPermissionMode') ||
+        event.affectsConfiguration('loomery.chat.showFileDiffs') ||
+        event.affectsConfiguration('loomery.chat.expandThinking') ||
+        event.affectsConfiguration('loomery.chat.fontSize') ||
+        event.affectsConfiguration('loomery.chat.showChangedFiles') ||
+        event.affectsConfiguration('loomery.chat.showTurnTimer') ||
+        event.affectsConfiguration('loomery.debug.showQuotaWarning') ||
+        event.affectsConfiguration('loomery.debug.resetWarningDays') ||
+        event.affectsConfiguration('loomery.chat.enableProblemsContext') ||
+        event.affectsConfiguration('loomery.chat.desktopSessionPaneSide') ||
+        event.affectsConfiguration('loomery.chat.defaultPermissionMode') ||
         event.affectsConfiguration('chat.fontSize') ||
         event.affectsConfiguration('chat.editor.fontSize') ||
         event.affectsConfiguration('chat.fontFamily')
@@ -727,9 +725,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         readConfig: () => this.readConfig(),
         currentTheme: () => this.currentTheme(),
         readWindowChatThemeReversed: () =>
-          this.globalState.get('varro.windowChatThemeReversed', false),
+          this.globalState.get('loomery.windowChatThemeReversed', false),
         saveWindowChatThemeReversed: (reversed) =>
-          this.globalState.update('varro.windowChatThemeReversed', reversed),
+          this.globalState.update('loomery.windowChatThemeReversed', reversed),
         renderStatus: () => this.serverEventBridge.getStatus(),
         handleReadySideEffects: () => this.cleanupExpiredRecycleBin(),
         handleRecoveryLoadedSideEffects: () => this.reconcilePermissionAutomationOwners(true),
@@ -1391,7 +1389,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         `resolveWebviewView failed: ${err instanceof Error ? err.message : String(err)}`
       );
       if (this.bridge.getView() === webviewView) {
-        webviewView.webview.html = '<p>Failed to load Varro webview. Please reload.</p>';
+        webviewView.webview.html = '<p>Failed to load Loomery webview. Please reload.</p>';
       }
     });
   }
@@ -1502,7 +1500,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('Could not open notification chat', error);
       void vscode.window.showWarningMessage(
-        `Varro could not open the notification chat: ${message}`
+        `Loomery could not open the notification chat: ${message}`
       );
     }
   }
@@ -1801,8 +1799,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private editorTitle(route: WebviewRoute) {
-    if (route.type === 'new-session') return 'Varro: New Session';
-    return this.editorSessionTitle(route) || 'Varro: Session';
+    if (route.type === 'new-session') return 'Loomery: New Session';
+    return this.editorSessionTitle(route) || 'Loomery: Session';
   }
 
   private editorSessionTitle(route: Extract<WebviewRoute, { type: 'session' }>) {
@@ -1815,7 +1813,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private readPersistedEditorRoute(state: PersistedEditorState): WebviewRoute {
     if (!state) return { type: 'new-session' };
-    const persisted = state['varro.lastOpenedView'];
+    const persisted = state['loomery.lastOpenedView'];
     if (!persisted || typeof persisted !== 'object') return { type: 'new-session' };
     const route = persisted as Record<string, unknown>;
     if (
@@ -1839,12 +1837,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private readPersistedEditorViewId(state: PersistedEditorState) {
-    const value = state?.['varro.editorViewId'];
+    const value = state?.['loomery.editorViewId'];
     return typeof value === 'string' && /^editor-[A-Za-z0-9-]+$/.test(value) ? value : null;
   }
 
   private readPersistedEditorWorkspacePath(state: PersistedEditorState) {
-    const value = state?.['varro.workspacePath'];
+    const value = state?.['loomery.workspacePath'];
     return typeof value === 'string' ? this.getOpenSessionDirectory(value) : null;
   }
 
@@ -2707,7 +2705,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         const path = `/session/${encodeURIComponent(sessionId)}`;
         const session = asRecord(await this.server.request('GET', path, undefined, { directory }));
         if (session?.id !== sessionId) throw new Error('Cannot verify session selection metadata');
-        const metadata = mergeVarroSessionMetadata(session.metadata, selection);
+        const metadata = mergeLoomerySessionMetadata(session.metadata, selection);
         const currentModel = readSessionModelMetadata(session.metadata);
         const model = selection.model;
         const modelChanged =
@@ -2788,9 +2786,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       }
       return session;
     }
-    if (!permission && asRecord(metadata.varro)?.permissionMode === mode) return session;
+    if (!permission && asRecord(metadata.loomery)?.permissionMode === mode) return session;
     const body: Pick<Session, 'metadata' | 'permission'> = {
-      metadata: mergeVarroSessionMetadata(metadata, { permissionMode: mode }),
+      metadata: mergeLoomerySessionMetadata(metadata, { permissionMode: mode }),
     };
     if (permission) body.permission = permission;
     return this.server.request('PATCH', path, body, { directory });
@@ -3142,8 +3140,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     this.webviewSession.searchSessions();
   }
 
-  async generateCommitMessage(sourceControl?: vscode.SourceControl) {
-    await this.commitMessageService.generate(sourceControl);
+  openSessions() {
+    this.webviewSession.openAllSessions();
+  }
+
+  async generateCommitMessage(rootUri?: vscode.Uri, token?: vscode.CancellationToken) {
+    await this.commitMessageService.generate(undefined, token, rootUri);
   }
 
   async generateUsageReport() {
@@ -3561,7 +3563,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
     const replacesBinary = replacesOpenCodeBinary(text);
 
-    // Same prerequisite as Varro's own upgrade path: on Windows a managed
+    // Same prerequisite as Loomery's own upgrade path: on Windows a managed
     // server holds opencode.exe open, and the install or update the user just
     // asked for cannot replace a running binary.
     if (replacesBinary) {
@@ -3712,7 +3714,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       (cliVersion ?? displayedVersion)?.startsWith('2.') ? 2 : 1
     );
     const autoUpdatesEnabled = vscode.workspace
-      .getConfiguration('varro')
+      .getConfiguration('loomery')
       .get<boolean>('server.autoUpdate', true);
     const versionLines = [
       ...(attachOnly
@@ -3748,7 +3750,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       );
     }
     if (versionLines.length > 2) versionLines.push('');
-    versionLines.push(`Varro extension: ${this.extensionVersion}`);
+    versionLines.push(`Loomery extension: ${this.extensionVersion}`);
     if (
       (cliVersion && differsByMajorOrMinor(cliVersion, maximumTestedOpenCodeVersion)) ||
       (this.openCodeServerVersion &&
@@ -3939,10 +3941,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       return {
         visible: true,
         action: 'attention',
-        text: `$(bell-dot) Varro: ${pendingRequests.length} waiting`,
+        text: `$(bell-dot) Loomery: ${pendingRequests.length} waiting`,
         backgroundColor: new vscode.ThemeColor('statusBarItem.warningBackground'),
         tooltip: [
-          'Varro is waiting for your input.',
+          'Loomery is waiting for your input.',
           ...pendingRequests.slice(0, 3).map((request) => {
             const title = this.sessionState.titleFor(request.sessionID);
             return title ? `${title}: ${request.label}` : request.label;
@@ -3982,10 +3984,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       return {
         visible: true,
         action: 'attention',
-        text: `$(bell-dot) Varro: ${localAlerts.length} ${localAlerts.length === 1 ? 'needs' : 'need'} attention`,
+        text: `$(bell-dot) Loomery: ${localAlerts.length} ${localAlerts.length === 1 ? 'needs' : 'need'} attention`,
         backgroundColor: new vscode.ThemeColor('statusBarItem.warningBackground'),
         tooltip: [
-          'Varro needs your attention.',
+          'Loomery needs your attention.',
           ...localAlerts.slice(0, 3).map(([sessionID, kind]) => {
             const title = this.sessionState.titleFor(sessionID) || sessionID;
             return `${title}: ${kind}`;
@@ -4004,10 +4006,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       return {
         visible: true,
         action: 'sibling',
-        text: `$(bell-dot) Varro: ${siblingAlertCount} workspace ${siblingAlertCount === 1 ? 'event' : 'events'}`,
+        text: `$(bell-dot) Loomery: ${siblingAlertCount} workspace ${siblingAlertCount === 1 ? 'event' : 'events'}`,
         backgroundColor: new vscode.ThemeColor('statusBarItem.warningBackground'),
         tooltip: [
-          'Varro needs your attention in another workspace.',
+          'Loomery needs your attention in another workspace.',
           ...siblingAlerts.slice(0, 3).map((alert) => `${alert.name}: ${alert.count}`),
           ...(siblingAlerts.length > 3 ? [`+${siblingAlerts.length - 3} more workspaces`] : []),
           '',

@@ -1,10 +1,10 @@
 # Changelog
 
-This changelog summarizes the main user-facing improvements in each Varro minor release line. Patch releases are consolidated into their parent minor version. Dates reflect the development history.
+This changelog summarizes the main user-facing improvements in each Loomery minor release line. Patch releases are consolidated into their parent minor version. Dates reflect the development history.
 
 ## 0.32.x - October 2026
 
-- Removed Varro's automatic compaction settings and overrides. OpenCode controls automatic compaction; on-demand compaction remains available.
+- Removed Loomery's automatic compaction settings and overrides. OpenCode controls automatic compaction; on-demand compaction remains available.
 - Reworked chat performance across typing, streaming, and navigation in long conversations and large session lists. Reduced repeated Markdown processing and history indexing so incoming messages do less work on existing content.
 - Reduced memory use and initial rendering work by loading full tool and reasoning details on demand, reducing memory retained by cached history, and avoiding unused diff and diagram allocations.
 - Moved code and diff syntax highlighting to a background worker, keeping the chat responsive and content readable while highlighting loads.
@@ -13,6 +13,9 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 - Added opt-in desktop notifications and per-event sounds for permission requests, questions, completed replies, and plans ready for review. Grouped notification bursts and suppressed alerts already handled automatically.
 - Remembered the last selected model and reasoning variant across projects while preserving each session's choices.
 - Fixed scroll jumps, diff toggling and resizing, repeated tool-preview animations, unread plan indicators.
+- Moved commit-message generation from the Source Control title bar onto the commit message input, where the same control becomes a Cancel action during generation. The input action uses the proposed `contribSourceControlInputBoxMenu` API and requires enabling Loomery for proposed APIs (`enable-proposed-api`); the Command Palette command continues to work without it.
+- Renamed the extension to Loomery; commands, settings, views, notifications, and storage identifiers now use the `loomery` prefix.
+- Removed the bundled macOS notification helper. macOS now shows banners through `osascript`, and alert suppression follows window focus like the other platforms instead of whole-desktop occlusion.
 
 ## 0.31.x - October 2026
 
@@ -38,7 +41,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 
 ## 0.29.x - September 2026
 
-- Added OpenCode v2 support alongside v1, with automatic API detection and v2 client updates. Install v2 with `npm install -g @opencode/cli`, then run `Varro: Restart Server`. See [restart recovery steps](docs/usage.md#if-restart-does-not-switch-to-v2) if needed.
+- Added OpenCode v2 support alongside v1, with automatic API detection and v2 client updates. Install v2 with `npm install -g @opencode/cli`, then run `Loomery: Restart Server`. See [restart recovery steps](docs/usage.md#if-restart-does-not-switch-to-v2) if needed.
 - Imported copies of v1 conversations that v2 cannot open, including child sessions. Usage reports include both versions without double-counting.
 - Added attach-only connections to externally managed servers, Docker setup guides, and saved credentials for authenticated connections.
 - Added opt-in TypeSafe Jev decisions for Auto-mode approvals, provider disabling, and v2 authentication. Model refreshes now show progress and discover new models without restoring removed ones.
@@ -71,7 +74,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 
 ## 0.26.x - August 2026
 
-- Added editor-tab chats for working with sessions side by side, with terminal access and synchronized model, reasoning, permission, queue, and session state across Varro views.
+- Added editor-tab chats for working with sessions side by side, with terminal access and synchronized model, reasoning, permission, queue, and session state across Loomery views.
 - Added quick controls for new chats and inline file changes, plus status-bar indicators for the active OpenCode version and available updates.
 - Improved messages with secure Markdown, external and mixed-content images, expandable long content, copyable final responses, code-block truncation, and more reliable editing and rendering.
 - Made model catalogs easier to manage with search, selective additions and hiding, persistent session defaults, clearer model and thinking changes, cost warnings, provider usage limits, and expanded thinking during active turns.
@@ -120,7 +123,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 
 ## 0.21.x - July 2026
 
-- Refined the product identity as Varro, the OpenCode workbench for VS Code.
+- Refined the product identity as Loomery, the OpenCode workbench for VS Code.
 - Made automatic permission handling the default for a faster first-run workflow.
 - Added individual message deletion and improved session navigation.
 - Improved todo scrolling and long-transcript readability.
@@ -146,7 +149,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 - Migrated to OpenCode's v2 event stream for continued platform compatibility.
 - Updated permission, question, and steering workflows for the v2 API.
 - Added a changed-files panel with session-level change summaries.
-- Added direct file opening at relevant lines and a Varro About command.
+- Added direct file opening at relevant lines and a Loomery About command.
 
 ## 0.17.x - May-June 2026
 
@@ -178,7 +181,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 - Preserved queued attachments in the intended order and synchronized todos from plans.
 - Improved permanent deletion, empty-session cleanup, and Windows workspace behavior.
 
-> Varro did not use a `0.13.x` version line.
+> Loomery did not use a `0.13.x` version line.
 
 ## 0.12.x - May 2026
 
@@ -212,7 +215,7 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 
 ## 0.8.x - April 2026
 
-- Added MCP server management from the Varro interface.
+- Added MCP server management from the Loomery interface.
 - Strengthened event-stream processing and extension message validation.
 - Improved clipboard handling and OpenCode server startup reliability.
 - Made terminal commands, tool output, and provider notifications easier to understand.
@@ -252,8 +255,8 @@ This changelog summarizes the main user-facing improvements in each Varro minor 
 
 ## 0.1.x - April 2026
 
-- Launched the Varro VS Code workbench with project-aware OpenCode chat and streaming tool activity.
+- Launched the Loomery VS Code workbench with project-aware OpenCode chat and streaming tool activity.
 - Added model, provider, reasoning, and permission controls.
 - Added editor, terminal, file, folder, image, and selection context.
 - Added parallel session management, queued messages, compaction, questions, and approval workflows.
-- Established Varro as the product identity for the integrated OpenCode experience.
+- Established Loomery as the product identity for the integrated OpenCode experience.

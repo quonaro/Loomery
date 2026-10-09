@@ -62,11 +62,11 @@ describe('DraftImageStore', () => {
 
   it('removes persistence when the draft has no images', async () => {
     const { persistence, storage } = createPersistence();
-    storage.set('varro.inputDraftImages', [{ id: 'old' }]);
+    storage.set('loomery.inputDraftImages', [{ id: 'old' }]);
 
     await new DraftImageStore(persistence).update([]);
 
-    expect(storage.has('varro.inputDraftImages')).toBe(false);
+    expect(storage.has('loomery.inputDraftImages')).toBe(false);
   });
 
   it('keeps image drafts isolated by webview', async () => {

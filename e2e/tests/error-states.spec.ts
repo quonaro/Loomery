@@ -14,9 +14,9 @@ test('shows the missing-cli error state and offers install actions', async ({ pa
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
+            __loomeryE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.terminalCommands?.[0] || null;
       })
     )
@@ -29,9 +29,9 @@ test('shows the missing-cli error state and offers install actions', async ({ pa
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { externalUrls?: string[] };
+            __loomeryE2E?: { externalUrls?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.externalUrls?.[0] || null;
       })
     )
@@ -45,9 +45,9 @@ test('shows the missing-cli error state and offers install actions', async ({ pa
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
+            __loomeryE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.terminalCommands?.[1] || null;
       })
     )
@@ -113,9 +113,9 @@ test('restarts the server from an error state without the command palette', asyn
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { serverRestartCount?: number };
+            __loomeryE2E?: { serverRestartCount?: number };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.serverRestartCount || 0;
       })
     )
@@ -137,13 +137,13 @@ test('points at the setting when the configured CLI path is wrong', async ({ pag
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { settingsQueries?: string[] };
+            __loomeryE2E?: { settingsQueries?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.settingsQueries?.[0] || null;
       })
     )
-    .toBe('varro.server.command');
+    .toBe('loomery.server.command');
 });
 
 test('recommends the install-specific command after a failed update', async ({ page }) => {
@@ -162,9 +162,9 @@ test('recommends the install-specific command after a failed update', async ({ p
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
+            __loomeryE2E?: { terminalCommands?: Array<{ command: string; title?: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.terminalCommands?.[0] || null;
       })
     )
@@ -184,9 +184,9 @@ test('presents an update deferred by active sessions as a wait', async ({ page }
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { serverRestartCount?: number };
+            __loomeryE2E?: { serverRestartCount?: number };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.serverRestartCount || 0;
       })
     )
@@ -205,11 +205,11 @@ test('opens the blocking setting when auto-update is disabled', async ({ page })
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { settingsQueries?: string[] };
+            __loomeryE2E?: { settingsQueries?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.settingsQueries?.[0] || null;
       })
     )
-    .toBe('varro.server.autoUpdate');
+    .toBe('loomery.server.autoUpdate');
 });

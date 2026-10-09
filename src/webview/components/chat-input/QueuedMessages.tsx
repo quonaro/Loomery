@@ -22,7 +22,7 @@ import {
   problemReferenceLabel,
 } from '../../lib/editor-problems';
 
-export const QUEUED_MESSAGE_DRAG_TYPE = 'application/x-varro-queued-message';
+export const QUEUED_MESSAGE_DRAG_TYPE = 'application/x-loomery-queued-message';
 
 export type QueuedMessageItem = Pick<
   QueuedMessage,

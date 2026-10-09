@@ -38,7 +38,7 @@ export const IMAGE_PLACEHOLDER =
   );
 
 export function deferredFilePath(url: string): string | null {
-  return url.startsWith('varro-content:') ? url.slice('varro-content:'.length) : null;
+  return url.startsWith('loomery-content:') ? url.slice('loomery-content:'.length) : null;
 }
 
 export async function loadFileContent(url: string, signal?: AbortSignal): Promise<string> {

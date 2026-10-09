@@ -1,0 +1,68 @@
+{
+  // F5 runs the "watch" compound task before launching the Extension Development
+  // Host. The two background watchers rebuild dist/ on source changes, and the
+  // extension's own dev-auto-restart picks those up and reloads the host.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: watch:extension",
+      "type": "npm",
+      "script": "watch:extension",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "owner": "esbuild",
+        "source": "esbuild",
+        // The task only signals readiness; the regexp intentionally never matches
+        // so rebuild output does not create Problems entries.
+        "pattern": {
+          "regexp": "^(?!)"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "\\[esbuild\\] watching extension\\.\\.\\.|\\[watch\\] build started",
+          "endsPattern": "\\[watch\\] build finished, watching for changes\\.\\.\\."
+        }
+      }
+    },
+    {
+      "label": "npm: watch:webview",
+      "type": "npm",
+      "script": "watch:webview",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "owner": "vite",
+        "source": "vite",
+        // See the extension watcher above: readiness only, no Problems output.
+        "pattern": {
+          "regexp": "^(?!)"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "build started",
+          "endsPattern": "built in"
+        }
+      }
+    },
+    {
+      "label": "watch",
+      "dependsOn": ["npm: watch:extension", "npm: watch:webview"],
+      "dependsOrder": "parallel",
+      "presentation": {
+        "reveal": "never"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

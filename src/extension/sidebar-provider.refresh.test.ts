@@ -294,7 +294,7 @@ describe('SidebarProvider provider refresh', () => {
     vi.useFakeTimers();
     const values = new Map<string, unknown>([
       [
-        'varro.providerRefresh.pending',
+        'loomery.providerRefresh.pending',
         {
           version: 3,
           scope: 'global',
@@ -329,7 +329,7 @@ describe('SidebarProvider provider refresh', () => {
 
     expect(server.restart).not.toHaveBeenCalled();
     expect(server.request).not.toHaveBeenCalledWith('POST', '/global/dispose');
-    expect(values.has('varro.providerRefresh.pending')).toBe(true);
+    expect(values.has('loomery.providerRefresh.pending')).toBe(true);
     expect(posted).toContainEqual({ type: 'providers/status', payload: { pending: true } });
     expect(posted).toContainEqual({ type: 'providers/refresh' });
     await provider.dispose();
@@ -673,7 +673,7 @@ describe('SidebarProvider provider refresh', () => {
     await vi.advanceTimersByTimeAsync(0);
 
     await firstAccess.providerFileRefresh.refreshState();
-    expect(values.get('varro.providerRefresh.pending')).toEqual({
+    expect(values.get('loomery.providerRefresh.pending')).toEqual({
       version: 3,
       scope: 'global',
       revalidateAuth: false,
@@ -717,7 +717,7 @@ describe('SidebarProvider provider refresh', () => {
 
     expect(restoredServer.request).toHaveBeenCalledWith('POST', '/global/dispose');
     expect(restoredServer.restart).not.toHaveBeenCalled();
-    expect(values.has('varro.providerRefresh.pending')).toBe(false);
+    expect(values.has('loomery.providerRefresh.pending')).toBe(false);
     expect(posted).toContainEqual({ type: 'providers/status', payload: { pending: false } });
     await second.provider.dispose();
   });
@@ -958,7 +958,7 @@ describe('SidebarProvider provider refresh', () => {
 
     await provider.resolveWebviewView(view as never, {} as never, {} as never);
 
-    expect(view.webview.html).toBe('<p>Failed to load Varro webview. Please reload.</p>');
+    expect(view.webview.html).toBe('<p>Failed to load Loomery webview. Please reload.</p>');
     expect(loggerMock.error).toHaveBeenCalledWith('resolveWebviewView failed: resolver failed');
     await provider.dispose();
   });

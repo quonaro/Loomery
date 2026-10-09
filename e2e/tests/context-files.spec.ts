@@ -24,7 +24,7 @@ test('highlights inline file chips crossed by composer selections', async ({ pag
   const composer = page.locator('[role="textbox"][aria-multiline="true"]').first();
   await expect(composer).toBeVisible();
   await page.evaluate(() => {
-    document.documentElement.style.setProperty('--varro-chat-font-size', '17px');
+    document.documentElement.style.setProperty('--loomery-chat-font-size', '17px');
   });
   await expect(composer).toHaveCSS('font-size', '17px');
   await composer.fill('Test @README');
@@ -129,9 +129,9 @@ test('message body includes attached file reference', async ({ page }) => {
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );
@@ -184,9 +184,9 @@ test('message uses workspace-relative path for file references', async ({ page }
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );

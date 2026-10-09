@@ -67,7 +67,7 @@ for (const finishTurn of [false, true]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated E2E harness reads this synthetic fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       { session, initialMessages }
@@ -79,9 +79,9 @@ for (const finishTurn of [false, true]) {
         // SAFETY: The controlled playback page exposes the mock event transport.
         const harness = (
           window as typeof window & {
-            __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+            __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         harness.replayServerEvent({
           type: 'session.status',
           properties: { sessionID: message.sessionID, status: { type: 'busy' } },
@@ -102,9 +102,9 @@ for (const finishTurn of [false, true]) {
         // SAFETY: The controlled playback page exposes the mock event transport.
         const harness = (
           window as typeof window & {
-            __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+            __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const prompt = document.querySelector('.user-message-card')!;
         const sample = () => {
           const summary = element.querySelector('.assistant-activity-summary');

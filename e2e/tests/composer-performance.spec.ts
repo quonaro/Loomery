@@ -15,8 +15,8 @@ for (const count of [20, 10_000]) {
     const now = Date.now() - count * 1_000;
     const session: Session = {
       id: SESSION_ID,
-      projectID: 'project-varro',
-      directory: '/workspace/varro',
+      projectID: 'project-loomery',
+      directory: '/workspace/loomery',
       title: 'Typing load',
       version: '1',
       time: { created: now, updated: Date.now() },
@@ -65,7 +65,7 @@ for (const count of [20, 10_000]) {
     await page.addInitScript(
       (capture) => {
         // SAFETY: The session-playback harness reads this controlled fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: unknown }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: unknown }).loomeryPlaybackCapture =
           capture;
       },
       { session, initialMessages: messages, events: [] }
@@ -106,9 +106,9 @@ for (const count of [20, 10_000]) {
             // SAFETY: The playback harness installs this transport in the isolated page.
             const harness = (
               window as typeof window & {
-                __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+                __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
               }
-            ).__varroE2E;
+            ).__loomeryE2E;
             harness.replayServerEvent({ type: 'message.updated', properties: { info } });
             harness.replayServerEvent({
               type: 'session.status',

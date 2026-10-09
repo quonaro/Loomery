@@ -18,12 +18,12 @@ async function requestHarnessApi<T>(page: Page, id: number, path: string) {
     async ({ requestId, requestPath }) => {
       const harnessWindow = window as Window & {
         __sendToExtension?: (message: unknown) => void | Promise<void>;
-        __varroE2E?: {
+        __loomeryE2E?: {
           dispatchedMessages?: Array<{ type: string; payload?: unknown }>;
         };
       };
       const send = harnessWindow.__sendToExtension;
-      const dispatchedMessages = harnessWindow.__varroE2E?.dispatchedMessages;
+      const dispatchedMessages = harnessWindow.__loomeryE2E?.dispatchedMessages;
       if (!send || !dispatchedMessages) throw new Error('Harness bridge is unavailable');
 
       const firstNewMessage = dispatchedMessages.length;

@@ -123,27 +123,27 @@ export class BrowserPersistence implements Persistence {
   }
 }
 
-const LOCAL_STORAGE_FAILURES_STATE_KEY = '__varroLocalStorageFailures';
+const LOCAL_STORAGE_FAILURES_STATE_KEY = '__loomeryLocalStorageFailures';
 
 const EDITOR_INSTANCE_KEYS = new Set([
-  'varro.inputDraft',
-  'varro.inputDraftFiles',
-  'varro.inputDraftProblems',
-  'varro.queuedMessageEdit',
-  'varro.queuedMessages',
-  'varro.editorViewId',
-  'varro.workspacePath',
-  'varro.manualWorkspaceSelection',
-  'varro.lastActiveSessionId',
-  'varro.lastOpenedView',
+  'loomery.inputDraft',
+  'loomery.inputDraftFiles',
+  'loomery.inputDraftProblems',
+  'loomery.queuedMessageEdit',
+  'loomery.queuedMessages',
+  'loomery.editorViewId',
+  'loomery.workspacePath',
+  'loomery.manualWorkspaceSelection',
+  'loomery.lastActiveSessionId',
+  'loomery.lastOpenedView',
 ]);
 
 const WEBVIEW_INSTANCE_KEYS = new Set([
-  'varro.inputDraft',
-  'varro.inputDraftFiles',
-  'varro.inputDraftProblems',
-  'varro.queuedMessageEdit',
-  'varro.queuedMessages',
+  'loomery.inputDraft',
+  'loomery.inputDraftFiles',
+  'loomery.inputDraftProblems',
+  'loomery.queuedMessageEdit',
+  'loomery.queuedMessages',
 ]);
 
 function shouldUseLocalStorage(key: string): boolean {

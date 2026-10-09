@@ -11,7 +11,7 @@ import type {
 import { verifySessionPlayback } from '../session-playback';
 
 type HarnessWindow = typeof window & {
-  __varroE2E: {
+  __loomeryE2E: {
     getSessionMessages: (id: string) => MessageEntry[];
     replayServerEvent: (event: ServerEvent) => void;
     updateMessagePart: (part: Part) => void;
@@ -23,7 +23,7 @@ test('mocked session playback has no frame-level flicker', async ({ page }) => {
   const session: Session = {
     id: 'session-mock-playback',
     projectID: 'project-mock-playback',
-    directory: '/workspace/varro',
+    directory: '/workspace/loomery',
     title: 'Parallel tool playback',
     version: '1.0.0',
     time: { created, updated: created },
@@ -232,7 +232,7 @@ test('running tool updates preserve the node and its current entrance animation'
     entrance.pause();
     entrance.currentTime = 70;
     // SAFETY: The controlled tool-cards harness exposes this typed test API.
-    const harness = (window as HarnessWindow).__varroE2E;
+    const harness = (window as HarnessWindow).__loomeryE2E;
     const part = harness
       .getSessionMessages('session-tool-cards')
       .flatMap((message) => message.parts)
@@ -296,7 +296,7 @@ test('tool completion preserves the running outer node until direct grouping', a
   await expect(items).toHaveAttribute('data-activity-part-id', 'tool-active-0');
   const result = await page.evaluate(async () => {
     // SAFETY: The controlled tool-cards harness exposes this typed test API.
-    const harness = (window as HarnessWindow).__varroE2E;
+    const harness = (window as HarnessWindow).__loomeryE2E;
     const running = harness
       .getSessionMessages('session-tool-cards')
       .flatMap((message) => message.parts)
@@ -384,7 +384,7 @@ for (const completedIndex of [0, 1]) {
     // Complete before retention expires, so the already-painted node must survive the update.
     const result = await page.evaluate(async (firstCompletedIndex) => {
       // SAFETY: The controlled tool-cards harness exposes this typed test API.
-      const harness = (window as HarnessWindow).__varroE2E;
+      const harness = (window as HarnessWindow).__loomeryE2E;
       const running = harness
         .getSessionMessages('session-tool-cards')
         .flatMap((message) => message.parts)

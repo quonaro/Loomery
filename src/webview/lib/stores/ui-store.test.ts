@@ -13,12 +13,14 @@ describe('uiStore', () => {
     const composerFocusKey = uiStore.composerFocusKey();
     const openAttentionSessionsKey = uiStore.openAttentionSessionsKey();
     const openCompletedSessionsKey = uiStore.openCompletedSessionsKey();
+    const openAllSessionsKey = uiStore.openAllSessionsKey();
     const messageListScrollRequestKey = uiStore.messageListScrollRequestKey();
 
     uiStore.toggleThinking();
     uiStore.requestComposerFocus();
     uiStore.requestOpenAttentionSessions();
     uiStore.requestOpenCompletedSessions();
+    uiStore.requestOpenAllSessions();
     uiStore.requestMessageListScrollToBottom();
 
     expect(uiStore.showThinking()).toBe(false);
@@ -26,6 +28,7 @@ describe('uiStore', () => {
     expect(uiStore.composerFocusKey()).toBe(composerFocusKey + 1);
     expect(uiStore.openAttentionSessionsKey()).toBe(openAttentionSessionsKey + 1);
     expect(uiStore.openCompletedSessionsKey()).toBe(openCompletedSessionsKey + 1);
+    expect(uiStore.openAllSessionsKey()).toBe(openAllSessionsKey + 1);
     expect(uiStore.messageListScrollRequestKey()).toBe(messageListScrollRequestKey + 1);
   });
 

@@ -13,7 +13,7 @@ import {
   isSafePersistedSessionId,
   MAX_CLIPBOARD_IMAGES,
   MAX_CLIPBOARD_IMAGE_SIZE,
-  VARRO_API_ENDPOINTS,
+  LOOMERY_API_ENDPOINTS,
 } from '../../shared/protocol';
 import type {
   ChatModelSelection,
@@ -44,7 +44,7 @@ import {
   isNativePdfAttachment,
 } from '../../shared/native-pdf';
 
-// The webview may only ask for commands Varro itself authored: the auth flows
+// The webview may only ask for commands Loomery itself authored: the auth flows
 // plus the install and update commands the server-status recovery states offer.
 // Anything else is dropped, so a compromised webview cannot run arbitrary
 // shell text in the user's terminal.
@@ -88,7 +88,7 @@ const MAX_API_BODY_SINGLE_STRING_BYTES = 8 * 1024 * 1024;
 const MAX_API_BODY_ARRAY_LENGTH = 5_000;
 const MAX_API_BODY_OBJECT_KEYS = 2_000;
 const MAX_API_BODY_KEY_BYTES = 512;
-const API_BASE = 'http://varro.local';
+const API_BASE = 'http://loomery.local';
 
 const INVALID_JSON_VALUE = Symbol('invalid-json-value');
 
@@ -1826,7 +1826,7 @@ const API_ROUTES: ApiRoute[] = [
   route('/session/status', methodsNoQuery('GET')),
   route('/experimental/workspace/status', methodsNoQuery('GET')),
   route(
-    VARRO_API_ENDPOINTS.modelPricing,
+    LOOMERY_API_ENDPOINTS.modelPricing,
     ({ method, url }) =>
       method === 'GET' &&
       onlyQuery(url, 'providerID', 'modelID') &&
@@ -1834,87 +1834,87 @@ const API_ROUTES: ApiRoute[] = [
       requiredQuery(url, 'modelID')
   ),
   route(
-    VARRO_API_ENDPOINTS.providerLimit,
+    LOOMERY_API_ENDPOINTS.providerLimit,
     ({ method, url }) =>
       method === 'GET' &&
       onlyQuery(url, 'providerID', 'modelID') &&
       requiredQuery(url, 'providerID')
   ),
   route(
-    VARRO_API_ENDPOINTS.workspaceFile,
+    LOOMERY_API_ENDPOINTS.workspaceFile,
     ({ method, url }) => method === 'GET' && onlyQuery(url, 'path') && requiredQuery(url, 'path')
   ),
   route(
-    VARRO_API_ENDPOINTS.workspacePathResolve,
+    LOOMERY_API_ENDPOINTS.workspacePathResolve,
     ({ method, url }) => method === 'GET' && onlyQuery(url, 'path') && requiredQuery(url, 'path')
   ),
-  route(VARRO_API_ENDPOINTS.workspaceFilePick, methodsNoQuery('GET')),
-  route(VARRO_API_ENDPOINTS.copiedSelectionMatch, methodsNoQuery('POST')),
-  route(VARRO_API_ENDPOINTS.workspaceProblems, methodsNoQuery('GET')),
+  route(LOOMERY_API_ENDPOINTS.workspaceFilePick, methodsNoQuery('GET')),
+  route(LOOMERY_API_ENDPOINTS.copiedSelectionMatch, methodsNoQuery('POST')),
+  route(LOOMERY_API_ENDPOINTS.workspaceProblems, methodsNoQuery('GET')),
   route(
-    VARRO_API_ENDPOINTS.sessionHistoryScope,
+    LOOMERY_API_ENDPOINTS.sessionHistoryScope,
     ({ method, url }) =>
       (method === 'GET' || method === 'POST') &&
       onlyQuery(url, 'directory') &&
       requiredQuery(url, 'directory')
   ),
-  route(VARRO_API_ENDPOINTS.openCodeConfig, methodsNoQuery('GET')),
-  route(VARRO_API_ENDPOINTS.openCodeConfigModelRouting, methodsNoQuery('POST')),
-  route(VARRO_API_ENDPOINTS.openCodeConfigDisableProvider, methodsNoQuery('POST')),
-  route(VARRO_API_ENDPOINTS.openCodeConfigPermissions, methodsNoQuery('GET', 'POST')),
-  route(VARRO_API_ENDPOINTS.permissionJudge, methodsNoQuery('POST')),
-  route(VARRO_API_ENDPOINTS.decisionProviders, methodsNoQuery('GET', 'POST')),
+  route(LOOMERY_API_ENDPOINTS.openCodeConfig, methodsNoQuery('GET')),
+  route(LOOMERY_API_ENDPOINTS.openCodeConfigModelRouting, methodsNoQuery('POST')),
+  route(LOOMERY_API_ENDPOINTS.openCodeConfigDisableProvider, methodsNoQuery('POST')),
+  route(LOOMERY_API_ENDPOINTS.openCodeConfigPermissions, methodsNoQuery('GET', 'POST')),
+  route(LOOMERY_API_ENDPOINTS.permissionJudge, methodsNoQuery('POST')),
+  route(LOOMERY_API_ENDPOINTS.decisionProviders, methodsNoQuery('GET', 'POST')),
   route(
-    VARRO_API_ENDPOINTS.permissionProjectAllow,
+    LOOMERY_API_ENDPOINTS.permissionProjectAllow,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
   route(
-    VARRO_API_ENDPOINTS.permissionSessionAllow,
+    LOOMERY_API_ENDPOINTS.permissionSessionAllow,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
-  route(VARRO_API_ENDPOINTS.permissionSessionRules, ({ method, url }) =>
+  route(LOOMERY_API_ENDPOINTS.permissionSessionRules, ({ method, url }) =>
     method === 'GET'
       ? onlyQuery(url, 'sessionId', 'directory') && requiredQuery(url, 'sessionId')
       : method === 'POST' && optionalDirectoryQuery(url)
   ),
-  route(VARRO_API_ENDPOINTS.permissionServerMemory, ({ method, url }) =>
+  route(LOOMERY_API_ENDPOINTS.permissionServerMemory, ({ method, url }) =>
     method === 'GET'
       ? onlyQuery(url, 'sessionId', 'directory')
       : method === 'DELETE' && optionalDirectoryQuery(url)
   ),
   route(
-    VARRO_API_ENDPOINTS.permissionJudgeModel,
+    LOOMERY_API_ENDPOINTS.permissionJudgeModel,
     ({ method, url }) => method === 'GET' && onlyQuery(url, 'providerID', 'modelID', 'variant')
   ),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/diff-summary`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/diff-summary`,
     ({ method, url }) => method === 'GET' && queryWithOptionalDirectory(url, 'revision')
   ),
-  route(`${VARRO_API_ENDPOINTS.session}/:id/activate`, methodsNoQuery('POST')),
+  route(`${LOOMERY_API_ENDPOINTS.session}/:id/activate`, methodsNoQuery('POST')),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/pin`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/pin`,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/reorder-pin`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/reorder-pin`,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/permission-mode`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/permission-mode`,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/rename-if-untitled`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/rename-if-untitled`,
     ({ method, url }) => method === 'POST' && optionalDirectoryQuery(url)
   ),
   route(
-    `${VARRO_API_ENDPOINTS.session}/:id/delete`,
+    `${LOOMERY_API_ENDPOINTS.session}/:id/delete`,
     ({ method, url }) => method === 'DELETE' && optionalDirectoryQuery(url)
   ),
-  route(VARRO_API_ENDPOINTS.sessionTrash, methodsNoQuery('GET', 'DELETE')),
-  route(VARRO_API_ENDPOINTS.planOpen, methodsNoQuery('POST')),
+  route(LOOMERY_API_ENDPOINTS.sessionTrash, methodsNoQuery('GET', 'DELETE')),
+  route(LOOMERY_API_ENDPOINTS.planOpen, methodsNoQuery('POST')),
   route(
-    `${VARRO_API_ENDPOINTS.sessionTrash}/:id/:action`,
+    `${LOOMERY_API_ENDPOINTS.sessionTrash}/:id/:action`,
     ({ method, url, params }) =>
       noQuery(url) &&
       ((method === 'POST' && params.action === 'restore') ||

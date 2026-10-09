@@ -21,12 +21,12 @@ test('full access mode sends a bash request without showing a permission prompt'
   const promptCount = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ path: string }> };
+        __loomeryE2E?: { requests: Array<{ path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.filter((request) =>
-        new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+        new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
       ).length || 0
     );
   });

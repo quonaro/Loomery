@@ -17,10 +17,10 @@ describe('parseDroppedText', () => {
           'file:///tmp/demo.ts',
           './src/app.ts',
           './src/app.ts',
-          '/Users/andrew/Projects/GitHub/varro/README.md',
+          '/Users/andrew/Projects/GitHub/loomery/README.md',
         ].join('\n')
       )
-    ).toEqual(['/tmp/demo.ts', 'src/app.ts', '/Users/andrew/Projects/GitHub/varro/README.md']);
+    ).toEqual(['/tmp/demo.ts', 'src/app.ts', '/Users/andrew/Projects/GitHub/loomery/README.md']);
   });
 
   it('extracts paths from structured vscode drag payloads', () => {

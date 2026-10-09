@@ -35,7 +35,7 @@ export function getServerPathEntries(
   // VS Code launched from a desktop shell does not inherit the login shell
   // PATH, so global install locations are added explicitly. Version managers
   // that scope globals per Node version (fnm, nvm, asdf) cannot be enumerated
-  // statically; those installs are covered by `varro.server.command`.
+  // statically; those installs are covered by `loomery.server.command`.
   const extras =
     platform === 'win32'
       ? [

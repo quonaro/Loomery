@@ -43,6 +43,24 @@ export async function waitForAnimationFrame(page: Page) {
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))));
 }
 
+/**
+ * Opens the sessions list the way the host view-title button does. The in-page
+ * back button was removed once that control moved to the toolbar, so tests drive
+ * the same `command/open-sessions` message the toolbar sends.
+ */
+export async function openSessions(page: Page) {
+  await page.evaluate(() => {
+    // SAFETY: The E2E harness installs this dispatch helper on the controlled test window.
+    const harness = (
+      window as Window & {
+        __loomeryE2E?: { dispatchExtensionMessage?: (message: { type: string }) => void };
+      }
+    ).__loomeryE2E;
+    harness?.dispatchExtensionMessage?.({ type: 'command/open-sessions' });
+  });
+  await expect(page.locator('.session-list-view')).toBeVisible();
+}
+
 export async function waitForAnimationFrames(page: Page, count: number) {
   for (let index = 0; index < count; index += 1) {
     await waitForAnimationFrame(page);

@@ -1,7 +1,7 @@
 # Stateless helper generation
 
 Title fallback and commit-message generation first check the connected v2 server's
-OpenAPI document for `/api/experimental/generate`. When available, Varro sends one
+OpenAPI document for `/api/experimental/generate`. When available, Loomery sends one
 prompt with the selected provider, model, and variant, and validates the returned
 JSON before applying it. This operation does not create a session.
 
@@ -24,5 +24,5 @@ Run the focused contract checks with:
 
 ```sh
 npm run test -- src/extension/one-shot-generation.test.ts src/extension/session-title-fallback.test.ts src/extension/commit-message-service.test.ts src/extension/opencode-v2.test.ts
-VARRO_OPENCODE_TEST_BINARY=/path/to/opencode npm run test -- src/extension/opencode-v2.integration.test.ts
+LOOMERY_OPENCODE_TEST_BINARY=/path/to/opencode npm run test -- src/extension/opencode-v2.integration.test.ts
 ```

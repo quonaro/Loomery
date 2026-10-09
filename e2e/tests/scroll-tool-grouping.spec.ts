@@ -32,12 +32,12 @@ for (const virtualized of [false, true]) {
         // SAFETY: The isolated fixture installs typed persistence and production-event replay helpers.
         const harness = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               getSessionMessages(id: string): MessageEntry[];
               replayServerEvent(event: ServerEvent): void;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         if (!harness) throw new Error('Missing E2E harness');
         const list = document.querySelector<HTMLElement>('.interactive-list');
         const initial = harness
@@ -215,12 +215,12 @@ for (const trayFraction of [0.1, 0.3, 0.6]) {
       // SAFETY: The isolated fixture installs typed persistence and production-event replay helpers.
       const harness = (
         window as Window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages(id: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const list = document.querySelector<HTMLElement>('.interactive-list');
       const marker = list?.querySelector<HTMLElement>(
         '[data-msg-id="message-tool-cards-user-69"] .user-message-card'
@@ -305,12 +305,12 @@ for (const virtualized of [false, true]) {
         // SAFETY: The isolated fixture installs typed persistence and production-event replay helpers.
         const harness = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               getSessionMessages(id: string): MessageEntry[];
               replayServerEvent(event: ServerEvent): void;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const list = document.querySelector<HTMLElement>('.interactive-list');
         const initial = harness
           ?.getSessionMessages(sessionID)

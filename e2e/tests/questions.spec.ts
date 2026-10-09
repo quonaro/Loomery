@@ -20,9 +20,9 @@ test('answers a standalone question prompt', async ({ page }) => {
   const replyRequest = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find((request) => request.path === '/question/question-prompt-1/reply') ||
       null
@@ -48,9 +48,9 @@ test('submits a multiline custom answer with Enter', async ({ page }) => {
     await getE2EState(page, () => {
       const value = (
         window as Window & {
-          __varroE2E?: { requests: Array<{ path: string }> };
+          __loomeryE2E?: { requests: Array<{ path: string }> };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       return value?.requests.some(
         (request) => request.path === '/question/question-prompt-1/reply'
       );
@@ -62,9 +62,9 @@ test('submits a multiline custom answer with Enter', async ({ page }) => {
   const replyRequest = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find((request) => request.path === '/question/question-prompt-1/reply') ||
       null
@@ -85,9 +85,9 @@ test('skips a standalone question prompt', async ({ page }) => {
   const rejectRequest = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find((request) => request.path === '/question/question-prompt-1/reject') ||
       null

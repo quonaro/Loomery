@@ -13,15 +13,15 @@ test('opens the context popup and compacts the session', async ({ page }) => {
   const summarizeCount = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ path: string }> };
+        __loomeryE2E?: { requests: Array<{ path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.filter((request) => {
-        const url = new URL(request.path, 'http://varro.test');
+        const url = new URL(request.path, 'http://loomery.test');
         return (
           url.pathname.endsWith('/summarize') &&
-          url.searchParams.get('directory') === '/workspace/varro'
+          url.searchParams.get('directory') === '/workspace/loomery'
         );
       }).length || 0
     );

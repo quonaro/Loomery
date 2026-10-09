@@ -87,8 +87,8 @@ for (const settleMs of [0, 600]) {
           (fixture) => {
             // SAFETY: The isolated E2E harness reads this fixture before mounting.
             (
-              window as typeof window & { varroPlaybackCapture: typeof fixture }
-            ).varroPlaybackCapture = fixture;
+              window as typeof window & { loomeryPlaybackCapture: typeof fixture }
+            ).loomeryPlaybackCapture = fixture;
           },
           { session, initialMessages: [user, assistant] }
         );
@@ -127,9 +127,9 @@ for (const settleMs of [0, 600]) {
             // SAFETY: This page owns the E2E event transport.
             const harness = (
               window as typeof window & {
-                __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+                __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
               }
-            ).__varroE2E;
+            ).__loomeryE2E;
             for (const event of batch) harness.replayServerEvent(event);
           }, events);
         await deliver([
@@ -196,9 +196,9 @@ for (const settleMs of [0, 600]) {
             // SAFETY: This page owns the E2E event transport and transcript DOM.
             const harness = (
               window as typeof window & {
-                __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+                __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
               }
-            ).__varroE2E;
+            ).__loomeryE2E;
             const list = document.querySelector<HTMLElement>('.interactive-list')!;
             const paragraphs = [...list.querySelectorAll<HTMLElement>('.rendered-markdown p')];
             const marker = paragraphs.findLast((p) => {

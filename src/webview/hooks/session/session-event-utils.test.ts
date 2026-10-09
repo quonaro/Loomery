@@ -59,11 +59,11 @@ describe('normalizeSessionEventInfo', () => {
     expect(
       normalizeSessionEventInfo({
         id: 'session-1',
-        metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+        metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
       })
     ).toEqual({
       id: 'session-1',
-      metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+      metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
       workspaceScope: 'workspace',
     });
   });

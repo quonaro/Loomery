@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline';
 import { appendFile } from 'node:fs/promises';
 
-const PAGE_MARKER_PATH = '/tmp/varro-mcp-pages';
+const PAGE_MARKER_PATH = '/tmp/loomery-mcp-pages';
 
 const lines = createInterface({ input: process.stdin });
 
@@ -28,7 +28,7 @@ for await (const line of lines) {
       result = {
         protocolVersion: request.params?.protocolVersion || '2024-11-05',
         capabilities: { tools: {} },
-        serverInfo: { name: 'varro-compatibility', version: '1.0.0' },
+        serverInfo: { name: 'loomery-compatibility', version: '1.0.0' },
       };
       break;
     case 'ping':

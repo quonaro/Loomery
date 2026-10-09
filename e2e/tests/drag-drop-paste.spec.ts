@@ -79,8 +79,8 @@ test('displays files received from files/dropped in the attachment strip', async
       {
         type: 'files/dropped',
         payload: [
-          { path: '/workspace/varro/src/index.ts', relativePath: 'src/index.ts', type: 'file' },
-          { path: '/workspace/varro/src/lib', relativePath: 'src/lib', type: 'directory' },
+          { path: '/workspace/loomery/src/index.ts', relativePath: 'src/index.ts', type: 'file' },
+          { path: '/workspace/loomery/src/lib', relativePath: 'src/lib', type: 'directory' },
         ],
       },
       '*'
@@ -101,8 +101,8 @@ test('removes only the host-removed file from the attachment strip', async ({ pa
       {
         type: 'files/dropped',
         payload: [
-          { path: '/workspace/varro/src/a.ts', relativePath: 'src/a.ts', type: 'file' },
-          { path: '/workspace/varro/src/b.ts', relativePath: 'src/b.ts', type: 'file' },
+          { path: '/workspace/loomery/src/a.ts', relativePath: 'src/a.ts', type: 'file' },
+          { path: '/workspace/loomery/src/b.ts', relativePath: 'src/b.ts', type: 'file' },
         ],
       },
       '*'
@@ -113,7 +113,7 @@ test('removes only the host-removed file from the attachment strip', async ({ pa
 
   await page.evaluate(() => {
     window.postMessage(
-      { type: 'files/removed', payload: { path: '/workspace/varro/src/a.ts' } },
+      { type: 'files/removed', payload: { path: '/workspace/loomery/src/a.ts' } },
       '*'
     );
   });
@@ -133,7 +133,7 @@ test('includes dropped file references in the prompt body', async ({ page }) => 
       {
         type: 'files/dropped',
         payload: [
-          { path: '/workspace/varro/src/utils.ts', relativePath: 'src/utils.ts', type: 'file' },
+          { path: '/workspace/loomery/src/utils.ts', relativePath: 'src/utils.ts', type: 'file' },
         ],
       },
       '*'
@@ -151,9 +151,9 @@ test('includes dropped file references in the prompt body', async ({ page }) => 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );
@@ -206,9 +206,9 @@ test('pastes an image, sends it as a file part, and clears the chip', async ({ p
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );
@@ -569,9 +569,9 @@ test('reloads and inline-edits an image prompt without losing its attachment', a
   const readHarnessMessages = () =>
     page.evaluate((id) => {
       const harness = window as Window & {
-        __varroE2E?: { getSessionMessages?: (sessionId: string) => unknown };
+        __loomeryE2E?: { getSessionMessages?: (sessionId: string) => unknown };
       };
-      return harness.__varroE2E?.getSessionMessages?.(id) as HarnessMessage[] | undefined;
+      return harness.__loomeryE2E?.getSessionMessages?.(id) as HarnessMessage[] | undefined;
     }, sessionId);
 
   await page.goto('/e2e/harness/index.html?scenario=reload-persistence');
@@ -653,21 +653,21 @@ test('reloads and inline-edits an image prompt without losing its attachment', a
 
   const editRequests = await page.evaluate(() => {
     const harness = window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
     };
-    return (harness.__varroE2E?.requests ?? [])
+    return (harness.__loomeryE2E?.requests ?? [])
       .filter(
         (request) =>
           (request.method === 'DELETE' && request.path.includes('/message/')) ||
           (request.method === 'POST' &&
-            new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async'))
+            new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async'))
       )
       .map((request) => `${request.method} ${request.path}`);
   });
   expect(editRequests).toEqual([
-    `DELETE /session/${sessionId}/message/${initialAssistant!.info.id}?directory=%2Fworkspace%2Fvarro`,
-    `DELETE /session/${sessionId}/message/${initialUser!.info.id}?directory=%2Fworkspace%2Fvarro`,
-    `POST /session/${sessionId}/prompt_async?directory=%2Fworkspace%2Fvarro`,
+    `DELETE /session/${sessionId}/message/${initialAssistant!.info.id}?directory=%2Fworkspace%2Floomery`,
+    `DELETE /session/${sessionId}/message/${initialUser!.info.id}?directory=%2Fworkspace%2Floomery`,
+    `POST /session/${sessionId}/prompt_async?directory=%2Fworkspace%2Floomery`,
   ]);
 
   const editedMessages = await readHarnessMessages();
@@ -703,8 +703,8 @@ test('removes individual dropped files via the chip remove button', async ({ pag
       {
         type: 'files/dropped',
         payload: [
-          { path: '/workspace/varro/src/a.ts', relativePath: 'src/a.ts', type: 'file' },
-          { path: '/workspace/varro/src/b.ts', relativePath: 'src/b.ts', type: 'file' },
+          { path: '/workspace/loomery/src/a.ts', relativePath: 'src/a.ts', type: 'file' },
+          { path: '/workspace/loomery/src/b.ts', relativePath: 'src/b.ts', type: 'file' },
         ],
       },
       '*'

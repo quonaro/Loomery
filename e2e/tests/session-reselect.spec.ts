@@ -45,7 +45,7 @@ for (const theme of ['dark', 'light']) {
         element.dispatchEvent(new Event('scroll'));
       });
       await expect(page.locator('.latest-user-message-sticky')).toBeVisible();
-      await page.evaluate(() => document.documentElement.classList.add('varro-editor-surface'));
+      await page.evaluate(() => document.documentElement.classList.add('loomery-editor-surface'));
       const shell = page.locator('.chat-main-shell');
       const before = await list.evaluate((element) => element.scrollTop);
       const geometry = await shell.evaluate((element) => {

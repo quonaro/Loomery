@@ -1,5 +1,5 @@
 /* oxlint-disable anti-slop/no-unknown-parameters -- Session metadata is an external OpenCode boundary; validate selections before restoring them. */
-import { VARRO_SESSION_METADATA_VERSION } from './protocol';
+import { LOOMERY_SESSION_METADATA_VERSION } from './protocol';
 import type { ChatModelSelection, PermissionMode } from './protocol';
 import { asRecord, isString } from './type-utils';
 import type { UnknownRecord } from './type-utils';
@@ -9,36 +9,36 @@ export type SessionSelectionMetadata = {
   agent?: string;
 };
 
-type VarroModelMetadata = {
+type LoomeryModelMetadata = {
   provider: string;
   model: string;
   variant?: string;
 };
 
-export function mergeVarroSessionMetadata(
+export function mergeLoomerySessionMetadata(
   metadata: unknown,
   update: SessionSelectionMetadata & { permissionMode?: PermissionMode }
 ) {
   const existing = asRecord(metadata);
-  const varro: UnknownRecord = {
-    ...asRecord(existing?.varro),
-    schemaVersion: VARRO_SESSION_METADATA_VERSION,
+  const loomery: UnknownRecord = {
+    ...asRecord(existing?.loomery),
+    schemaVersion: LOOMERY_SESSION_METADATA_VERSION,
   };
-  if (update.permissionMode !== undefined) varro.permissionMode = update.permissionMode;
-  if (update.agent !== undefined) varro.agent = update.agent;
+  if (update.permissionMode !== undefined) loomery.permissionMode = update.permissionMode;
+  if (update.agent !== undefined) loomery.agent = update.agent;
   if (update.model) {
-    const model: VarroModelMetadata = {
+    const model: LoomeryModelMetadata = {
       provider: update.model.providerID,
       model: update.model.modelID,
     };
     if (update.model.variant) model.variant = update.model.variant;
-    varro.model = model;
+    loomery.model = model;
   }
-  return { ...existing, varro };
+  return { ...existing, loomery };
 }
 
 export function readSessionModelMetadata(metadata: unknown): ChatModelSelection | undefined {
-  const model = asRecord(asRecord(asRecord(metadata)?.varro)?.model);
+  const model = asRecord(asRecord(asRecord(metadata)?.loomery)?.model);
   if (
     !isString(model?.provider) ||
     !model.provider.trim() ||
@@ -53,6 +53,6 @@ export function readSessionModelMetadata(metadata: unknown): ChatModelSelection 
 }
 
 export function readSessionAgentMetadata(metadata: unknown): string | undefined {
-  const agent = asRecord(asRecord(metadata)?.varro)?.agent;
+  const agent = asRecord(asRecord(metadata)?.loomery)?.agent;
   return isString(agent) && agent.trim() ? agent : undefined;
 }

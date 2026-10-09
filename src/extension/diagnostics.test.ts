@@ -83,7 +83,7 @@ describe('diagnostic export', () => {
       '/api/session/:id/prompt',
     ],
     [
-      '/api/experimental/session/ses_private/instructions/entries/varro.system',
+      '/api/experimental/session/ses_private/instructions/entries/loomery.system',
       '/api/experimental/session/:id/instructions/entries/:id',
     ],
   ])('identifies native v2 failures without exposing IDs or directories: %s', (path, route) => {

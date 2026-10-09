@@ -26,7 +26,7 @@ export function applyWebviewTheme(theme: WebviewThemeKind, body: HTMLElement = d
   body.dataset.vscodeThemeKind = theme;
 }
 
-export const FLAT_DARK_CLASS = 'varro-flat-dark';
+export const FLAT_DARK_CLASS = 'loomery-flat-dark';
 
 const FLAT_SURFACE_LUMINANCE_DELTA = 12;
 

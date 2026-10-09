@@ -8,7 +8,7 @@ import {
   createCdpRequestClient,
   executeVscodeCommand,
   getVscodeSidebarGeometry,
-  hasRecreatedVarroTarget,
+  hasRecreatedLoomeryTarget,
   reserveLoopbackPort,
   vscodeLaunchCommandMatches,
   waitForVscodeProcess,
@@ -87,19 +87,19 @@ test('never types a command into an editor when the palette did not receive focu
 
 for (const scenario of [
   {
-    name: 'opens the cold Varro tab when its generated focus command is unavailable',
-    label: 'Varro: Focus on Varro View',
+    name: 'opens the cold Loomery tab when its generated focus command is unavailable',
+    label: 'Loomery: Focus on Loomery View',
     point: { x: 1230, y: 50 },
     clicks: true,
   },
   {
-    name: 'rejects a missing or ambiguous cold Varro tab',
-    label: 'Varro: Focus on Varro View',
+    name: 'rejects a missing or ambiguous cold Loomery tab',
+    label: 'Loomery: Focus on Loomery View',
     point: null,
     clicks: false,
   },
   {
-    name: 'does not substitute a Varro tab click for another missing command',
+    name: 'does not substitute a Loomery tab click for another missing command',
     label: 'View: Close Editor',
     point: { x: 1230, y: 50 },
     clicks: false,
@@ -135,7 +135,7 @@ for (const scenario of [
           request.method === 'Runtime.evaluate'
             ? {
                 result: {
-                  value: expression.includes('a[aria-label="Varro"]')
+                  value: expression.includes('a[aria-label="Loomery"]')
                     ? scenario.point
                     : !expression.includes('.quick-input-list'),
                 },
@@ -194,20 +194,20 @@ function fakeWorkbenchDocument({ iframes, sidebars, sashes }) {
   };
 }
 
-test('accepts a changed Varro target without requiring an unavailable polling frame', () => {
-  assert.equal(hasRecreatedVarroTarget('old', 'new', false), true);
-  assert.equal(hasRecreatedVarroTarget('same', 'same', true), false);
-  assert.equal(hasRecreatedVarroTarget(undefined, 'new', false), false);
-  assert.equal(hasRecreatedVarroTarget(undefined, 'new', true), true);
+test('accepts a changed Loomery target without requiring an unavailable polling frame', () => {
+  assert.equal(hasRecreatedLoomeryTarget('old', 'new', false), true);
+  assert.equal(hasRecreatedLoomeryTarget('same', 'same', true), false);
+  assert.equal(hasRecreatedLoomeryTarget(undefined, 'new', false), false);
+  assert.equal(hasRecreatedLoomeryTarget(undefined, 'new', true), true);
 });
 
-test('locates a detached Varro webview overlay by its sidebar geometry', () => {
+test('locates a detached Loomery webview overlay by its sidebar geometry', () => {
   const geometry = getVscodeSidebarGeometry(
     fakeWorkbenchDocument({
       iframes: [
         fakeElement(
           { x: 1141, y: 68, width: 289, height: 790 },
-          { src: 'vscode-webview://varro/?extensionId=koltyakov.varro' }
+          { src: 'vscode-webview://loomery/?extensionId=quonaro.loomery' }
         ),
       ],
       sidebars: [
@@ -229,13 +229,13 @@ test('locates a detached Varro webview overlay by its sidebar geometry', () => {
   });
 });
 
-test('does not treat a detached Varro webview outside the sidebars as visible there', () => {
+test('does not treat a detached Loomery webview outside the sidebars as visible there', () => {
   const geometry = getVscodeSidebarGeometry(
     fakeWorkbenchDocument({
       iframes: [
         fakeElement(
           { x: 400, y: 68, width: 600, height: 790 },
-          { src: 'vscode-webview://varro/?extensionId=koltyakov.varro' }
+          { src: 'vscode-webview://loomery/?extensionId=quonaro.loomery' }
         ),
       ],
       sidebars: [fakeElement({ x: 1140, y: 35, width: 292, height: 829 })],
@@ -245,7 +245,7 @@ test('does not treat a detached Varro webview outside the sidebars as visible th
   );
 
   assert.deepEqual(geometry, {
-    error: 'expected one visible Varro sidebar iframe, found 0',
+    error: 'expected one visible Loomery sidebar iframe, found 0',
   });
 });
 
@@ -308,7 +308,7 @@ test(
   { skip: process.platform === 'win32' },
   async () => {
     await assert.rejects(
-      waitForVscodeProcess(process.execPath, '/tmp/varro-profile-that-does-not-exist', 1),
+      waitForVscodeProcess(process.execPath, '/tmp/loomery-profile-that-does-not-exist', 1),
       /Could not find the VS Code process/
     );
   }

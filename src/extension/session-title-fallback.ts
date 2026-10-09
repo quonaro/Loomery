@@ -47,7 +47,7 @@ type RenameAttempt = {
 };
 
 const RENAME_TIMEOUT_MS = 30_000;
-const TITLE_SESSION_PREFIX = 'Varro session title fallback';
+const TITLE_SESSION_PREFIX = 'Loomery session title fallback';
 const MAX_PROMPT_CHARS = 8_000;
 const DENY_ALL_PERMISSION_NAMES = [
   'read',

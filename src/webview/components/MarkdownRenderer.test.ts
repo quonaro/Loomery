@@ -1173,7 +1173,7 @@ describe('MarkdownRenderer', () => {
       () =>
         MarkdownRenderer({
           content:
-            '[![Visual Studio Marketplace](https://badgen.net/vs-marketplace/v/koltyakov.varro?color=0078d4)](https://marketplace.visualstudio.com/items?itemName=koltyakov.varro) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea44f.svg)](https://github.com/koltyakov/varro/blob/main/LICENSE)',
+            '[![Visual Studio Marketplace](https://badgen.net/vs-marketplace/v/quonaro.loomery?color=0078d4)](https://marketplace.visualstudio.com/items?itemName=quonaro.loomery) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea44f.svg)](https://github.com/quonaro/loomery/blob/main/LICENSE)',
         }),
       container!
     );
@@ -1278,7 +1278,7 @@ describe('MarkdownRenderer', () => {
     expect(rawControl?.hasAttribute('data-copy-text')).toBe(false);
     expect(container?.querySelector('[data-mermaid-source="graph%20TD"]')).toBeNull();
     expect(container?.querySelector('[data-file*="private"]')).toBeNull();
-    expect(container?.querySelector('[data-varro-generated]')).toBeNull();
+    expect(container?.querySelector('[data-loomery-generated]')).toBeNull();
 
     rawControl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(writeText).not.toHaveBeenCalled();

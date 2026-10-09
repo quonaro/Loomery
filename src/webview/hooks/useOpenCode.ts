@@ -7,6 +7,7 @@ export {
   continueInterruptedSession,
   resumeSteering,
   createSession,
+  startNewSession,
   deleteSession,
   deleteSessionImmediately,
   deleteSessionPermanently,

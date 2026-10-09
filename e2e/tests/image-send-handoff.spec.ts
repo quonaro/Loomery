@@ -5,7 +5,7 @@ import type { FilePart, Message, Part, UserMessage } from '../../src/shared/open
 type SendRequest = { id: number; sessionID: string; messageID: string; parts: Part[] };
 type HandoffWindow = {
   __sendToExtension?: (message: WebviewMessage) => void;
-  __varroE2E?: {
+  __loomeryE2E?: {
     updateMessageInfo: (info: Message) => void;
     updateMessagePart: (part: Part) => void;
   };
@@ -161,28 +161,28 @@ for (const [width, order] of [
           id: `server-image-${index}`,
           messageID,
           sessionID,
-          url: `varro-content:/session/${sessionID}/message/${messageID}/part/server-image-${index}`,
+          url: `loomery-content:/session/${sessionID}/message/${messageID}/part/server-image-${index}`,
         })),
       ];
       const event = (type: string, properties: { info: Message } | { part: Part }) =>
         window.postMessage({ type: 'server/event', payload: { type, properties } }, '*');
       const wait = () => new Promise<void>((resolve) => setTimeout(resolve, 80));
-      target.__varroE2E!.updateMessageInfo(info);
+      target.__loomeryE2E!.updateMessageInfo(info);
       // REST stores the canonical order even when transport events arrive out of order.
-      for (const part of parts) target.__varroE2E!.updateMessagePart(part);
+      for (const part of parts) target.__loomeryE2E!.updateMessagePart(part);
       if (eventOrder === 'events-first') {
         event('message.updated', { info });
         // A partial, out-of-order acknowledgement plus repeated metadata must keep all three slots.
         for (const index of [2, 2, 1, 3, 0]) {
           const part = parts[index]!;
-          target.__varroE2E!.updateMessagePart(part);
+          target.__loomeryE2E!.updateMessagePart(part);
           event('message.part.updated', { part });
           await wait();
           event('message.updated', { info });
         }
       }
       // The post-send history request uses canonical server order, not event arrival order.
-      for (const part of parts) target.__varroE2E!.updateMessagePart(part);
+      for (const part of parts) target.__loomeryE2E!.updateMessagePart(part);
       window.postMessage({ type: 'api/response', payload: { id: send.id, data: null } }, '*');
       await wait();
       event('message.updated', { info });
@@ -204,7 +204,7 @@ for (const [width, order] of [
         cost: 0,
         tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
       };
-      target.__varroE2E!.updateMessageInfo(assistant);
+      target.__loomeryE2E!.updateMessageInfo(assistant);
       event('message.updated', { info: assistant });
       for (let index = 1; index <= 6; index++) {
         const part: Part = {
@@ -214,7 +214,7 @@ for (const [width, order] of [
           type: 'text',
           text: 'Comparing the images. '.repeat(index),
         };
-        target.__varroE2E!.updateMessagePart(part);
+        target.__loomeryE2E!.updateMessagePart(part);
         event('message.part.updated', { part });
         await wait();
       }

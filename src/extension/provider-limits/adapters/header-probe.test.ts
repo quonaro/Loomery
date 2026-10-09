@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProviderMetadata } from '../../util/provider-limit';
 import { createHeaderProbeAdapter } from './header-probe';
-import { VARRO_USER_AGENT } from '../adapter-utils';
+import { LOOMERY_USER_AGENT } from '../adapter-utils';
 
 const openAiAdapter = createHeaderProbeAdapter('openai');
 const copilotAdapter = createHeaderProbeAdapter('github-copilot');
@@ -164,9 +164,9 @@ describe('createHeaderProbeAdapter', () => {
         headers: {
           Accept: 'application/json',
           Authorization: 'Bearer copilot-oauth-token',
-          'User-Agent': VARRO_USER_AGENT,
+          'User-Agent': LOOMERY_USER_AGENT,
           'Editor-Version': 'vscode/1.91.0',
-          'Editor-Plugin-Version': 'varro/0.1.0',
+          'Editor-Plugin-Version': 'loomery/0.1.0',
         },
       })
     );

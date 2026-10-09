@@ -199,10 +199,10 @@ export async function inspectWindowsManagedListener(
     '  }',
     '  if ($owned -and $listener -and $listener.ExecutablePath -and $listener.CreationDate) {',
     '    $hostProcess = $byId[$hostPid]',
-    '    [Console]::Out.WriteLine("VARRO_PID=" + $listener.ProcessId)',
-    '    [Console]::Out.WriteLine("VARRO_EXECUTABLE=" + $listener.ExecutablePath)',
-    '    [Console]::Out.WriteLine("VARRO_BIRTH=" + $listener.CreationDate.ToUniversalTime().Ticks)',
-    '    if ($hostProcess -and $hostProcess.CreationDate) { [Console]::Out.WriteLine("VARRO_HOST_BIRTH=" + $hostProcess.CreationDate.ToUniversalTime().Ticks) }',
+    '    [Console]::Out.WriteLine("LOOMERY_PID=" + $listener.ProcessId)',
+    '    [Console]::Out.WriteLine("LOOMERY_EXECUTABLE=" + $listener.ExecutablePath)',
+    '    [Console]::Out.WriteLine("LOOMERY_BIRTH=" + $listener.CreationDate.ToUniversalTime().Ticks)',
+    '    if ($hostProcess -and $hostProcess.CreationDate) { [Console]::Out.WriteLine("LOOMERY_HOST_BIRTH=" + $hostProcess.CreationDate.ToUniversalTime().Ticks) }',
     '    break',
     '  }',
     '}',
@@ -224,11 +224,11 @@ export async function inspectWindowsManagedListener(
     const separator = line.indexOf('=');
     if (separator > 0) values.set(line.slice(0, separator), line.slice(separator + 1).trim());
   }
-  const pid = Number.parseInt(values.get('VARRO_PID') ?? '', 10);
-  const executable = values.get('VARRO_EXECUTABLE') ?? '';
-  const birth = values.get('VARRO_BIRTH') ?? '';
+  const pid = Number.parseInt(values.get('LOOMERY_PID') ?? '', 10);
+  const executable = values.get('LOOMERY_EXECUTABLE') ?? '';
+  const birth = values.get('LOOMERY_BIRTH') ?? '';
   if (!Number.isSafeInteger(pid) || pid <= 0 || !executable || !birth) return null;
-  const hostBirth = values.get('VARRO_HOST_BIRTH') ?? '';
+  const hostBirth = values.get('LOOMERY_HOST_BIRTH') ?? '';
   return {
     pid,
     executable,
@@ -534,12 +534,12 @@ async function readWindowsProcessDetailsOnce(pid: number, includeAccount: boolea
     // Keep the PID-reuse check in the same invocation as the account/executable read.
     `$verified = Get-CimInstance Win32_Process -Filter "ProcessId = ${pid}"`,
     'if (-not $verified -or -not $verified.CreationDate -or $verified.CreationDate.ToUniversalTime().Ticks -ne $birth) { throw "Process identity changed during inspection" }',
-    '[Console]::Out.WriteLine("VARRO_EXECUTABLE=" + $listener.ExecutablePath)',
-    '[Console]::Out.WriteLine("VARRO_BIRTH=" + $birth)',
+    '[Console]::Out.WriteLine("LOOMERY_EXECUTABLE=" + $listener.ExecutablePath)',
+    '[Console]::Out.WriteLine("LOOMERY_BIRTH=" + $birth)',
     ...(includeAccount
       ? [
-          '[Console]::Out.WriteLine("VARRO_LISTENER_SID=" + $listenerOwner.Sid)',
-          '[Console]::Out.WriteLine("VARRO_HOST_SID=" + $hostOwner.Sid)',
+          '[Console]::Out.WriteLine("LOOMERY_LISTENER_SID=" + $listenerOwner.Sid)',
+          '[Console]::Out.WriteLine("LOOMERY_HOST_SID=" + $hostOwner.Sid)',
         ]
       : []),
   ].join('; ');
@@ -564,14 +564,14 @@ async function readWindowsProcessDetailsOnce(pid: number, includeAccount: boolea
     const separator = line.indexOf('=');
     if (separator > 0) values.set(line.slice(0, separator), line.slice(separator + 1).trim());
   }
-  const birth = values.get('VARRO_BIRTH');
-  const executable = values.get('VARRO_EXECUTABLE') ?? '';
+  const birth = values.get('LOOMERY_BIRTH');
+  const executable = values.get('LOOMERY_EXECUTABLE') ?? '';
   if (!birth || !/^\d+$/.test(birth) || (!includeAccount && !executable)) {
     logger.warn(`Windows process identity inspection returned incomplete output for PID ${pid}`);
     return null;
   }
-  const listenerSid = values.get('VARRO_LISTENER_SID');
-  const hostSid = values.get('VARRO_HOST_SID');
+  const listenerSid = values.get('LOOMERY_LISTENER_SID');
+  const hostSid = values.get('LOOMERY_HOST_SID');
   if (
     includeAccount &&
     (!listenerSid ||

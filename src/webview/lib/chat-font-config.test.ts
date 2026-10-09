@@ -7,10 +7,10 @@ import {
 
 describe('chat font config', () => {
   afterEach(() => {
-    document.documentElement.style.removeProperty('--varro-chat-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-prose-font-size-offset');
-    document.documentElement.style.removeProperty('--varro-chat-editor-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-font-family');
+    document.documentElement.style.removeProperty('--loomery-chat-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-prose-font-size-offset');
+    document.documentElement.style.removeProperty('--loomery-chat-editor-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-font-family');
     vi.restoreAllMocks();
   });
 
@@ -23,11 +23,11 @@ describe('chat font config', () => {
 
     for (const chatFontSize of [13, 17, 15.5]) {
       applyChatFontConfig({ chatFontSize, chatEditorFontSize: 12, chatFontFamily: 'default' });
-      expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe(
+      expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
         `${chatFontSize}px`
       );
       expect(
-        document.documentElement.style.getPropertyValue('--varro-chat-prose-font-size-offset')
+        document.documentElement.style.getPropertyValue('--loomery-chat-prose-font-size-offset')
       ).toBe(offset);
     }
   });
@@ -35,12 +35,12 @@ describe('chat font config', () => {
   it('notifies layout owners around a changed font application', () => {
     applyChatFontConfig({ chatFontSize: 13, chatEditorFontSize: 12, chatFontFamily: 'default' });
     const listener = vi.fn(() => {
-      expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe(
+      expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
         '13px'
       );
     });
     const afterListener = vi.fn(() => {
-      expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe(
+      expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
         '17px'
       );
     });
@@ -54,11 +54,13 @@ describe('chat font config', () => {
     applyChatFontConfig({ chatFontSize: 17, chatEditorFontSize: 16, chatFontFamily: 'monospace' });
     expect(listener).toHaveBeenCalledOnce();
     expect(afterListener).toHaveBeenCalledOnce();
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe('17px');
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-editor-font-size')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
+      '17px'
+    );
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-editor-font-size')).toBe(
       '16px'
     );
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-family')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-family')).toBe(
       'monospace'
     );
 
@@ -67,6 +69,6 @@ describe('chat font config', () => {
     applyChatFontConfig({ chatFontSize: 15, chatEditorFontSize: 14, chatFontFamily: 'default' });
     expect(listener).toHaveBeenCalledOnce();
     expect(afterListener).toHaveBeenCalledOnce();
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-family')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-family')).toBe('');
   });
 });

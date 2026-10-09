@@ -971,7 +971,7 @@ function FileChangeCard(props: {
       if (event.key !== 'Escape') return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      Object.assign(event, { varroHandled: true });
+      Object.assign(event, { loomeryHandled: true });
       setMoreMenuOpen(false);
       moreButtonRef?.focus();
     };

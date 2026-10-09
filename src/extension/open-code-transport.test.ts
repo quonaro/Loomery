@@ -560,10 +560,10 @@ describe('v1 session compatibility', () => {
 
 describe('AI test server isolation', () => {
   beforeEach(() =>
-    vi.stubEnv('VARRO_TEST_STATE_ROOT', resolvePath('artifacts/ai-test-data/transport-state'))
+    vi.stubEnv('LOOMERY_TEST_STATE_ROOT', resolvePath('artifacts/ai-test-data/transport-state'))
   );
   it('blocks metadata mutations, health checks, and event connections to an unverified server', async () => {
-    vi.stubEnv('VARRO_TEST_SERVER_URL', 'http://127.0.0.1:49999');
+    vi.stubEnv('LOOMERY_TEST_SERVER_URL', 'http://127.0.0.1:49999');
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     const transport = createTransport();
     await expect(
@@ -577,7 +577,7 @@ describe('AI test server isolation', () => {
   });
 
   it('rejects absolute request URLs even when the configured server is verified', async () => {
-    vi.stubEnv('VARRO_TEST_SERVER_URL', 'http://localhost:4096');
+    vi.stubEnv('LOOMERY_TEST_SERVER_URL', 'http://localhost:4096');
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     await expect(
       createTransport().request('PATCH', 'http://127.0.0.1:4097/session/production', {})
@@ -2011,7 +2011,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2025,7 +2025,7 @@ describe('OpenCodeTransport request scoping', () => {
       1,
       'http://localhost:4096',
       '/session',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(scopeOpenCodeRequest).toHaveBeenNthCalledWith(
       2,
@@ -2035,7 +2035,7 @@ describe('OpenCodeTransport request scoping', () => {
     );
     expect(getOpenCodeDirectoryHeaders).toHaveBeenNthCalledWith(
       1,
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(getOpenCodeDirectoryHeaders).toHaveBeenNthCalledWith(2, undefined);
   });
@@ -2047,7 +2047,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2069,7 +2069,7 @@ describe('OpenCodeTransport request scoping', () => {
       2,
       'http://localhost:4096',
       '/session',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(scopeOpenCodeRequest).toHaveBeenNthCalledWith(
       3,
@@ -2081,7 +2081,7 @@ describe('OpenCodeTransport request scoping', () => {
       4,
       'http://localhost:4096',
       '/session/session-1/prompt_async',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
   });
 
@@ -2092,7 +2092,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2125,7 +2125,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2139,21 +2139,21 @@ describe('OpenCodeTransport request scoping', () => {
       1,
       'http://localhost:4096',
       '/session/session-1',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(scopeOpenCodeRequest).toHaveBeenNthCalledWith(
       2,
       'http://localhost:4096',
       '/session/session-1/message',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(getOpenCodeDirectoryHeaders).toHaveBeenNthCalledWith(
       1,
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(getOpenCodeDirectoryHeaders).toHaveBeenNthCalledWith(
       2,
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
   });
 
@@ -2164,7 +2164,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2176,10 +2176,10 @@ describe('OpenCodeTransport request scoping', () => {
     expect(scopeOpenCodeRequest).toHaveBeenLastCalledWith(
       'http://localhost:4096',
       '/session/session-1/prompt_async',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
     expect(getOpenCodeDirectoryHeaders).toHaveBeenLastCalledWith(
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
   });
 
@@ -2219,7 +2219,7 @@ describe('OpenCodeTransport request scoping', () => {
 
     const transport = new OpenCodeTransport({
       getUrl: () => 'http://localhost:4096',
-      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Varro',
+      getWorkspaceCwd: () => 'C:\\Users\\Andrew\\Projects\\Loomery',
       getStatus: () => ({ state: 'running', url: 'http://localhost:4096', eventStream: 'healthy' }),
       isDisposing: () => false,
       updateEventStreamState: updateEventStreamStateMock,
@@ -2231,7 +2231,7 @@ describe('OpenCodeTransport request scoping', () => {
     expect(scopeOpenCodeRequest).toHaveBeenLastCalledWith(
       'http://localhost:4096',
       '/session',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
   });
 });

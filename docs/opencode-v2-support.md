@@ -2,21 +2,21 @@
 
 Research date: September 19, 2026. The implementation supports v1 from 1.16.0 and v2 from 2.0.5 through automatic extension-host adapters.
 
-V2 is recommended for new installations; v1 remains supported. See the [usage guide](usage.md#choose-and-update-opencode) for installation, version selection, updates, and configuration compatibility. Current packages both install `opencode`. Varro also recognizes older or custom `opencode2` installations and prefers that name during automatic discovery.
+V2 is recommended for new installations; v1 remains supported. See the [usage guide](usage.md#choose-and-update-opencode) for installation, version selection, updates, and configuration compatibility. Current packages both install `opencode`. Loomery also recognizes older or custom `opencode2` installations and prefers that name during automatic discovery.
 
 ## Implementation and verification
 
 - `src/extension/opencode-connection.ts` detects protocol families and removes startup credentials before logging, including credentials split across process-output chunks.
 - `open-code-process.ts` retains credentials in the private ownership lease for window handoff and reads registered local service credentials. CLI update lookup and recovery commands select the matching package family.
 - `open-code-transport.ts` authenticates health, REST, and SSE requests and selects the adapter from validated server responses.
-- `opencode-v2-adapter.ts`, `opencode-v2-projection.ts`, and `opencode-v2-events.ts` translate requests, transcript records, catalogs, permissions, forms, and events into the existing Varro contracts.
-- `opencode-v2-session-state.ts` persists Varro-owned metadata and timestamp overrides across the supported v2 range. Native metadata updates are available from 2.0.15, but Varro still uses local annotations under the user's XDG state directory in `varro/opencode-v2/`.
-- Native v2 agent and permission configuration keys are preserved when Varro edits a file already using them. V1-format files retain their format.
+- `opencode-v2-adapter.ts`, `opencode-v2-projection.ts`, and `opencode-v2-events.ts` translate requests, transcript records, catalogs, permissions, forms, and events into the existing Loomery contracts.
+- `opencode-v2-session-state.ts` persists Loomery-owned metadata and timestamp overrides across the supported v2 range. Native metadata updates are available from 2.0.15, but Loomery still uses local annotations under the user's XDG state directory in `loomery/opencode-v2/`.
+- Native v2 agent and permission configuration keys are preserved when Loomery edits a file already using them. V1-format files retain their format.
 
 Session-info statistics try the local SQLite database before fetching API histories.
 For native v2 sessions, pause metadata comes from the same read-only snapshot and
-Varro's local annotations, without a mandatory session-header API request. The
-session catalog still comes from the API. `Varro: Show Output` reports each summary's
+Loomery's local annotations, without a mandatory session-header API request. The
+session catalog still comes from the API. `Loomery: Show Output` reports each summary's
 source and database fallback reasons, including missing paths, unsupported schemas,
 worker errors/timeouts, and fork/revert histories that require API resolution.
 
@@ -34,18 +34,18 @@ V2 control records such as agent/model selection are excluded from the transcrip
 Run the v2 editor check after building:
 
 ```sh
-VARRO_SANDBOX_V2_COMMAND=/absolute/path/to/opencode2 node scripts/vscode-sandbox/run.mjs v2-first-run
+LOOMERY_SANDBOX_V2_COMMAND=/absolute/path/to/opencode2 node scripts/vscode-sandbox/run.mjs v2-first-run
 ```
 
 The editor profile is disposable, and its OpenCode database is isolated under `artifacts/ai-test-data/`.
 
-The released v2 API has no session-sharing route or arbitrary single-message deletion. Varro disables sharing and implements inline-edit tail deletion through file-preserving staged revert and commit. V2 also has no LSP service. Metadata annotations are local to Varro; they are not synchronized to other OpenCode clients. Switching CLI families does not perform a data migration.
+The released v2 API has no session-sharing route or arbitrary single-message deletion. Loomery disables sharing and implements inline-edit tail deletion through file-preserving staged revert and commit. V2 also has no LSP service. Metadata annotations are local to Loomery; they are not synchronized to other OpenCode clients. Switching CLI families does not perform a data migration.
 
 ### Configuration discovery and provider connection lifecycle
 
 Project configuration reads now follow v2's documented discovery order through the filesystem
 root, followed by `.opencode` files from farthest to nearest. When an inherited `.opencode`
-config would override a direct local edit, Varro writes the override inside the workspace's
+config would override a direct local edit, Loomery writes the override inside the workspace's
 `.opencode` directory. New model-routing overrides retain the inherited native `agents` format.
 V1 retains its existing Git-root discovery boundary. Released v2.0.5 and v2.0.10 fixtures verify
 the ancestor and `.opencode` precedence described in the [v2 configuration guide](https://opencode.ai/v2/docs/config).
@@ -77,7 +77,7 @@ Directory headers now use URI encoding, matching the published v1 SDK and the se
 header decoding. Raw Unicode and embedded newlines previously caused Fetch to reject the
 request before it reached OpenCode. Encoding also preserves literal percent escapes in headers.
 
-V1 additionally URI-decodes legacy directory queries after URL parsing. Varro protects literal
+V1 additionally URI-decodes legacy directory queries after URL parsing. Loomery protects literal
 percent signs at the v1 transport boundary so a folder named `literal%2Fdirectory` does not
 resolve to `literal/directory`. V2 location queries retain their normal URL encoding.
 The released-server adapter tests cover exact workspace resolution for Japanese text, emoji,
@@ -89,12 +89,12 @@ and preservation of Windows separators and casing.
 Reviewed v1.18.34 to v1.18.35, `82ea3a3a63` through `63be8f95d8`.
 The complete release diff leaves public HTTP routes, SSE names and payloads,
 generated SDK declarations, configuration, permissions, questions, session/message
-records, and managed startup contracts consumed by Varro unchanged. No adapter
+records, and managed startup contracts consumed by Loomery unchanged. No adapter
 changes are required.
 
 Runtime changes update xAI to support images in tool results and omit image formats
 that xAI rejects, while retaining PNG, JPEG, and WebP. The GitLab provider is updated
-to 6.19.0. Console, stats, marketing, and CI changes do not require Varro adaptations.
+to 6.19.0. Console, stats, marketing, and CI changes do not require Loomery adaptations.
 
 The tested v1 SDK is `1.18.35`; the v2 client remains at the latest published
 `2.0.24`. Support floors remain v1 `1.16.0` and v2 `2.0.5`.
@@ -132,8 +132,8 @@ Complete logs are under `artifacts/opencode-adapters/run-F6e4nj/`.
 Reviewed v2.0.23 to v2.0.24, `9e96aacd64` through `bd55d4895f`.
 Public HTTP routes, generated request clients, protocol/schema declarations,
 SSE names and payloads, session/message records, permissions, and forms consumed
-by Varro are unchanged. The client shares service-probe and startup-attempt
-bookkeeping between its Promise and Effect implementations; Varro owns its
+by Loomery are unchanged. The client shares service-probe and startup-attempt
+bookkeeping between its Promise and Effect implementations; Loomery owns its
 transport and managed startup and does not call those helpers. No adapter changes
 are required.
 
@@ -145,7 +145,7 @@ updates add native Vercel AI Gateway routing, GitLab Duo reasoning variants,
 Azure completions-shaped routing, and AI SDK v6 provider installation defaults.
 ChatGPT subscription discovery temporarily uses a bundled model allowlist instead
 of its remote model catalog; legacy OpenAI OAuth methods are relabeled Codex.
-These changes need no Varro adaptation. ACP, GUI, TUI, and styling changes are
+These changes need no Loomery adaptation. ACP, GUI, TUI, and styling changes are
 optional parity work.
 
 The tested v2 client is `2.0.24`; v1 remains at `1.18.34`.
@@ -192,13 +192,13 @@ initialization route, and structured `LocationNotFoundError` 404 responses for
 missing workspace directories. Existing successful HTTP responses, consumed
 SSE payloads, session/message records, permissions, and forms remain compatible.
 Removed legacy question declarations and the session-event attachment re-export
-are not consumed by Varro. No adapter changes are required.
+are not consumed by Loomery. No adapter changes are required.
 
 Runtime changes improve shared-service startup/replacement and terminal handoff,
 Homebrew update selection, Windows installer shell selection, formatter config
 merging, skill invocation controls, and transient MCP connection/catalog retries.
 Summary compaction now honors its configured agent model. Native Cohere, Venice,
-and Google Interactions providers and refreshed model metadata need no Varro
+and Google Interactions providers and refreshed model metadata need no Loomery
 adaptation. ACP and GUI extension changes are optional parity work.
 
 The tested v2 client is `2.0.23`; v1 remains at `1.18.34`.
@@ -226,7 +226,7 @@ Lint, formatting, both TypeScript checks, and the build passed.
 
 Reviewed v2.0.21 to v2.0.22, `dd2af0e5fc` through `d259ae7163`.
 Session creation adds an optional native `parentID` and a missing-parent 404.
-Varro retains local parent annotations across its supported v2 range; adopting
+Loomery retains local parent annotations across its supported v2 range; adopting
 native child creation is optional parity work. Provider configuration now accepts
 partial model capabilities and `headerTimeout`/`chunkTimeout` values of `false`.
 Worktree errors add `_tag` while retaining `name` and `data`. The removed
@@ -238,7 +238,7 @@ Runtime updates default provider header and chunk timeouts to five minutes and
 cap automatic timeout retries at three. Azure deployment discovery, Alibaba and
 DigitalOcean prompt caching, Bedrock tool images, Claude capability defaults,
 MCP disconnection diagnostics, and provider rejection details improve without
-changing Varro's integration. CLI upgrade locking and periodic TUI update checks,
+changing Loomery's integration. CLI upgrade locking and periodic TUI update checks,
 ACP forms/workspace support, and the GUI extension refactor require no adaptation.
 
 The tested v2 client is `2.0.22`; v1 remains at `1.18.34`.
@@ -265,7 +265,7 @@ v1.18.33 to v1.18.34, `90e65205f6` through `82ea3a3a63`.
 V2 adds an optional cancellation message to the form DELETE query and cancelled
 form state. Omitting it retains the existing question-dismissal behavior.
 HTTP routes, SSE names and payloads, session/message records, permissions,
-configuration, and managed `serve`/upgrade behavior consumed by Varro remain
+configuration, and managed `serve`/upgrade behavior consumed by Loomery remain
 compatible. V1's SDK and HTTP contracts are unchanged. No adapter changes are
 required.
 
@@ -274,9 +274,9 @@ V2 also fixes ancestor-instruction duplication, OpenRouter cache breakpoints,
 Cloudflare AI Gateway native routing, context-overflow classification, and
 forward-compatible GPT/GLM capability defaults. Browser tools now require an
 attached desktop browser; plugin session removal and non-interactive question
-feedback do not change Varro's HTTP integration. V1 adds macOS CLI signing and
+feedback do not change Loomery's HTTP integration. V1 adds macOS CLI signing and
 fixes Windows plugin-name display. ACP, browser comments, read grouping,
-session links, Console, stats, and styling changes require no Varro adaptation.
+session links, Console, stats, and styling changes require no Loomery adaptation.
 
 The tested v2 client is `2.0.21`; the tested v1 SDK is `1.18.34`.
 Support floors remain v2 `2.0.5` and v1 `1.16.0`.
@@ -306,7 +306,7 @@ Reviewed v2.0.19 to v2.0.20, `f02c30eb55` through `8d8a7bc844`.
 The API adds credential list/create routes, optional connection authentication
 status, and optional provider response bodies on structured errors. Existing
 HTTP routes, SSE names, session/message records, forms, and configuration keys
-consumed by Varro remain compatible. Varro already reads diagnostic messages
+consumed by Loomery remain compatible. Loomery already reads diagnostic messages
 and refreshes catalogs on integration updates. No adapter changes are required.
 
 Runtime changes add ChatGPT token-sharing authentication, improve Console SSO
@@ -314,7 +314,7 @@ and expired-credential diagnostics, restrict database file permissions, and
 apply rejection feedback to parallel permission requests. Provider updates
 cover cache controls, Bedrock thinking signatures, Mistral reasoning streaming,
 and Cloudflare Workers AI variants. CLI credential import/export and optional
-shared-service disabling do not change Varro's managed `serve` startup.
+shared-service disabling do not change Loomery's managed `serve` startup.
 Dedicated connection-status UI and token-sharing dialogs are optional parity work.
 
 The tested v2 client is `2.0.20`; v1 remains at `1.18.33`.
@@ -325,7 +325,7 @@ Support floors remain v2 `2.0.5` and v1 `1.16.0`.
 Reviewed v2.0.18 to v2.0.19, `39021dfd67` through `f02c30eb55`.
 The client, protocol, schema, HTTP routes, and SSE contracts are unchanged.
 Session/message records, permissions, forms, and configuration keys consumed by
-Varro remain compatible. No adapter changes are required.
+Loomery remain compatible. No adapter changes are required.
 
 Compaction now sizes requests against the model window and retries oversized
 requests with shorter history. Native compaction no longer falls back to a local
@@ -334,7 +334,7 @@ for windows of at least 32,000 tokens; explicit buffer settings still apply.
 Provider updates improve cache affinity for child and forked sessions, Gemini
 tool-call replay, Cloudflare configuration, and xAI reasoning variants. Shell
 tools receive agent and session environment variables. CLI authentication, TUI,
-and AI media changes require no Varro adaptation.
+and AI media changes require no Loomery adaptation.
 
 The tested v2 client is `2.0.19`; v1 remains at `1.18.33`.
 Support floors remain v2 `2.0.5` and v1 `1.16.0`.
@@ -343,13 +343,13 @@ Support floors remain v2 `2.0.5` and v1 `1.16.0`.
 
 Reviewed v1.18.32 to v1.18.33, `fe3f3a41f7` through `90e65205f6`.
 The SDK, HTTP routes, SSE events, session/message records, and permission/question
-contracts are unchanged. No Varro adapter changes are required.
+contracts are unchanged. No Loomery adapter changes are required.
 
 Runtime updates add GPT-6 Sol and Luna to Codex model selection, adjust Gemini
 and Gemma reasoning variants, apply provider timeouts to Cloudflare AI Gateway,
 and update the GitLab provider. Browser launches now accept only HTTP and HTTPS
 URLs, MCP browser-launch failures are detected on Windows, and `debug config`
-redacts credentials. Varro reads configuration through the HTTP API, which is
+redacts credentials. Loomery reads configuration through the HTTP API, which is
 unchanged. Console, stats, TUI, and documentation changes require no adaptation.
 
 The tested v1 SDK is `1.18.33`; the latest v2 client remains `2.0.18`.
@@ -365,14 +365,14 @@ summary and all five focused compatibility unit tests passed.
 Reviewed v2.0.16 to v2.0.18, `ac2426e103` through `39021dfd67`.
 The client and protocol add pairing endpoints, and shell records gain an optional
 `signal` field. Existing Basic authentication remains supported; unauthorized
-responses now include a structured error body. Varro checks HTTP status codes and
+responses now include a structured error body. Loomery checks HTTP status codes and
 requires no transport or adapter changes for these additions.
 
 Session, message, permission, form, configuration, and SSE contracts consumed by
-Varro remain compatible. The runtime now flushes pending text and reasoning deltas
+Loomery remain compatible. The runtime now flushes pending text and reasoning deltas
 before subsequent block starts, restores legacy media compaction checkpoints,
 updates provider variants and model metadata, and improves shell output notices.
-New pairing UI, TUI queue controls, and AI media APIs require no Varro adaptation.
+New pairing UI, TUI queue controls, and AI media APIs require no Loomery adaptation.
 The tested v2 client is `2.0.18`; v1 remains at `1.18.32`, with support floors
 unchanged at v2 `2.0.5` and v1 `1.16.0`.
 
@@ -381,18 +381,18 @@ unchanged at v2 `2.0.5` and v1 `1.16.0`.
 Reviewed v2.0.14 to v2.0.15, `8864eb507e` through `a25d304201`.
 The API adds optional metadata to session updates, the `session.metadata.updated`
 event, and project `time.active`. These additions require no adapter change.
-Varro continues to store its metadata overrides locally across the supported v2 range;
+Loomery continues to store its metadata overrides locally across the supported v2 range;
 adopting native metadata updates is separate compatibility work for older servers.
 
 The Promise client now preserves base URL path prefixes and throws declared API
-errors as `Error` instances. Varro uses its own HTTP transport and the unchanged
+errors as `Error` instances. Loomery uses its own HTTP transport and the unchanged
 client service-discovery API. Existing HTTP routes, SSE envelopes, transcript records,
 configuration, model catalogs, and permission/form contracts remain compatible.
 
 Runtime changes normalize AI SDK text and reasoning boundaries, fix Kimi reasoning
 replay and bare-null provider SSE frames, simplify shell output notices, and improve
 Windows CLI upgrades. The AI package's media and video-generation APIs, CodeMode
-language additions, and upstream app/TUI changes require no Varro adaptation.
+language additions, and upstream app/TUI changes require no Loomery adaptation.
 V1's latest published CLI and SDK remain `1.18.32`; support floors remain v2 `2.0.5`
 and v1 `1.16.0`.
 
@@ -400,15 +400,15 @@ and v1 `1.16.0`.
 
 Reviewed v2.0.12 to v2.0.13, `6f655dcbab` through `be4e5a6d06`.
 The 2.0.13 API adds `method: "key" | "oauth"` to credential connection
-records. Varro reads their type and ID and accepts the additional field. HTTP
+records. Loomery reads their type and ID and accepts the additional field. HTTP
 routes, SSE envelopes, session/message records, and permission/form contracts
-consumed by Varro require no adaptation.
+consumed by Loomery require no adaptation.
 
 V2 also updates server-side Console policy enforcement, AI SDK HTTP hooks,
 subagent prompt-cache affinity, MCP OAuth behavior, and CLI upgrade diagnostics.
 The web-shell authentication change retains authentication on API routes.
 Desktop pairing, provider sign-in presentation, and TUI tabs
-do not require changes to Varro's adapters.
+do not require changes to Loomery's adapters.
 
 Reviewed v2.0.13 to v2.0.14, `be4e5a6d06` through `8864eb507e`.
 Client, protocol, schema, server, and CLI source contracts are unchanged.
@@ -431,14 +431,14 @@ Reviewed v2.0.11 to v2.0.12, `991b727eb8` through `6f655dcbab`, and the precedin
 v2.0.10 to v2.0.11 range to catch up the implementation notes. The client, protocol, schema,
 and server packages change only their version numbers across these releases. The HTTP routes,
 SSE envelopes, configuration shapes, and session/message, permission, and form contracts
-consumed by Varro are unchanged. No adapter change is required.
+consumed by Loomery are unchanged. No adapter change is required.
 
 Upstream restores Anthropic thinking-budget variants, refreshes model metadata, forwards
-Promise-tool cancellation, and reports fatal CLI startup causes on stderr. Varro already
+Promise-tool cancellation, and reports fatal CLI startup causes on stderr. Loomery already
 preserves the server's variants and reads both startup output streams. The preceding release
 also fixes provider WebSocket fallback and error decoding, honors session permissions during
 skill and MCP discovery, and adds Vite+ installation support to the CLI updater. These changes
-run in OpenCode and use Varro's existing integration.
+run in OpenCode and use Loomery's existing integration.
 
 Rich artifact tabs and browser previews, desktop startup optimizations, and TUI presentation
 changes are optional UI parity work. V1's latest published CLI and SDK remain at `1.18.31`.
@@ -455,8 +455,8 @@ model prices and limits.
 
 Reviewed the v2.0.8 to v2.0.10 release range, `c076066c33` through `cb6d95b7ef`.
 The HTTP routes, session/message contracts, permission/form contracts, and SSE envelopes used by
-Varro are unchanged. Provider transport and compaction policies move into `settings`; compaction
-now uses `{ type: "summary" }` or `{ type: "native" }`. Varro already preserves model settings and
+Loomery are unchanged. Provider transport and compaction policies move into `settings`; compaction
+now uses `{ type: "summary" }` or `{ type: "native" }`. Loomery already preserves model settings and
 does not consume the removed top-level policy fields, so no adapter change is required. Other
 changes include tool-input repair, bounded completed-job retention, client service polling, and
 Homebrew CLI updates. V1's latest published CLI and SDK remain at `1.18.31`.
@@ -464,9 +464,9 @@ Homebrew CLI updates. V1's latest published CLI and SDK remain at `1.18.31`.
 ### 2.0.8 compatibility review
 
 The v2.0.7 to v2.0.8 release diff does not change the HTTP routes, event payloads,
-permissions and questions, or session, message, and part contracts consumed by Varro. Its generated
+permissions and questions, or session, message, and part contracts consumed by Loomery. Its generated
 client change expands an experimental configuration policy action, while its other client and core
-changes affect upstream UI tool reconciliation and attachment error labels. No Varro adapter change is
+changes affect upstream UI tool reconciliation and attachment error labels. No Loomery adapter change is
 required.
 
 ### 2.0.7 compatibility fixes
@@ -475,7 +475,7 @@ required.
   so the previous pre-send empty-rule update erased saved allowances. Explicit mode changes still
   apply their rule updates. The released permission engine does honor session rules; the older
   `tmp/opencode` checkout did not represent that released behavior.
-- V2's `The user declined this tool call` error uses Varro's permission-rejected presentation and
+- V2's `The user declined this tool call` error uses Loomery's permission-rejected presentation and
   remains outside compact completed-work groups.
 - Step-start events use the 2.0.7 `started` timestamp for provider-request timing, with the event
   timestamp as a fallback for older releases.
@@ -483,13 +483,13 @@ required.
   unless the caller supplies a value. Inactive conditional defaults remain omitted.
 
 The v2.0.6 to v2.0.7 release diff also adds permission policy enforcement, waits for plugin activation
-before listing integrations, and removes server-side update polling. These use existing Varro APIs.
+before listing integrations, and removes server-side update polling. These use existing Loomery APIs.
 The new experimental filesystem-write route and ACP/UI changes do not require adapter changes.
 
 V2.0.7 still interrupts a turn when a tool permission is rejected or a question is skipped. Its config
-normalizer explicitly drops v1's `experimental.continue_loop_on_deny` option. Varro preserves that
+normalizer explicitly drops v1's `experimental.continue_loop_on_deny` option. Loomery preserves that
 server outcome. The earlier v1 immediate-rename overwrite remains a server-title-generation race
-observation, not a verified Varro regression. Neither behavior is changed by this compatibility patch.
+observation, not a verified Loomery regression. Neither behavior is changed by this compatibility patch.
 The earlier AI-07 attempts exhausted the running-tool window during smooth return; all six reached
 the bottom afterward. This was incomplete live coverage, not an observed stuck-scroll defect or a
 backend compatibility failure. AI-08 was not executed because its AI-07 prerequisite did not pass.
@@ -499,7 +499,7 @@ These browser regressions do not certify the separate full real-editor visual/pe
 
 ## Importing v1 conversations into v2
 
-After switching from v1 to v2, the session list can still show conversations loaded from v1. Opening one of them loads it from v2. If v2 reports that the session was not found, Varro imports a copy automatically. The conversation must belong to an open workspace folder. Varro reads a consistent, read-only snapshot and imports a separate conversation titled `<original title> (v1 copy)`.
+After switching from v1 to v2, the session list can still show conversations loaded from v1. Opening one of them loads it from v2. If v2 reports that the session was not found, Loomery imports a copy automatically. The conversation must belong to an open workspace folder. Loomery reads a consistent, read-only snapshot and imports a separate conversation titled `<original title> (v1 copy)`.
 
 The copy receives new session and message IDs. Same-workspace child sessions and their references are copied together. Text, reasoning, completed tool results, model identities, and embedded image attachments are converted to v2 history. Original message records and session metadata are retained in import metadata, including v1-only parts. External attachment references remain references. Unfinished historical tools become interrupted results rather than active operations. Import does not execute recorded tools or start a model request; the user can send a new message after the copy opens. New copies use the destination server's permission defaults.
 
@@ -508,10 +508,10 @@ The source v1 sessions, timestamps, and messages remain unchanged. The importer 
 Real VS Code verification on OpenCode 2.0.6 now covers creating and reopening conversations, full window reload, recycle/restore/permanent deletion, stale-catalog 404 recovery, importing a v1 parent and child, continuing the imported conversation, and reopening/reloading that copy. The fixture verifies that importing causes no provider requests and that original v1 rows remain identical. Run with:
 
 ```sh
-VARRO_OPENCODE_TEST_BINARY=/absolute/path/to/opencode2 npm run test:compatibility:ui
+LOOMERY_OPENCODE_TEST_BINARY=/absolute/path/to/opencode2 npm run test:compatibility:ui
 ```
 
-V2 omits the legacy session `version` property; Varro supplies the protocol-family marker for its recycle-bin snapshots. Without that normalization, valid v2 sessions failed the snapshot validator and deletion misleadingly reported `404 Session not found`.
+V2 omits the legacy session `version` property; Loomery supplies the protocol-family marker for its recycle-bin snapshots. Without that normalization, valid v2 sessions failed the snapshot validator and deletion misleadingly reported `404 Session not found`.
 
 ## Historical research
 
@@ -524,7 +524,7 @@ The remaining sections record the original startup investigation and implementat
 - Published `opencode-ai` and `@opencode-ai/sdk` still report `1.18.31`.
 - The [migration guide](https://opencode.ai/v2/docs/migrate-v1/) explicitly identifies the server API as a breaking change. Supported v1 configuration remains accepted, but this does not promise v1 HTTP compatibility.
 - `tmp/opencode` was clean and current on upstream `dev`, commit `5a8335857b0ebec44ef6aa1d52b339cf25c329ca`. Its CLI and protocol can differ from the released binary. Treat those sources as architectural references, not the released contract.
-- The 2.0.6 API uses `/api/info`; Varro also probes the 2.0.5 `/api/status` endpoint to preserve the supported v2 floor.
+- The 2.0.6 API uses `/api/info`; Loomery also probes the 2.0.5 `/api/status` endpoint to preserve the supported v2 floor.
 
 ### Reproduced startup failure on v2.0.5
 
@@ -545,20 +545,20 @@ An isolated copy of the installed binary was launched with a fresh HOME, XDG dir
 
 The authenticated `/openapi.json` lists 111 paths. The local evidence is in `tmp/v2-api-probe-q0M2WV/results.json` and `tmp/v2-api-probe-q0M2WV/openapi.json`; the reproducible probe is `tmp/opencode-v2-probe.mjs` and uses the installed binary's absolute path.
 
-Before the adapters, Varro sent unauthenticated health, REST, and SSE requests in `src/extension/open-code-transport.ts`. `src/shared/opencode-endpoints.ts` selected `/global/health` and `/global/event`. The health loop in `src/extension/server.ts` collapsed failed probes into a timeout even though the server had started successfully.
+Before the adapters, Loomery sent unauthenticated health, REST, and SSE requests in `src/extension/open-code-transport.ts`. `src/shared/opencode-endpoints.ts` selected `/global/health` and `/global/event`. The health loop in `src/extension/server.ts` collapsed failed probes into a timeout even though the server had started successfully.
 
 Credentials alone will not fix the integration. The released server does not supply the tested v1 contracts. HTTP 200 alone is especially misleading because unknown non-API routes serve HTML.
 
 ### Required compatibility design
 
-Keep one Varro UI and two extension-host protocol adapters. Select the adapter once per server connection and normalize both protocols into Varro-owned data and events before they reach session state, event batching, and the webview.
+Keep one Loomery UI and two extension-host protocol adapters. Select the adapter once per server connection and normalize both protocols into Loomery-owned data and events before they reach session state, event batching, and the webview.
 
 1. Preserve the existing v1 support floor of 1.16.0 and its test coverage. Add a separately recorded v2 tested range. A single `version >= 1.16.0` comparison cannot establish protocol support.
-2. Respect `varro.server.command`, including custom binary names. Detect the CLI family for launch preparation, then validate the actual running server's identity and response schema. An existing server can differ from the configured CLI.
+2. Respect `loomery.server.command`, including custom binary names. Detect the CLI family for launch preparation, then validate the actual running server's identity and response schema. An existing server can differ from the configured CLI.
 3. For managed v2 launches, acquire the generated credential before authenticated probes. The released binary prints it during startup. If using that channel, buffer across stdout chunks and redact before any logging, diagnostic retention, or error formatting. Verify the supported credential-discovery mechanism separately for adopted and externally managed servers. Do not assume the current dev branch's `service password` command exists in 2.0.5.
 4. Authenticate health, ordinary requests, and SSE consistently. Keep credentials in the extension host and bind them to the server identity. Preserve credentials across legitimate ownership handoff and reconnect without forwarding them to the webview or unrelated origins.
 5. Distinguish authentication failure, unsupported API, malformed response, process exit, and timeout. Validate JSON schemas and SSE content types rather than accepting successful HTTP status alone.
-6. Use `@opencode/client` for v2 contract types and evaluate its generated client against Varro's cancellation, byte limits, directory scoping, and stream handling before adopting its runtime. Updating `@opencode-ai/sdk` alone does not add released v2 support.
+6. Use `@opencode/client` for v2 contract types and evaluate its generated client against Loomery's cancellation, byte limits, directory scoping, and stream handling before adopting its runtime. Updating `@opencode-ai/sdk` alone does not add released v2 support.
 
 The adapter should expose semantic operations where contracts differ. Avoid growing a global string-replacement table for v1 paths. `OpenCodeServer.request()` is a useful transition boundary, but some operations need multiple calls and stateful projections.
 
@@ -567,10 +567,10 @@ The adapter should expose semantic operations where contracts differ. Avoid grow
 | Area | Required adaptation |
 | --- | --- |
 | Startup | v1 health versus released v2 `/api/status`; authentication and server ownership |
-| Sessions | Unwrap v2 `data`, resolve `location`, preserve metadata and ancestry, translate body cursors into Varro pagination |
-| Messages | Project the v2 discriminated message union into stable Varro transcript identities; v1 `{ info, parts }` assumptions do not directly apply |
+| Sessions | Unwrap v2 `data`, resolve `location`, preserve metadata and ancestry, translate body cursors into Loomery pagination |
+| Messages | Project the v2 discriminated message union into stable Loomery transcript identities; v1 `{ info, parts }` assumptions do not directly apply |
 | Prompt submission | v1 `prompt_async` and parts versus v2 `prompt` with text and attachments; account for separate agent/model switching and durable inbox admission |
-| Queuing | Preserve Varro queue behavior while explicitly choosing v2 delivery semantics; distinguish admitted input from a visible user message and active execution |
+| Queuing | Preserve Loomery queue behavior while explicitly choosing v2 delivery semantics; distinguish admitted input from a visible user message and active execution |
 | Streaming | Decode `/api/event` native envelopes and project incremental changes into the same state model used for history; verify replay, ordering, deduplication, and snapshot reconciliation |
 | Stop and compaction | Map v1 abort/summarize behavior to v2 interrupt/compact semantics |
 | Fork and revert | Preserve boundaries and ancestry across v2 fork and staged/committed revert operations |
@@ -580,11 +580,11 @@ The adapter should expose semantic operations where contracts differ. Avoid grow
 | Workspace services | Audit MCP, files, VCS, commands, skills, and config read/write contracts individually |
 | Updates | Detect the installed package family; v2 must not use the hard-coded `opencode-ai` update target |
 
-Primary Varro integration points are `src/extension/open-code-process.ts`, `src/extension/open-code-transport.ts`, `src/extension/server.ts`, `src/extension/rest-proxy.ts`, `src/extension/server-event-bridge.ts`, and the shared protocol, compatibility, and install modules. Hidden helper sessions, automatic permission judging, exports, trash, and model-selection persistence also consume server behavior and need coverage.
+Primary Loomery integration points are `src/extension/open-code-process.ts`, `src/extension/open-code-transport.ts`, `src/extension/server.ts`, `src/extension/rest-proxy.ts`, `src/extension/server-event-bridge.ts`, and the shared protocol, compatibility, and install modules. Hidden helper sessions, automatic permission judging, exports, trash, and model-selection persistence also consume server behavior and need coverage.
 
 ### Backward compatibility requirements
 
-- Users keep the same Varro interface and settings when choosing either supported CLI family. No manual API-version switch should be necessary.
+- Users keep the same Loomery interface and settings when choosing either supported CLI family. No manual API-version switch should be necessary.
 - Keep version-specific behavior in the host adapters. Shared UI code consumes normalized models and declared capabilities.
 - Preserve stable message/part IDs across history loading, live updates, reconnects, and pagination. Follow `docs/message-list-virtualization.md`.
 - Preserve Default, Auto, and Full access semantics. A pending permission retains an actionable fallback until server acknowledgement or authoritative reconciliation. Follow `docs/permission-lifecycle.md`.
@@ -595,7 +595,7 @@ Primary Varro integration points are `src/extension/open-code-process.ts`, `src/
 ### Implementation and verification order
 
 1. Add connection identity, authentication, adapter selection, and precise startup errors. Cover v1, v2, HTML fallback, 401, restart, existing-server attachment, and ownership handoff.
-2. Normalize discovery, sessions, messages, and pagination. Run the same Varro-facing contract assertions against both real backends.
+2. Normalize discovery, sessions, messages, and pagination. Run the same Loomery-facing contract assertions against both real backends.
 3. Implement prompt admission, streaming, tool states, interruption, child sessions, and reconnect recovery. Check stable identity and visible scroll anchors.
 4. Implement permissions/forms, configuration, provider authentication, MCP, fork/revert, helper sessions, and other consumed operations. Test acknowledgement and failure behavior, not just route existence.
 5. Extend `scripts/opencode-compatibility` to install both CLI package families and record separate support ranges. Its current probe targets `opencode-ai`, unauthenticated requests, and v1 response contracts.

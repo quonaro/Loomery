@@ -40,7 +40,7 @@ files. Remote extension hosts coordinate on their own
 machine, not the VS Code UI machine. The authorized workspace directory scopes
 metadata, console fallback and auth updates; the default call uses the server default.
 
-`~/.varro-provider-quota-v2` and credential-digest subdirectories require owner-only
+`~/.loomery-provider-quota-v2` and credential-digest subdirectories require owner-only
 0700 permissions. Snapshots are bounded, validated regular 0600 files, published by
 exclusive temporary files and atomic rename.
 

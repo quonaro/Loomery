@@ -23,8 +23,8 @@ test('submits answers for linked tool questions', async ({ page }) => {
 
   const replyRequest = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
-    }).__varroE2E;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+    }).__loomeryE2E;
     return value?.requests.find((request) => request.path === '/question/linked-tool-question-1/reply') || null;
   });
 
@@ -41,8 +41,8 @@ test('skips linked tool questions inline', async ({ page }) => {
 
   const rejectRequest = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
-    }).__varroE2E;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
+    }).__loomeryE2E;
     return value?.requests.find((request) => request.path === '/question/linked-tool-question-1/reject') || null;
   });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { sessionSummary } from './session-summary';
 
 describe('paused session duration', () => {
-  const metadata = { varro: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } };
+  const metadata = { loomery: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } };
   const prompt = { info: { id: 'prompt', role: 'user', time: { created: 1_000 } }, parts: [] };
   const paused = { info: { id: 'paused', role: 'assistant', time: { created: 2_000 } }, parts: [] };
 

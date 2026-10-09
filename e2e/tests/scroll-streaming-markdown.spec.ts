@@ -9,7 +9,7 @@ for (const reference of [
     name: 'inline file path',
     open: '`',
     chunks: [
-      '/Users/andrew/Projects/GitHub/varro/src/extension/',
+      '/Users/andrew/Projects/GitHub/loomery/src/extension/',
       'hooks/runtime/open-code-runtime-instance.ts',
       ':763-840',
     ],
@@ -110,7 +110,7 @@ test('off-core file links preserve row height while a later response streams', a
   const text = Array.from(
     { length: 24 },
     (_, index) =>
-      `- \`/Users/andrew/Projects/GitHub/varro/src/webview/components/message-list/reference-${index}.ts:100-120\``
+      `- \`/Users/andrew/Projects/GitHub/loomery/src/webview/components/message-list/reference-${index}.ts:100-120\``
   ).join('\n');
   await page.evaluate(
     ({ messageID, text: content }) => {
@@ -122,8 +122,8 @@ test('off-core file links preserve row height while a later response streams', a
         text: content,
       };
       const harness = (
-        window as Window & { __varroE2E?: { updateMessagePart: (part: Part) => void } }
-      ).__varroE2E;
+        window as Window & { __loomeryE2E?: { updateMessagePart: (part: Part) => void } }
+      ).__loomeryE2E;
       if (!harness) throw new Error('Missing E2E harness');
       harness.updateMessagePart(part);
       window.postMessage(

@@ -224,7 +224,7 @@ describe('session-selection helpers', () => {
         session: {
           ...loadedSession(id).session,
           metadata: {
-            varro: {
+            loomery: {
               schemaVersion: 1,
               model: { provider: model.providerID, model: model.modelID },
               agent: 'plan',

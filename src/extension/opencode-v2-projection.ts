@@ -418,7 +418,7 @@ export function projectV2Message(
     },
   };
   if (message.type === 'user') {
-    const delivery = message.metadata?.varroDelivery;
+    const delivery = message.metadata?.loomeryDelivery;
     if (delivery === 'steer' || delivery === 'queue') info.delivery = delivery;
     return {
       info,

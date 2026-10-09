@@ -1,6 +1,6 @@
 # Performance Principles
 
-Varro spends CPU in four places: the extension host, the VS Code workbench renderer, the webview
+Loomery spends CPU in four places: the extension host, the VS Code workbench renderer, the webview
 renderer, and the GPU process. A change that saves work in one can move it to another. These
 principles come from measured investigations; keep the correctness invariants in
 [message-list virtualization](message-list-virtualization.md),
@@ -23,7 +23,7 @@ any saving described here.
 - Confirm findings in a realistic state. Deltas appended to a completed message in an idle session
   produced trailing-summary churn that a busy stream (`multi-agent-large-streaming`) never shows.
 - A frame gap with no long task, while CDP evaluations keep answering, is a rendering pause in the
-  host, not main-thread work. Replay the same capture before attributing it to Varro.
+  host, not main-thread work. Replay the same capture before attributing it to Loomery.
 
 ## Animations and idle cost
 

@@ -102,12 +102,12 @@ for (const phase of ['exiting', 'exiting-bottom-event', 'retained', 'held-pointe
       // SAFETY: The isolated fixture installs this typed message store and event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             getSessionMessages(id: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       for (const part of harness.getSessionMessages('session-tool-cards').flatMap((m) => m.parts)) {
         if (part.type !== 'reasoning' || part.time.end !== undefined) continue;
         harness.replayServerEvent({
@@ -186,9 +186,9 @@ for (const phase of ['exiting', 'exiting-bottom-event', 'retained', 'held-pointe
         // SAFETY: The isolated fixture owns this event transport; no recorded tools execute.
         const harness = (
           window as typeof window & {
-            __varroE2E: { replayServerEvent(event: ServerEvent): void };
+            __loomeryE2E: { replayServerEvent(event: ServerEvent): void };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         harness.replayServerEvent({
           type: 'message.part.updated',
           properties: {
@@ -312,12 +312,12 @@ async function completeRunningTools(page: Page, partIds: string[]) {
     // SAFETY: The isolated fixture installs this typed message store and event transport.
     const harness = (
       window as typeof window & {
-        __varroE2E: {
+        __loomeryE2E: {
           getSessionMessages(id: string): MessageEntry[];
           replayServerEvent(event: ServerEvent): void;
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     for (const part of harness.getSessionMessages('session-tool-cards').flatMap((m) => m.parts)) {
       if (part.type !== 'tool' || part.state.status !== 'running' || !ids.includes(part.id)) {
         continue;
@@ -346,8 +346,8 @@ async function startToolChurn(page: Page) {
   await page.evaluate(() => {
     // SAFETY: The isolated fixture owns this event transport; no recorded tools execute.
     const churn = window as typeof window & {
-      __varroE2E: { replayServerEvent(event: ServerEvent): void };
-      varroToolChurnTimer?: number;
+      __loomeryE2E: { replayServerEvent(event: ServerEvent): void };
+      loomeryToolChurnTimer?: number;
     };
     const toolPart = (index: number, status: 'running' | 'completed') => ({
       id: `tool-churn-${index}`,
@@ -374,16 +374,16 @@ async function startToolChurn(page: Page) {
             },
     });
     let index = 0;
-    churn.varroToolChurnTimer = window.setInterval(() => {
+    churn.loomeryToolChurnTimer = window.setInterval(() => {
       if (index > 0) {
         // SAFETY: toolPart builds a completed tool part with every field the fixture transport reads.
-        churn.__varroE2E.replayServerEvent({
+        churn.__loomeryE2E.replayServerEvent({
           type: 'message.part.updated',
           properties: { part: toolPart(index - 1, 'completed') },
         } as ServerEvent);
       }
       // SAFETY: toolPart builds a running tool part with every field the fixture transport reads.
-      churn.__varroE2E.replayServerEvent({
+      churn.__loomeryE2E.replayServerEvent({
         type: 'message.part.updated',
         properties: { part: toolPart(index, 'running') },
       } as ServerEvent);
@@ -395,8 +395,8 @@ async function startToolChurn(page: Page) {
 async function stopToolChurn(page: Page) {
   await page.evaluate(() => {
     // SAFETY: startToolChurn stores its interval id on this optional window slot.
-    const churn = window as typeof window & { varroToolChurnTimer?: number };
-    window.clearInterval(churn.varroToolChurnTimer);
+    const churn = window as typeof window & { loomeryToolChurnTimer?: number };
+    window.clearInterval(churn.loomeryToolChurnTimer);
   });
 }
 
@@ -406,9 +406,9 @@ async function appendAssistantText(page: Page, partId: string, paragraphs: numbe
       // SAFETY: The isolated fixture owns this event transport; no recorded tools execute.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent(event: ServerEvent): void };
+          __loomeryE2E: { replayServerEvent(event: ServerEvent): void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       harness.replayServerEvent({
         type: 'message.part.updated',
         properties: {
@@ -450,13 +450,13 @@ async function getThumb(list: Locator) {
 async function startScrollSampling(page: Page) {
   await page.evaluate(() => {
     // SAFETY: This test owns the optional sample buffer slot on the fixture window.
-    const sampler = window as typeof window & { varroScrollSamples?: ScrollSample[] };
+    const sampler = window as typeof window & { loomeryScrollSamples?: ScrollSample[] };
     const list = document.querySelector('.interactive-list');
     if (!list) throw new Error('Missing message list');
     const samples: ScrollSample[] = [];
-    sampler.varroScrollSamples = samples;
+    sampler.loomeryScrollSamples = samples;
     const sample = () => {
-      if (sampler.varroScrollSamples !== samples) return;
+      if (sampler.loomeryScrollSamples !== samples) return;
       samples.push({ top: list.scrollTop, height: list.scrollHeight });
       requestAnimationFrame(sample);
     };
@@ -467,9 +467,9 @@ async function startScrollSampling(page: Page) {
 async function takeScrollSamples(page: Page) {
   return page.evaluate(() => {
     // SAFETY: startScrollSampling owns this optional sample buffer slot on the fixture window.
-    const sampler = window as typeof window & { varroScrollSamples?: ScrollSample[] };
-    const samples = sampler.varroScrollSamples ?? [];
-    sampler.varroScrollSamples = undefined;
+    const sampler = window as typeof window & { loomeryScrollSamples?: ScrollSample[] };
+    const samples = sampler.loomeryScrollSamples ?? [];
+    sampler.loomeryScrollSamples = undefined;
     return samples;
   });
 }

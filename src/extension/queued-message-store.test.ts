@@ -95,7 +95,7 @@ describe('QueuedMessageStore', () => {
 
   it('discards persisted snapshots that do not satisfy the queued-message contract', () => {
     const { persistence, storage } = createPersistence();
-    storage.set('varro.queuedMessages', [
+    storage.set('loomery.queuedMessages', [
       {
         id: 'queue-1',
         sessionId: 'session-1',
@@ -165,7 +165,7 @@ describe('QueuedMessageStore', () => {
     await Promise.all([firstUpdate, pendingUpdate, ...replacements, latestUpdate, store.dispose()]);
 
     expect(persistence.set).toHaveBeenCalledTimes(2);
-    expect(storage.get('varro.queuedMessages')).toEqual(latest);
+    expect(storage.get('loomery.queuedMessages')).toEqual(latest);
   });
 
   it('keeps dispatch admission durable when it joins a pending removal', async () => {
@@ -209,7 +209,7 @@ describe('QueuedMessageStore', () => {
     await expect(admission).resolves.toBe(true);
     await Promise.all([blockingUpdate, removal, store.dispose()]);
 
-    expect(storage.get('varro.queuedMessages')).toEqual([{ ...second, messageId: 'message-2' }]);
+    expect(storage.get('loomery.queuedMessages')).toEqual([{ ...second, messageId: 'message-2' }]);
   });
 
   it('rolls back an owned queue removal when persistence fails', async () => {
@@ -440,7 +440,7 @@ describe('QueuedMessageStore', () => {
       store.beginDispatchAdmission('editor-a', 'session-1', 'queue-1', claim.lease, 1, 'message-1')
     ).resolves.toBe(true);
     expect(
-      (storage.get('varro.queuedMessages') as Array<{ messageId?: string }>)[0]?.messageId
+      (storage.get('loomery.queuedMessages') as Array<{ messageId?: string }>)[0]?.messageId
     ).toBe('message-1');
     vi.mocked(persistence.set)
       .mockImplementationOnce((key, value) => {
@@ -453,7 +453,7 @@ describe('QueuedMessageStore', () => {
     ).resolves.toBeUndefined();
 
     expect(persistence.set).toHaveBeenCalledTimes(6);
-    expect(storage.get('varro.queuedMessages')).toEqual([]);
+    expect(storage.get('loomery.queuedMessages')).toEqual([]);
     expect(new QueuedMessageStore(persistence).list()).toEqual([]);
   });
 

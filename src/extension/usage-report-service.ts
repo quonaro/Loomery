@@ -9,7 +9,7 @@ import { asRecord } from '../shared/type-utils';
 import { pauseCompletedAt, readSessionPauses } from '../shared/session-pauses';
 import type { SessionPauseBoundary } from '../shared/session-pauses';
 import type { OpenCodeServer } from './server';
-import { getVarroStateReadDirectory } from './varro-state-paths';
+import { getLoomeryStateReadDirectory } from './loomery-state-paths';
 
 type OpenCodeRequest = Pick<OpenCodeServer, 'request'> &
   Partial<Pick<OpenCodeServer, 'isAttachOnly'>>;
@@ -326,7 +326,7 @@ async function readLocalUsageDatabase(
   const databasePath =
     process.env.OPENCODE_DB ?? join(resolveOpenCodeDataDirectory(), 'opencode.db');
   const windows = createReportWindows(now, includeAllTime);
-  const annotationsDirectory = getVarroStateReadDirectory('opencode-v2');
+  const annotationsDirectory = getLoomeryStateReadDirectory('opencode-v2');
 
   return new Promise((resolve, reject) => {
     const worker = new Worker(LOCAL_USAGE_WORKER, {
@@ -406,7 +406,7 @@ const readPauseTime = (sessionID, messageID) => {
     if (/^[a-zA-Z0-9_-]{1,256}$/.test(sessionID)) {
       try {
         const metadata = JSON.parse(readFileSync(join(workerData.annotationsDirectory, sessionID + '.json'), 'utf8')).metadata;
-        const pauses = metadata?.varro?.pauses;
+        const pauses = metadata?.loomery?.pauses;
         if (Array.isArray(pauses)) entries = pauses.filter((pause) => typeof pause?.messageId === 'string' && Number.isFinite(pause.pausedAt));
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
@@ -449,7 +449,7 @@ try {
         sources.push("SELECT id, id AS identity, time_updated, 1 AS version FROM session");
       }
       if (tables.has('session_v2') && tables.has('session_message')) {
-        sources.push("SELECT id, coalesce(json_extract(metadata, '$.varroLegacyImport.sourceSessionID'), id) AS identity, time_updated, 2 AS version FROM session_v2");
+        sources.push("SELECT id, coalesce(json_extract(metadata, '$.loomeryLegacyImport.sourceSessionID'), id) AS identity, time_updated, 2 AS version FROM session_v2");
       }
       if (!sources.length) throw new Error('No supported OpenCode usage tables found.');
       // Select a complete session before filtering dates or reading messages. Equal timestamps prefer v2.

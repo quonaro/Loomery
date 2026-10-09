@@ -3,14 +3,14 @@
 ## Status
 
 Reproduced in VS Code 1.139.1 arm64 on macOS 15.7.7, at a 1440 x 900 workbench size
-and scale 1. The defect also occurs with plain HTML replacing the entire Varro
+and scale 1. The defect also occurs with plain HTML replacing the entire Loomery
 body. No message rows, virtualization, Solid rendering, or scroll measurement is
 needed. This isolates the observed horizontal clipping to the host webview path;
 it does not identify the responsible VS Code/Electron component.
 
 Promoting the plain root with `translateZ(0)`, `will-change: transform`, and
 `contain: layout paint`, while allowing visible overflow, did not eliminate it.
-Varro limits root expansion within one responsive layout for four animation frames in `src/webview/index.tsx`.
+Loomery limits root expansion within one responsive layout for four animation frames in `src/webview/index.tsx`.
 The content remains inside the previous painted width while the host surface catches up.
 Shrinking and browser zoom apply immediately; repeated drag events do not restart the
 pending expansion. Message-list anchoring and transcript visibility remain independent.
@@ -27,11 +27,11 @@ and cancels a queued expansion. The same isolated-editor retest recorded zero ca
 samples across five cycles, with a maximum frame gap of 21.3ms and at most 22 mounted message rows.
 Evidence, including 274 compositor frames, is under `artifacts/fullscreen-resize-20261004/fixed/`.
 The host can still paint one stale clipped frame during the transition, as shown in `frame-001.png`.
-This change removes Varro's extra delay and intermediate squeezed layout; it does not fix that host
+This change removes Loomery's extra delay and intermediate squeezed layout; it does not fix that host
 paint defect. Unit and browser regressions cover both breakpoint transitions and restore.
 
 The October 2 sidebar-switch reproduction found a separate host path: returning
-from Chat to Varro emits a 300 x 150 resize followed by the real viewport resize,
+from Chat to Loomery emits a 300 x 150 resize followed by the real viewport resize,
 without any `visibilitychange` event. Chromium uses 300 x 150 for an unsized iframe.
 Previously this replaced the width cap with 300 px and kept the restored sidebar
 narrow for four painted frames. Width tracking now ignores that temporary cap and

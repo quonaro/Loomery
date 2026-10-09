@@ -87,7 +87,7 @@ for (const withImage of [false, true]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated playback harness reads this fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       { session, initialMessages: [message] }

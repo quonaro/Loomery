@@ -71,6 +71,7 @@ const KNOWN_TYPES = new Set<string>([
   'command/focus-input',
   'command/attach-problems',
   'command/search-sessions',
+  'command/open-sessions',
   'command/open-attention-sessions',
   'command/open-completed-sessions',
   'command/switch-session',
@@ -122,6 +123,7 @@ export function parseExtensionMessage<T>(value: T): ExtensionMessage | null {
     case 'command/highlight-session':
     case 'command/focus-input':
     case 'command/search-sessions':
+    case 'command/open-sessions':
     case 'command/open-attention-sessions':
     case 'command/open-completed-sessions':
     case 'command/abort':

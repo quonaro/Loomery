@@ -50,9 +50,9 @@ test.describe('viewport content coverage', () => {
     const streamTimer = await page.evaluate(() => {
       const harness = (
         window as Window & {
-          __varroE2E?: { replayServerEvent: (event: ServerEvent) => void };
+          __loomeryE2E?: { replayServerEvent: (event: ServerEvent) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       if (!harness) throw new Error('Streaming harness is missing');
       const part: TextPart = {
         id: 'str03-stream',
@@ -447,14 +447,14 @@ test.describe('viewport content coverage', () => {
     const samples = await page.evaluate(async ({ anchorId, sourceId }) => {
       const sessionId = 'session-large-transcript';
       const harness = window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{
             parts: Array<Record<string, unknown>>;
           }>;
           updateMessagePart?: (part: Record<string, unknown>) => void;
         };
       };
-      const sourceMessage = harness.__varroE2E
+      const sourceMessage = harness.__loomeryE2E
         ?.getSessionMessages?.(sessionId)
         .find((message) => message.parts.some((part) => part.messageID === sourceId));
       const textPart = sourceMessage?.parts.find((part) => part.type === 'text');
@@ -465,7 +465,7 @@ test.describe('viewport content coverage', () => {
         ...textPart,
         text: ['```mermaid', 'flowchart TD', ...edges, '```'].join('\n'),
       };
-      harness.__varroE2E?.updateMessagePart?.(updatedPart);
+      harness.__loomeryE2E?.updateMessagePart?.(updatedPart);
       window.postMessage(
         {
           type: 'server/event',

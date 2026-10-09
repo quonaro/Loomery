@@ -35,7 +35,7 @@ async function fixture(t) {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   const serverUrl = `http://127.0.0.1:${server.address().port}`;
-  const root = await mkdtemp(path.join(os.tmpdir(), 'varro-selection-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'loomery-selection-'));
   const sourceDatabase = path.join(root, 'source.db');
   const db = new DatabaseSync(sourceDatabase);
   db.exec(`

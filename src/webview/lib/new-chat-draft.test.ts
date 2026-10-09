@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editingMessage, resetMessageEditState, startEditingMessage } from './message-edit-state';
 import { startNewChatDraft } from './new-chat-draft';
+import { NEW_SESSION_TAB_ID, getOpenSessionTabs, setOpenSessionTabsForTest } from './session-tabs';
 import {
   getPersistedSelectedModel,
   getSelectedAgentForSession,
@@ -48,6 +49,15 @@ describe('startNewChatDraft', () => {
   afterEach(() => {
     resetMessageEditState();
     delete window.__sendToExtension;
+  });
+
+  it('opens the New Session tab for the draft', () => {
+    setOpenSessionTabsForTest([]);
+    setState('activeSessionId', 'session-1');
+
+    startNewChatDraft();
+
+    expect(getOpenSessionTabs()).toContain(NEW_SESSION_TAB_ID);
   });
 
   it('preserves the complete composer draft', () => {
@@ -250,7 +260,7 @@ describe('startNewChatDraft', () => {
     expect(state.messagesLoading).toBe(false);
   });
 
-  it('focuses the composer and resets to build when reusing an untouched blank session', () => {
+  it('opens a fresh draft and resets to build instead of reusing an untouched blank session', () => {
     setState('agents', [
       { name: 'ask', mode: 'primary', builtIn: false, permission: {}, tools: {} },
       { name: 'build', mode: 'primary', builtIn: true, permission: {}, tools: {} },
@@ -266,15 +276,17 @@ describe('startNewChatDraft', () => {
       },
     ]);
     setState('activeSessionId', 'session-1');
+    setOpenSessionTabsForTest(['session-1']);
     const previousFocusKey = composerFocusKey();
 
     setSelectedAgent('ask', { sessionId: 'session-1' });
 
     startNewChatDraft();
 
-    expect(state.activeSessionId).toBe('session-1');
+    expect(state.activeSessionId).toBeNull();
     expect(state.selectedAgent).toBe('build');
-    expect(getSelectedAgentForSession('session-1')).toBe('build');
+    expect(getSelectedAgentForSession('session-1')).toBe('ask');
+    expect(getOpenSessionTabs()).toContain(NEW_SESSION_TAB_ID);
     expect(composerFocusKey()).toBe(previousFocusKey + 1);
   });
 

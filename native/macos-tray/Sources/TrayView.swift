@@ -30,19 +30,19 @@ struct TrayView: View {
     VStack(alignment: .leading, spacing: 0) {
       VStack(alignment: .leading, spacing: 0) {
         HStack {
-          Text("Varro").font(.headline)
+          Text("Loomery").font(.headline)
           Text("Experimental").font(.caption).foregroundStyle(.secondary)
           Spacer()
           Menu {
             Button("Clear disconnected sessions", action: model.clearDisconnected)
             Toggle("Launch at login", isOn: Binding(get: { loginEnabled }, set: setLogin))
             Divider()
-            Button("Quit Varro") { NSApp.terminate(nil) }.keyboardShortcut("q")
+            Button("Quit Loomery") { NSApp.terminate(nil) }.keyboardShortcut("q")
           } label: { Image(systemName: "gearshape") }
           .menuStyle(.borderlessButton)
           .focusable(false)
           .fixedSize()
-          .accessibilityLabel("Varro settings")
+          .accessibilityLabel("Loomery settings")
         }.padding(16)
 
         Picker("Project", selection: $project) {
@@ -60,7 +60,7 @@ struct TrayView: View {
             VStack(spacing: 10) {
               Image(systemName: "tray").font(.system(size: 28)).foregroundStyle(.secondary)
               Text("No session activity").font(.headline)
-              Text(model.editorCount == 0 ? "Open a local VS Code project with Varro to connect." : "Running sessions and new updates will appear here.")
+              Text(model.editorCount == 0 ? "Open a local VS Code project with Loomery to connect." : "Running sessions and new updates will appear here.")
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
             }.frame(maxWidth: .infinity).padding(.vertical, 36)
           }

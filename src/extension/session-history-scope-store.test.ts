@@ -8,7 +8,7 @@ describe('SessionHistoryScopeStore', () => {
     const persistence: Persistence = {
       get<T>(key: string) {
         return (
-          key === 'varro.sessionHistoryScopes'
+          key === 'loomery.sessionHistoryScopes'
             ? {
                 'project:one': 'project',
                 'directory:/tmp': 'descendants',
@@ -27,7 +27,7 @@ describe('SessionHistoryScopeStore', () => {
     expect(store.get('invalid')).toBe('directory');
     await store.set('project:two', 'descendants');
 
-    expect(persistence.set).toHaveBeenCalledWith('varro.sessionHistoryScopes', {
+    expect(persistence.set).toHaveBeenCalledWith('loomery.sessionHistoryScopes', {
       'project:one': 'project',
       'directory:/tmp': 'descendants',
       'project:two': 'descendants',
@@ -46,7 +46,7 @@ describe('SessionHistoryScopeStore', () => {
     await store.set('project:one', 'project');
 
     expect(store.getForRoot('/repo')).toBe('project');
-    expect(persistence.set).toHaveBeenCalledWith('varro.sessionHistoryScopeProjects', {
+    expect(persistence.set).toHaveBeenCalledWith('loomery.sessionHistoryScopeProjects', {
       '/repo': 'project:one',
     });
   });
@@ -55,7 +55,7 @@ describe('SessionHistoryScopeStore', () => {
     const persistence: Persistence = {
       get<T>(key: string) {
         return (
-          key === 'varro.sessionHistoryScopeProjects'
+          key === 'loomery.sessionHistoryScopeProjects'
             ? {
                 '/repo/': 'project:alias',
                 '/repo': 'project:canonical',
@@ -115,7 +115,7 @@ describe('SessionHistoryScopeStore', () => {
     ]);
 
     expect(store.getForRoot('/repo')).toBe('project');
-    expect(persistence.set).toHaveBeenLastCalledWith('varro.sessionHistoryScopeProjects', {
+    expect(persistence.set).toHaveBeenLastCalledWith('loomery.sessionHistoryScopeProjects', {
       '/repo': 'project:one',
     });
   });

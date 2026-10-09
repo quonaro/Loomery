@@ -462,7 +462,7 @@ describe('useOpenCode session state flows', () => {
     clientMocks.providerList.mockResolvedValue({ providers: [], default: {} });
     clientMocks.questionList.mockResolvedValue([]);
     clientMocks.sessionGet.mockRejectedValue(new Error('404 Session not found'));
-    clientMocks.varroSessionRenameIfUntitled.mockResolvedValue({
+    clientMocks.loomerySessionRenameIfUntitled.mockResolvedValue({
       id: 'session-1',
       title: 'Test Message',
     });
@@ -482,7 +482,7 @@ describe('useOpenCode session state flows', () => {
       await vi.waitFor(() => {
         expect(stateModule.state.sessions[0]?.title).toBe('Test Message');
       });
-      expect(clientMocks.varroSessionRenameIfUntitled).toHaveBeenCalledWith('session-1', {
+      expect(clientMocks.loomerySessionRenameIfUntitled).toHaveBeenCalledWith('session-1', {
         directory: '/repo',
       });
     } finally {

@@ -57,7 +57,7 @@ function mockCommands(
       else if (script.includes('GetOwnerSid'))
         output = denied
           ? ''
-          : `VARRO_BIRTH=123\nVARRO_LISTENER_SID=S-1-5-21-${foreign ? 2 : 1}\nVARRO_HOST_SID=S-1-5-21-1`;
+          : `LOOMERY_BIRTH=123\nLOOMERY_LISTENER_SID=S-1-5-21-${foreign ? 2 : 1}\nLOOMERY_HOST_SID=S-1-5-21-1`;
       else if (script.includes('CreationDate') || args.includes('lstart=')) output = '123';
       else if (args.includes('uid=')) output = denied ? '' : String(hostUid + (foreign ? 1 : 0));
       else output = ambiguous ? `${listenerPid}\n${listenerPid + 1}` : String(listenerPid);
@@ -299,7 +299,7 @@ describe('Linux listener fallback completeness', () => {
         return child;
       });
       try {
-        const inspection = findListeningPids(4096, `/missing-varro-proc-fixture-${process.pid}`);
+        const inspection = findListeningPids(4096, `/missing-loomery-proc-fixture-${process.pid}`);
         const rejected = expect(inspection).rejects.toThrow('Linux socket tables are unavailable');
         await vi.advanceTimersByTimeAsync(2_000);
         await rejected;
@@ -437,7 +437,7 @@ describe('Windows listener and process inspection', () => {
 
   it('reads executable and birth identity in one process snapshot', async () => {
     commandOutput(() => ({
-      stdout: 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456',
+      stdout: 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456',
       code: 0,
     }));
     await expect(readWindowsProcessIdentity(listenerPid)).resolves.toEqual({
@@ -455,7 +455,7 @@ describe('Windows listener and process inspection', () => {
     commandOutput(() =>
       ++attempts === 1
         ? { stdout: '', code: 1 }
-        : { stdout: 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456', code: 0 }
+        : { stdout: 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456', code: 0 }
     );
     await expect(readWindowsProcessIdentity(listenerPid)).resolves.toEqual({
       executable: 'C:\\OpenCode\\opencode.exe',
@@ -473,8 +473,8 @@ describe('Windows listener and process inspection', () => {
     commandOutput(() => ({
       stdout:
         ++attempts === 1
-          ? 'VARRO_BIRTH=123456'
-          : 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456',
+          ? 'LOOMERY_BIRTH=123456'
+          : 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456',
       code: 0,
     }));
     await expect(readWindowsProcessIdentity(listenerPid)).resolves.toEqual({
@@ -504,14 +504,14 @@ describe('Windows listener and process inspection', () => {
       await Promise.resolve();
       children[0]!.stdout.emit(
         'data',
-        Buffer.from('VARRO_EXECUTABLE=C:\\Old\\opencode.exe\nVARRO_BIRTH=123456')
+        Buffer.from('LOOMERY_EXECUTABLE=C:\\Old\\opencode.exe\nLOOMERY_BIRTH=123456')
       );
       await vi.advanceTimersByTimeAsync(10_000);
       expect(children).toHaveLength(2);
       expect(children[0]!.kill).toHaveBeenCalled();
       children[1]!.stdout.emit(
         'data',
-        Buffer.from('VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=654321')
+        Buffer.from('LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=654321')
       );
       children[1]!.emit('close', 0);
       await expect(inspection).resolves.toEqual({
@@ -532,7 +532,8 @@ describe('Windows listener and process inspection', () => {
       return ++attempts === 1
         ? { stdout: '', code: 1 }
         : {
-            stdout: 'VARRO_BIRTH=123\nVARRO_LISTENER_SID=S-1-5-21-1\nVARRO_HOST_SID=S-1-5-21-1',
+            stdout:
+              'LOOMERY_BIRTH=123\nLOOMERY_LISTENER_SID=S-1-5-21-1\nLOOMERY_HOST_SID=S-1-5-21-1',
             code: 0,
           };
     });
@@ -553,7 +554,7 @@ describe('Windows listener and process inspection', () => {
     let attempts = 0;
     commandOutput(() =>
       ++attempts === 1
-        ? { stdout: 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123456', code: 0 }
+        ? { stdout: 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123456', code: 0 }
         : { stdout: '', code: 1 }
     );
     await expect(readWindowsProcessIdentity(listenerPid)).resolves.toMatchObject({
@@ -567,10 +568,10 @@ describe('Windows listener and process inspection', () => {
   });
 
   it.each([
-    { stdout: 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe\nVARRO_BIRTH=123', code: 1 },
-    { stdout: 'VARRO_EXECUTABLE=C:\\OpenCode\\opencode.exe', code: 0 },
-    { stdout: 'VARRO_BIRTH=123456', code: 0 },
-    { stdout: 'VARRO_BIRTH=invalid', code: 0 },
+    { stdout: 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe\nLOOMERY_BIRTH=123', code: 1 },
+    { stdout: 'LOOMERY_EXECUTABLE=C:\\OpenCode\\opencode.exe', code: 0 },
+    { stdout: 'LOOMERY_BIRTH=123456', code: 0 },
+    { stdout: 'LOOMERY_BIRTH=invalid', code: 0 },
   ])('does not accept a failed or incomplete process inspection: %j', async (result) => {
     commandOutput((command) =>
       command === 'netstat.exe'
@@ -586,8 +587,8 @@ describe('Windows listener and process inspection', () => {
   });
 
   it.each([
-    'VARRO_BIRTH=123\nVARRO_LISTENER_SID=S-1-5-21-1',
-    'VARRO_BIRTH=123\nVARRO_LISTENER_SID=invalid\nVARRO_HOST_SID=S-1-5-21-1',
+    'LOOMERY_BIRTH=123\nLOOMERY_LISTENER_SID=S-1-5-21-1',
+    'LOOMERY_BIRTH=123\nLOOMERY_LISTENER_SID=invalid\nLOOMERY_HOST_SID=S-1-5-21-1',
   ])('preserves unknown account ownership for incomplete or invalid SID output', async (stdout) => {
     commandOutput((command) => ({
       stdout:

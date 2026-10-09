@@ -108,7 +108,7 @@ function reportSection(content: string, title: string): string {
 }
 
 beforeEach(() => {
-  vi.stubEnv('VARRO_TEST_STATE_ROOT', resolve('artifacts/ai-test-data/usage-report-worker'));
+  vi.stubEnv('LOOMERY_TEST_STATE_ROOT', resolve('artifacts/ai-test-data/usage-report-worker'));
   vi.useFakeTimers();
   vi.setSystemTime(NOW);
   vi.clearAllMocks();
@@ -134,7 +134,7 @@ describe('UsageReportService', () => {
               id: 'session-1',
               directory: '/repo',
               time: { updated: now },
-              metadata: { varro: { pauses } },
+              metadata: { loomery: { pauses } },
             },
           ]
         : history
@@ -190,7 +190,7 @@ describe('UsageReportService', () => {
 
   it('opens the report as a named Markdown preview', async () => {
     const uri = {
-      scheme: 'varro-tool-output',
+      scheme: 'loomery-tool-output',
       path: '/id/OpenCode Usage Report.md',
     } as vscode.Uri;
     const openDocument = vi.fn(async () => uri);

@@ -36,7 +36,7 @@ test('reported short transcript geometry', async ({ page }, testInfo) => {
   await page.addInitScript(
     (fixture) => {
       // SAFETY: The isolated E2E harness reads this fixture before mounting.
-      (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+      (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
         fixture;
     },
     { session, initialMessages: messages.slice(0, 1) }
@@ -47,8 +47,8 @@ test('reported short transcript geometry', async ({ page }, testInfo) => {
     async (list, { messages: replayMessages, sessionID: replaySessionID }) => {
       // SAFETY: The session-playback harness installs this transport before the list becomes visible.
       const harness = (
-        window as typeof window & { __varroE2E: { replayServerEvent(event: ServerEvent): void } }
-      ).__varroE2E;
+        window as typeof window & { __loomeryE2E: { replayServerEvent(event: ServerEvent): void } }
+      ).__loomeryE2E;
       const emit = (event: ServerEvent) => harness.replayServerEvent(event);
       emit({
         type: 'session.status',

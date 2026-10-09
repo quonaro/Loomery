@@ -12,10 +12,10 @@ export async function runWindowsCliUpdate(
 ): Promise<void> {
   const id = randomUUID();
   const task = new vscode.Task(
-    { type: 'varro-opencode-update', id },
+    { type: 'loomery-opencode-update', id },
     vscode.TaskScope.Workspace,
     title,
-    'Varro',
+    'Loomery',
     new vscode.ShellExecution(command, {
       cwd,
       executable: 'powershell.exe',

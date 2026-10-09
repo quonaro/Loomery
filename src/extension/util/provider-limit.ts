@@ -8,7 +8,7 @@ import type {
 } from '../../shared/protocol';
 import { resolveOpenCodeDataDirectory } from '../../shared/opencode-data-directory';
 import { asRecord, getString } from '../../shared/type-utils';
-import { VARRO_USER_AGENT } from '../provider-limits/adapter-utils';
+import { LOOMERY_USER_AGENT } from '../provider-limits/adapter-utils';
 
 export type ProviderAuthRecord =
   | { type: 'oauth'; access: string; refresh?: string; expires?: number; accountId?: string }
@@ -207,9 +207,9 @@ export function buildProviderLimitProbe(
   };
 
   if (provider.id === 'github-copilot') {
-    headers['User-Agent'] = VARRO_USER_AGENT;
+    headers['User-Agent'] = LOOMERY_USER_AGENT;
     headers['Editor-Version'] = 'vscode/1.91.0';
-    headers['Editor-Plugin-Version'] = 'varro/0.1.0';
+    headers['Editor-Plugin-Version'] = 'loomery/0.1.0';
   }
 
   return {

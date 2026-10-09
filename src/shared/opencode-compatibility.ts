@@ -1,4 +1,4 @@
-// Bump this only when Varro starts relying on APIs from a newer OpenCode release.
+// Bump this only when Loomery starts relying on APIs from a newer OpenCode release.
 // Keeping it explicit avoids forcing a CLI update for SDK-only patch releases.
 export const MINIMUM_SUPPORTED_OPENCODE_VERSION = '1.16.0';
 export const MINIMUM_SUPPORTED_OPENCODE_V2_VERSION = '2.0.5';
@@ -8,18 +8,18 @@ export const OPENCODE_SDK_PACKAGE_NAME = '@opencode-ai/sdk';
 export function getMaximumTestedOpenCodeVersion<T>(packageJson: T, apiVersion: 1 | 2 = 1): string {
   const packageRecord = asRecord(packageJson);
   if (!packageRecord) {
-    throw new Error('Varro package.json is not an object');
+    throw new Error('Loomery package.json is not an object');
   }
 
   const dependencies = asRecord(packageRecord.dependencies);
   if (!dependencies) {
-    throw new Error('Varro package.json does not declare dependencies');
+    throw new Error('Loomery package.json does not declare dependencies');
   }
 
   const packageName = apiVersion === 2 ? '@opencode/client' : OPENCODE_SDK_PACKAGE_NAME;
   const declaredVersion = dependencies[packageName];
   if (!isString(declaredVersion)) {
-    throw new Error(`Varro package.json does not declare ${packageName}`);
+    throw new Error(`Loomery package.json does not declare ${packageName}`);
   }
 
   const version = declaredVersion.match(/\d+\.\d+\.\d+/)?.[0];

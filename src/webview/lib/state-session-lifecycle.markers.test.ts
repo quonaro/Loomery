@@ -13,7 +13,7 @@ describe('catalog marker restoration', () => {
     const bridge = await import('./bridge');
     const post = vi.spyOn(bridge, 'postMessage');
     window.localStorage.setItem(
-      'varro.lastSeenSessions',
+      'loomery.lastSeenSessions',
       JSON.stringify({ '/repo': { chat: 200 } })
     );
     const folder = await import('./state');
@@ -40,7 +40,7 @@ describe('catalog marker restoration', () => {
       expect(workspace.isSessionUnread('chat', 300)).toBe(true);
       workspace.syncSessionMarkersForWorkspace('/repo', ['/repo', '/second']);
       expect(workspace.state.lastSeenSessions.chat).toBe(200);
-      expect(JSON.parse(window.localStorage.getItem('varro.lastSeenSessions')!)).toEqual({
+      expect(JSON.parse(window.localStorage.getItem('loomery.lastSeenSessions')!)).toEqual({
         '/repo': { chat: 200 },
       });
     } finally {
@@ -51,7 +51,7 @@ describe('catalog marker restoration', () => {
   it('keeps newer local reads when the shared snapshot is older', async () => {
     Object.assign(window, { __initialWebviewState: { sessionReadState: { chat: 100 } } });
     window.localStorage.setItem(
-      'varro.lastSeenSessions',
+      'loomery.lastSeenSessions',
       JSON.stringify({ '/repo': { chat: 200 } })
     );
     try {
@@ -85,9 +85,9 @@ describe('catalog marker restoration', () => {
 
     expect(state.markSessionSeen('active', 200)).toBe(true);
 
-    expect(reads.mock.calls.filter(([key]) => key === 'varro.lastSeenSessions')).toHaveLength(1);
+    expect(reads.mock.calls.filter(([key]) => key === 'loomery.lastSeenSessions')).toHaveLength(1);
     expect(unrelatedReads).toBe(0);
-    expect(JSON.parse(window.localStorage.getItem('varro.lastSeenSessions')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.lastSeenSessions')!)).toEqual({
       '/repo': { active: 200 },
     });
     reads.mockClear();
@@ -149,7 +149,7 @@ describe('catalog marker restoration', () => {
     state.markSessionSeen('first', 0);
     state.markSessionSeen('second', 100);
     state.clearSessionSeen('first');
-    expect(JSON.parse(window.localStorage.getItem('varro.lastSeenSessions')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.lastSeenSessions')!)).toEqual({
       '/repo': { second: 100 },
     });
     state.markSessionResponseCompleted('first', 0);
@@ -159,13 +159,13 @@ describe('catalog marker restoration', () => {
     state.skipPlanSession('missing');
     expect(state.state.skippedPlanSessions).toEqual({ first: 100, second: 0 });
     state.clearSkippedPlanSession('first');
-    expect(JSON.parse(window.localStorage.getItem('varro.skippedPlanSessions')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.skippedPlanSessions')!)).toEqual({
       '/repo': { second: 0 },
     });
   });
 
   it('preserves unloaded markers and storage until an authoritative complete catalog arrives', async () => {
-    const keys = ['varro.skippedPlanSessions', 'varro.completedSessionResponses'];
+    const keys = ['loomery.skippedPlanSessions', 'loomery.completedSessionResponses'];
     for (const key of keys) {
       window.localStorage.setItem(key, JSON.stringify({ '/repo': { older: 100, deleted: 100 } }));
     }
@@ -210,7 +210,7 @@ describe('catalog marker restoration', () => {
 
   it('hydrates only catalog sessions from legacy exact-directory records after reload', async () => {
     window.localStorage.setItem(
-      'varro.lastSeenSessions',
+      'loomery.lastSeenSessions',
       JSON.stringify({
         '/repo/nested': { nested: 200, excluded: 999 },
         '/repo/nested-git': { git: 200 },
@@ -220,7 +220,7 @@ describe('catalog marker restoration', () => {
       })
     );
     window.localStorage.setItem(
-      'varro.completedSessionResponses',
+      'loomery.completedSessionResponses',
       JSON.stringify({
         '/repo/nested': { nested: 100 },
         '/repo/nested-git': { git: 300 },
@@ -229,7 +229,7 @@ describe('catalog marker restoration', () => {
       })
     );
     window.localStorage.setItem(
-      'varro.skippedPlanSessions',
+      'loomery.skippedPlanSessions',
       JSON.stringify({
         '/repo/nested': { nested: 100, excluded: 999 },
         '/closed': { closed: 999 },

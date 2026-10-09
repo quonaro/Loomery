@@ -68,20 +68,20 @@ test('permanently deleting a parent from recycle bin removes the entire tree', a
   const deleteRequest = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find(
         (request) =>
           request.method === 'DELETE' &&
-          request.path === '/varro/session-trash/session-parent/delete'
+          request.path === '/loomery/session-trash/session-parent/delete'
       ) || null
     );
   });
 
   expect(deleteRequest).toMatchObject({
     method: 'DELETE',
-    path: '/varro/session-trash/session-parent/delete',
+    path: '/loomery/session-trash/session-parent/delete',
   });
 });

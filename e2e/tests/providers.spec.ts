@@ -31,16 +31,16 @@ test('stops retrying a usage-limited session', async ({ page }) => {
   const abortRequest = await page.evaluate(() => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return (
       value?.requests.find((request) => {
-        const url = new URL(request.path, 'http://varro.test');
+        const url = new URL(request.path, 'http://loomery.test');
         return (
           request.method === 'POST' &&
           url.pathname.endsWith('/abort') &&
-          url.searchParams.get('directory') === '/workspace/varro'
+          url.searchParams.get('directory') === '/workspace/loomery'
         );
       }) || null
     );
@@ -90,7 +90,7 @@ test('keeps a running chat out of the model dialog backdrop', async ({ page }) =
   await page.goto('/e2e/harness/index.html?scenario=rapid-streaming-jitter');
   await page.evaluate(() => {
     localStorage.setItem(
-      'varro.addedModels',
+      'loomery.addedModels',
       JSON.stringify(['openai:*', 'openai:gpt-4.1', 'openai:gpt-4.1-mini'])
     );
   });

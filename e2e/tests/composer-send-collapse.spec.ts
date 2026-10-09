@@ -35,7 +35,7 @@ for (const scenario of ['large-transcript', 'blank', 'busy-stop-send']) {
           {
             type: 'files/dropped',
             payload: Array.from({ length: 6 }, (_, index) => ({
-              path: `/workspace/varro/src/attachment-${index}.ts`,
+              path: `/workspace/loomery/src/attachment-${index}.ts`,
               relativePath: `src/attachment-${index}.ts`,
               type: 'file',
             })),

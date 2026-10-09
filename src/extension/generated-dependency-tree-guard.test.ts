@@ -25,7 +25,7 @@ import {
 const roots: string[] = [];
 
 function repository(): string {
-  const root = mkdtempSync(join(tmpdir(), 'varro-generated-tree-'));
+  const root = mkdtempSync(join(tmpdir(), 'loomery-generated-tree-'));
   roots.push(root);
   execFileSync('git', ['init', '--quiet', root]);
   return root;

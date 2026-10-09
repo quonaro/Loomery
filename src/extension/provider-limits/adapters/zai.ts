@@ -19,7 +19,7 @@ import {
   readBoundedResponseJson,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const ZAI_QUOTA_ENDPOINT = 'https://api.z.ai/api/monitor/usage/quota/limit';
@@ -56,7 +56,7 @@ export function createZaiAdapter(): ProviderLimitAdapter {
           headers: {
             Accept: 'application/json',
             Authorization: token,
-            'User-Agent': VARRO_USER_AGENT,
+            'User-Agent': LOOMERY_USER_AGENT,
           },
           signal: AbortSignal.timeout(10_000),
         });
@@ -119,7 +119,7 @@ async function fetchZaiResetCredits(token: string): Promise<ProviderLimitResetCr
         Accept: 'application/json',
         Authorization: token,
         'Content-Type': 'application/json',
-        'User-Agent': VARRO_USER_AGENT,
+        'User-Agent': LOOMERY_USER_AGENT,
       },
       signal: AbortSignal.timeout(10_000),
     });

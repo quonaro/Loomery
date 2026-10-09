@@ -44,7 +44,7 @@ test('probe attributes a scheduled callback, preserves its handle, and restores 
   vm.runInContext(`(${installSchedulingProbe.toString()})()`, context);
   assert.equal(vm.runInContext('setTimeout(() => 7, 10)', context), 42);
   assert.equal(callback(), 7);
-  const report = vm.runInContext('varroSchedulingProbe.stop()', context);
+  const report = vm.runInContext('loomerySchedulingProbe.stop()', context);
   assert.equal(report.sites[0].calls, 1);
   assert.match(report.sites[0].site, /setTimeout/);
   assert.equal(context.setTimeout, schedule);

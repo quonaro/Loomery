@@ -2,23 +2,21 @@
 import { expect, test } from '@playwright/test';
 import { getE2EState } from './helpers';
 
-test('host new-session command opens a draft chat and creates the session on first send', async ({
-  page,
-}) => {
+test('host new-session command opens a new session immediately', async ({ page }) => {
   await page.goto('/e2e/harness/index.html?scenario=new-session-command');
 
   const countSessionCreates = () =>
     getE2EState(page, () => {
       const value = (
         window as Window & {
-          __varroE2E?: { requests: Array<{ method: string; path: string }> };
+          __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       return (
         value?.requests.filter(
           (request) =>
             request.method === 'POST' &&
-            new URL(request.path, 'http://varro.test').pathname === '/session'
+            new URL(request.path, 'http://loomery.test').pathname === '/session'
         ).length || 0
       );
     });
@@ -26,12 +24,12 @@ test('host new-session command opens a draft chat and creates the session on fir
   await expect(page.locator('.chat-header-title-text').first()).toHaveText('New Chat');
   const composer = page.locator('[role="textbox"][aria-multiline="true"]').first();
   await expect(composer).toBeVisible();
-  await expect.poll(countSessionCreates).toBe(0);
+  await expect.poll(countSessionCreates).toBe(1);
 
   await composer.fill('Start the new session now.');
   await page.getByLabel('Send (Enter)').click();
 
-  await expect(page.locator('.chat-header-title-text').first()).toHaveText('Mock Session 2');
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText('New Chat');
   await expect(page.locator('.chat-turn-user').last()).toContainText('Start the new session now.');
   await expect.poll(countSessionCreates).toBe(1);
 });
@@ -50,12 +48,12 @@ test('filters sessions through the session search input', async ({ page }) => {
       getE2EState(page, () => {
         const requests = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
           }
-        ).__varroE2E?.requests;
+        ).__loomeryE2E?.requests;
         return requests?.some((request) => {
           if (request.method !== 'GET') return false;
-          const url = new URL(request.path, 'http://varro.test');
+          const url = new URL(request.path, 'http://loomery.test');
           return (
             url.pathname === '/session' &&
             url.searchParams.get('search') === 'beta' &&

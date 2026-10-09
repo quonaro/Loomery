@@ -1,6 +1,6 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion -- SAFETY: These E2E callbacks update protocol-shaped subagent state owned by the controlled harness fixture. */
 import { expect, test } from '@playwright/test';
-import { getE2EState } from './helpers';
+import { getE2EState, openSessions } from './helpers';
 
 test('inherits auto mode for a child permission and replies once without a prompt', async ({
   page,
@@ -14,7 +14,7 @@ test('inherits auto mode for a child permission and replies once without a promp
       getE2EState(page, () => {
         const state = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{
                 sessionId: string;
                 permissionId: string;
@@ -23,11 +23,11 @@ test('inherits auto mode for a child permission and replies once without a promp
               requests: Array<{ method: string; path: string }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return {
           response: state?.permissionResponses[0] || null,
           judged: state?.requests.some(
-            (request) => request.method === 'POST' && request.path === '/varro/permission/judge'
+            (request) => request.method === 'POST' && request.path === '/loomery/permission/judge'
           ),
         };
       })
@@ -51,9 +51,9 @@ test('shows the child permission in the parent when the inherited auto judge ask
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto('/e2e/harness/index.html?scenario=subagent-permissions&mode=auto&judge=ask');
 
-  await expect(
-    page.locator('.interactive-session > .chat-header .chat-header-title-text')
-  ).toHaveText('Parent permission orchestration');
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    'Parent permission orchestration'
+  );
   await expect(page.locator('.permission-prompt-text')).toHaveText('Run command');
   await expect(page.locator('.permission-meta-value')).toHaveText(
     'npm run test:e2e -- child-verification'
@@ -65,7 +65,7 @@ test('shows the child permission in the parent when the inherited auto judge ask
       getE2EState(page, () => {
         const state = (
           window as Window & {
-            __varroE2E?: {
+            __loomeryE2E?: {
               permissionResponses: Array<{
                 sessionId: string;
                 permissionId: string;
@@ -73,7 +73,7 @@ test('shows the child permission in the parent when the inherited auto judge ask
               }>;
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return state?.permissionResponses[0] || null;
       })
     )
@@ -129,12 +129,9 @@ test('does not throw while opening a subagent session from the filtered subagent
     .first()
     .click();
 
-  await expect(page.getByLabel('Back to sub-agent sessions')).toBeVisible();
-  await expect(
-    page.locator('.interactive-session > .chat-header .chat-header-title-text')
-  ).toHaveText('Update tests');
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText('Update tests');
 
-  await page.getByLabel('Back to sub-agent sessions').click();
+  await openSessions(page);
   await expect(
     page.getByText('Sub-agents for Parent orchestration', { exact: true })
   ).toBeVisible();
@@ -160,7 +157,7 @@ test('opens a subagent session with keyboard navigation from the filtered subage
   await sessionList.press('ArrowDown');
   await sessionList.press('Enter');
 
-  await expect(
-    page.locator('.interactive-session > .chat-header .chat-header-title-text')
-  ).toHaveText(/Update tests|Inspect API routes/);
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText(
+    /Update tests|Inspect API routes/
+  );
 });

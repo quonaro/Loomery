@@ -87,7 +87,7 @@ describe('ToolOutputDocumentProvider', () => {
       // Markdown, and a .md tab renders and highlights them correctly.
       expect(vscodeMock.Uri.from).toHaveBeenCalledWith(
         expect.objectContaining({
-          scheme: 'varro-tool-output',
+          scheme: 'loomery-tool-output',
           path: expect.stringContaining('Audit data performance (prompt).md'),
         })
       );

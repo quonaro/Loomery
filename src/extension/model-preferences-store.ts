@@ -2,9 +2,9 @@ import type { Persistence } from '../shared/persistence';
 import type { ModelPreferences } from '../shared/protocol';
 import { parseModelPreferences, parseRequiredModelPreferences } from '../shared/model-preferences';
 
-const MODEL_PREFERENCES_KEY = 'varro.modelPreferences';
-const MODEL_PREFERENCES_MIGRATION_KEY = 'varro.modelPreferences.hostMigration.v1';
-const MODEL_PREFERENCES_MIGRATION_BASE_KEY = 'varro.modelPreferences.hostMigrationBase.v1';
+const MODEL_PREFERENCES_KEY = 'loomery.modelPreferences';
+const MODEL_PREFERENCES_MIGRATION_KEY = 'loomery.modelPreferences.hostMigration.v1';
+const MODEL_PREFERENCES_MIGRATION_BASE_KEY = 'loomery.modelPreferences.hostMigrationBase.v1';
 
 export class ModelPreferencesStore {
   private preferences: ModelPreferences;

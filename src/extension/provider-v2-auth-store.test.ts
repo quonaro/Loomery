@@ -14,7 +14,7 @@ describe(
     let path: string;
 
     beforeEach(async () => {
-      root = await mkdtemp(join(tmpdir(), 'varro-v2-credentials-'));
+      root = await mkdtemp(join(tmpdir(), 'loomery-v2-credentials-'));
       path = join(root, 'opencode.db');
     });
 

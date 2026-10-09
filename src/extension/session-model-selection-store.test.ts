@@ -30,7 +30,7 @@ describe('SessionModelSelectionStore', () => {
       'session-1': { providerID: 'anthropic', modelID: 'claude-sonnet', variant: 'high' },
     });
     await store.set('valid', null);
-    expect(persistence.set).toHaveBeenLastCalledWith('varro.sessionSelectedModels', {
+    expect(persistence.set).toHaveBeenLastCalledWith('loomery.sessionSelectedModels', {
       'session-1': { providerID: 'anthropic', modelID: 'claude-sonnet', variant: 'high' },
     });
   });
@@ -72,7 +72,7 @@ describe('SessionModelSelectionStore', () => {
     const persisted = { providerID: 'anthropic', modelID: 'claude-sonnet', variant: 'high' };
     const persistence: Persistence = {
       get: vi.fn((key: string) =>
-        key === 'varro.sessionSelectedModels' ? { 'session-1': persisted } : undefined
+        key === 'loomery.sessionSelectedModels' ? { 'session-1': persisted } : undefined
       ) as Persistence['get'],
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn(() => Promise.resolve()),
@@ -168,7 +168,7 @@ describe('SessionModelSelectionStore', () => {
       legacy: { providerID: 'anthropic', modelID: 'claude-sonnet' },
       current: { providerID: 'openai', modelID: 'gpt-5.6-sol' },
     });
-    expect(persistence.set).toHaveBeenLastCalledWith('varro.sessionSelectedModels', store.list());
+    expect(persistence.set).toHaveBeenLastCalledWith('loomery.sessionSelectedModels', store.list());
   });
 
   it('does not overwrite an overlapping update while migration persistence is delayed', async () => {
@@ -202,7 +202,7 @@ describe('SessionModelSelectionStore', () => {
       providerID: 'openai',
       modelID: 'current-model',
     });
-    expect(persistence.set).toHaveBeenLastCalledWith('varro.sessionSelectedModels', store.list());
+    expect(persistence.set).toHaveBeenLastCalledWith('loomery.sessionSelectedModels', store.list());
   });
 
   it('drops unsafe persisted session IDs and rejects new ones', async () => {
@@ -222,7 +222,7 @@ describe('SessionModelSelectionStore', () => {
     });
     const persistence: Persistence = {
       get: vi.fn((key: string) =>
-        key === 'varro.sessionSelectedModels' ? stored : undefined
+        key === 'loomery.sessionSelectedModels' ? stored : undefined
       ) as Persistence['get'],
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn(() => Promise.resolve()),

@@ -4,8 +4,8 @@ import { isSessionHistoryScope, type SessionHistoryScope } from '../shared/proto
 import { asRecord } from '../shared/type-utils';
 import { normalizeWorkspaceIdentity } from '../shared/workspace-path';
 
-const SESSION_HISTORY_SCOPES_KEY = 'varro.sessionHistoryScopes';
-const SESSION_HISTORY_SCOPE_PROJECTS_KEY = 'varro.sessionHistoryScopeProjects';
+const SESSION_HISTORY_SCOPES_KEY = 'loomery.sessionHistoryScopes';
+const SESSION_HISTORY_SCOPE_PROJECTS_KEY = 'loomery.sessionHistoryScopeProjects';
 
 export class SessionHistoryScopeStore {
   private scopes: Record<string, SessionHistoryScope>;

@@ -5,7 +5,7 @@ import { isNumber, type UnknownRecord, isObject } from './runtime-values';
 export type SessionMarkerMap = Record<string, number>;
 type ScopedSessionMarkerStore = Record<string, SessionMarkerMap>;
 
-export const NO_WORKSPACE_STORAGE_SCOPE = '__varro.no-workspace__';
+export const NO_WORKSPACE_STORAGE_SCOPE = '__loomery.no-workspace__';
 
 type SessionMarkerStorage = {
   readStored<T>(key: string): T | null | undefined;

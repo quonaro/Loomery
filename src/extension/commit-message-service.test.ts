@@ -274,6 +274,27 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+function createCancellationToken() {
+  const listeners = new Set<() => void>();
+  let cancelled = false;
+  const token = {
+    get isCancellationRequested() {
+      return cancelled;
+    },
+    onCancellationRequested(listener: () => void) {
+      listeners.add(listener);
+      return { dispose: () => listeners.delete(listener) };
+    },
+  } as vscode.CancellationToken;
+  return {
+    token,
+    cancel() {
+      cancelled = true;
+      for (const listener of listeners) listener();
+    },
+  };
+}
+
 async function waitFor(predicate: () => boolean): Promise<void> {
   for (let index = 0; index < 100; index += 1) {
     if (predicate()) return;
@@ -410,7 +431,7 @@ describe('CommitMessageService', () => {
     ]);
 
     const sessionBody = requestBody(request, '/session?');
-    expect(sessionBody?.metadata).toEqual({ varroInternal: 'commit-message' });
+    expect(sessionBody?.metadata).toEqual({ loomeryInternal: 'commit-message' });
     const rules = sessionBody?.permission as PermissionRule[];
     expect(resolveToolAction(rules, 'StructuredOutput')).toBe('allow');
     expect(resolveToolAction(rules, 'bash')).toBe('deny');
@@ -1038,6 +1059,42 @@ describe('CommitMessageService', () => {
     expect(selectedRepository.status).not.toHaveBeenCalled();
   });
 
+  it('prefers an explicit Source Control input root over the selected repository', async () => {
+    const explicitRepository = createRepository('/explicit');
+    const selectedRepository = createRepository('/selected');
+    selectedRepository.ui.selected = true;
+    setGitRepositories([explicitRepository, selectedRepository]);
+    const { service } = createService();
+
+    await service.generate(undefined, undefined, explicitRepository.rootUri);
+
+    expect(explicitRepository.status).toHaveBeenCalledTimes(2);
+    expect(selectedRepository.status).not.toHaveBeenCalled();
+  });
+
+  it('aborts generation when the Source Control input cancellation token is triggered', async () => {
+    const repository = createRepository();
+    setGitRepositories([repository]);
+    const response = deferred<unknown>();
+    const request = createRequest({ messageResponse: () => response.promise });
+    const { service, hiddenSessions } = createService(request);
+    const { token, cancel } = createCancellationToken();
+
+    const generation = service.generate(undefined, token);
+    await waitFor(() => request.mock.calls.some(([, path]) => path.includes('/message?')));
+    cancel();
+    await generation;
+    await waitFor(() =>
+      request.mock.calls.some(([method, path]) => method === 'DELETE' && path.includes('helper-1'))
+    );
+
+    expect(request).toHaveBeenCalledWith('POST', '/session/helper-1/abort?directory=%2Frepo');
+    expect(request).toHaveBeenCalledWith('DELETE', '/session/helper-1?directory=%2Frepo');
+    expect(hiddenSessions.retainUntilDeleted).toHaveBeenCalledWith('helper-1');
+    expect(mocks.window.showErrorMessage).not.toHaveBeenCalled();
+    expect(repository.inputBox.value).toBe('');
+  });
+
   it('shows distinguishable repository roots and handles quick-pick cancellation', async () => {
     const first = createRepository('/workspace/first');
     const second = createRepository('/other/first');
@@ -1258,7 +1315,7 @@ describe('CommitMessageService', () => {
     await vi.advanceTimersByTimeAsync(60_000);
     await generation;
     expect(mocks.window.showErrorMessage).toHaveBeenCalledWith(
-      'Preparing commit message timed out. Check the Varro connection.'
+      'Preparing commit message timed out. Check the Loomery connection.'
     );
     startup.resolve();
     await flush();

@@ -227,10 +227,10 @@ describe('session-lifecycle helpers', () => {
   it('keeps a scoped catalog with Windows path variants', () => {
     const setup = createDeps({
       sessions: [
-        session('session-1', 'C:\\Users\\Andrew\\Projects\\Varro', 2),
+        session('session-1', 'C:\\Users\\Andrew\\Projects\\Loomery', 2),
         session('session-2', 'D:\\Other', 1),
       ],
-      workspace: 'c:/users/andrew/projects/varro',
+      workspace: 'c:/users/andrew/projects/loomery',
     });
 
     applySessions(setup.deps, setup.current.sessions);
@@ -242,10 +242,10 @@ describe('session-lifecycle helpers', () => {
   it('keeps nested Windows sessions from the scoped catalog', () => {
     const setup = createDeps({
       sessions: [
-        session('session-1', 'C:\\Users\\Andrew\\Projects\\Varro\\packages\\cli', 2),
+        session('session-1', 'C:\\Users\\Andrew\\Projects\\Loomery\\packages\\cli', 2),
         session('session-2', 'D:\\Other', 1),
       ],
-      workspace: 'c:/users/andrew/projects/varro',
+      workspace: 'c:/users/andrew/projects/loomery',
     });
 
     applySessions(setup.deps, setup.current.sessions);

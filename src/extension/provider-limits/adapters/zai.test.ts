@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProviderMetadata } from '../../util/provider-limit';
 import { createZaiAdapter } from './zai';
-import { VARRO_USER_AGENT } from '../adapter-utils';
+import { LOOMERY_USER_AGENT } from '../adapter-utils';
 
 const adapter = createZaiAdapter();
 
@@ -79,7 +79,7 @@ describe('createZaiAdapter', () => {
       expect(init?.headers).toMatchObject({
         Accept: 'application/json',
         Authorization: 'zai_test_key_12345',
-        'User-Agent': VARRO_USER_AGENT,
+        'User-Agent': LOOMERY_USER_AGENT,
       });
 
       if (String(input).includes('/customer-package-reset/list')) {

@@ -6,7 +6,7 @@ async function updateQuota(page: Page, windows: ProviderLimitWindow[]) {
   const message: ExtensionMessage = {
     type: 'provider-limit/updated',
     payload: {
-      directory: '/workspace/varro',
+      directory: '/workspace/loomery',
       status: {
         providerID: 'copilot',
         modelID: 'gpt-5-mini',
@@ -90,8 +90,8 @@ for (const theme of ['dark', 'light']) {
           const link = event.composedPath().find((node) => node instanceof HTMLAnchorElement);
           if (!link?.href) return;
           // SAFETY: The controlled E2E harness records external navigation requests here.
-          const harness = window as Window & { __varroE2E?: { externalUrls: string[] } };
-          harness.__varroE2E?.externalUrls.push(link.href);
+          const harness = window as Window & { __loomeryE2E?: { externalUrls: string[] } };
+          harness.__loomeryE2E?.externalUrls.push(link.href);
         });
       });
       await usage.click();
@@ -99,8 +99,8 @@ for (const theme of ['dark', 'light']) {
       expect(
         await page.evaluate(() => {
           // SAFETY: The controlled E2E harness records external navigation requests on this global.
-          const harness = window as Window & { __varroE2E?: { externalUrls: string[] } };
-          return harness.__varroE2E?.externalUrls;
+          const harness = window as Window & { __loomeryE2E?: { externalUrls: string[] } };
+          return harness.__loomeryE2E?.externalUrls;
         })
       ).toEqual(['https://github.com/settings/billing']);
       await usage.focus();
@@ -108,8 +108,8 @@ for (const theme of ['dark', 'light']) {
       expect(
         await page.evaluate(() => {
           // SAFETY: The controlled E2E harness records external navigation requests here.
-          const harness = window as Window & { __varroE2E?: { externalUrls: string[] } };
-          return harness.__varroE2E?.externalUrls;
+          const harness = window as Window & { __loomeryE2E?: { externalUrls: string[] } };
+          return harness.__loomeryE2E?.externalUrls;
         })
       ).toEqual(['https://github.com/settings/billing', 'https://github.com/settings/billing']);
       await warning.getByRole('button', { name: /Dismiss .* quota warning/ }).click();

@@ -1,6 +1,6 @@
 # Host extensions
 
-Varro's webview can run in another editor without rewriting its sources. The host registers one
+Loomery's webview can run in another editor without rewriting its sources. The host registers one
 adapter with `registerHostExtension` from `src/webview/host/extensions.ts`, then dynamically imports
 `src/webview/index.tsx`. The adapter can contain any number of context providers and menu actions.
 It must register before importing modules that initialize application state or the message bridge.
@@ -26,21 +26,21 @@ await import('./webview/index');
 
 ## Compatibility and ownership
 
-- `apiVersion` is the host API major version, independent of the Varro release. Incompatible
+- `apiVersion` is the host API major version, independent of the Loomery release. Incompatible
   versions fail registration before mount. Additive optional fields retain their defaults.
 - `requires` checks feature IDs. Version 1 advertises `context-providers`, `menu-actions`,
   `project-storage`, and `file-paths`. Unknown requirements fail explicitly.
 - IDs use lowercase dot-separated namespaces. Duplicate contribution IDs are rejected.
 - Registration order is display order. Registration is fixed while the app is mounted; callbacks
   and configuration are copied at registration. State inside supplied services remains host-owned.
-- With no adapter, Varro uses its existing VS Code transport, browser storage, per-view state,
+- With no adapter, Loomery uses its existing VS Code transport, browser storage, per-view state,
   product metadata, and detached-window actions. A missing capability retains this default.
 - `send` and `subscribe` replace the transport while retaining the core's message validation and
   ordering. The subscription returns a disposer. Core cleanup calls it before dropping handlers.
 - `projectStorage` implements `Storage` without replacing `window.localStorage`. `viewState` is the
   synchronous per-view store. A host may implement persistence asynchronously behind these services.
 - `filePath` resolves native dropped files without modifying `File`. `setDragImage` returns true
-  when the host handles a drag preview; otherwise Varro calls the browser's implementation.
+  when the host handles a drag preview; otherwise Loomery calls the browser's implementation.
 - The disposer returned by registration releases the adapter and calls its optional `dispose`.
   Call the cleanup returned by `startWebview` before disposing registration. Dispose is idempotent.
   Host-owned page listeners and resources belong in the adapter's disposal callback.
@@ -99,10 +99,10 @@ OpenJet implements the adapter in `webview/src/host-bridge.ts` and its database 
 `webview/src/database-extension.ts`. Native database wire data and historical queued snapshots are
 translated at that boundary; the vendored protocol and UI never import OpenJet modules.
 
-Run sync against a compatible Varro revision, then `npm run sync:check` in OpenJet's `webview` folder.
+Run sync against a compatible Loomery revision, then `npm run sync:check` in OpenJet's `webview` folder.
 The committed `vendor/UPSTREAM.json` records the revision, local-change status, and content hash.
 Normal builds use this snapshot. Source adaptations belong in the adapter, not in sync or Vite
-transforms. Until the host API lands upstream, use `VARRO_SOURCE=/path/to/varro npm run sync`.
+transforms. Until the host API lands upstream, use `LOOMERY_SOURCE=/path/to/loomery npm run sync`.
 
 Contract tests live in `src/webview/host/extensions.test.ts`, the composer and send-factory suites,
 and `src/webview/components/HostActions.test.tsx`. OpenJet's host tests exercise its native database

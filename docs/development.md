@@ -1,6 +1,6 @@
 # Development Guide
 
-This document covers source setup, packaging, and debugging for the Varro VS Code extension.
+This document covers source setup, packaging, and debugging for the Loomery VS Code extension.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This document covers source setup, packaging, and debugging for the Varro VS Cod
 npm install -g @opencode/cli
 ```
 
-This npm command is for macOS, Linux, or WSL. On native Windows, use the standalone CLI from the v2 install page. For v1 development, use `npm install -g opencode-ai`. Both current packages install `opencode`; use separate installation directories and `varro.server.command` paths when testing both. See [choosing and updating OpenCode](usage.md#choose-and-update-opencode).
+This npm command is for macOS, Linux, or WSL. On native Windows, use the standalone CLI from the v2 install page. For v1 development, use `npm install -g opencode-ai`. Both current packages install `opencode`; use separate installation directories and `loomery.server.command` paths when testing both. See [choosing and updating OpenCode](usage.md#choose-and-update-opencode).
 
 ## Install Dependencies
 
@@ -61,7 +61,7 @@ CI runs these suites fresh and caches only npm dependency downloads. E2E duratio
 as an artifact, not as cached test results. Its pinned Playwright container
 already includes Chromium, so CI skips the browser install hook and runs E2E across four shards.
 
-The Playwright suite is browser-level webview E2E coverage. It runs the real Solid webview in Chromium through `e2e/harness/index.html`, while the harness mocks the VS Code message bridge and the OpenCode/Varro request and event boundary. It does not launch VS Code, an extension host, or a real OpenCode CLI/server.
+The Playwright suite is browser-level webview E2E coverage. It runs the real Solid webview in Chromium through `e2e/harness/index.html`, while the harness mocks the VS Code message bridge and the OpenCode/Loomery request and event boundary. It does not launch VS Code, an extension host, or a real OpenCode CLI/server.
 
 Local E2E runs use half the available CPU cores, capped at four workers to leave room for frame-sensitive browser checks. Override this with `npm run test:e2e -- --workers=2` on a busy machine. Playback and diagnostics default to one worker. CI splits the suite across four jobs with two workers each.
 
@@ -79,7 +79,7 @@ its assignment JSON and exact test list alongside its timing report; merging rep
 that appear in multiple shards. These files stay in `tmp/e2e-sharding/`, outside Playwright's cleaned
 output directory.
 
-For shorter feedback loops, select a spec as above, filter test names with `npm run test:e2e -- --grep "composer"`, or rerun failures with `npm run test:e2e -- --last-failed`. Standard and raster E2E runs use port 4174 when available and automatically select a free port when it is occupied. To require a specific port, set `VARRO_E2E_PORT`, for example `VARRO_E2E_PORT=4184 npm run test:e2e` in macOS/Linux shells. Playback keeps its existing-server behavior.
+For shorter feedback loops, select a spec as above, filter test names with `npm run test:e2e -- --grep "composer"`, or rerun failures with `npm run test:e2e -- --last-failed`. Standard and raster E2E runs use port 4174 when available and automatically select a free port when it is occupied. To require a specific port, set `LOOMERY_E2E_PORT`, for example `LOOMERY_E2E_PORT=4184 npm run test:e2e` in macOS/Linux shells. Playback keeps its existing-server behavior.
 
 The normal E2E suite excludes `e2e/tests/diagnostics/`. Run those investigations explicitly with
 `npm run test:e2e:diagnostics`; their evidence stays in `tmp/playwright-diagnostics/`. For the local
@@ -110,7 +110,7 @@ npm run test
 npm run test:e2e
 ```
 
-Use `npm run vscode:install` when you specifically want to package and install the VSIX into your local VS Code. The helper removes old Varro VSIX files, packages the current version, and passes its exact filename to the VS Code CLI on macOS, Linux, and Windows. Run `npm run vscode:install -- --dry-run` to inspect those operations without changing files or invoking the build or VS Code.
+Use `npm run vscode:install` when you specifically want to package and install the VSIX into your local VS Code. The helper removes old Loomery VSIX files, packages the current version, and passes its exact filename to the VS Code CLI on macOS, Linux, and Windows. Run `npm run vscode:install -- --dry-run` to inspect those operations without changing files or invoking the build or VS Code.
 
 ## Build
 
@@ -140,7 +140,7 @@ Package the extension:
 npm run package
 ```
 
-This produces `varro-*.vsix` in the project root.
+This produces `loomery-*.vsix` in the project root.
 
 To install manually, pass the exact generated VSIX path to `code --install-extension`. Do not use a wildcard, because Windows command shells do not expand it consistently.
 
@@ -152,7 +152,7 @@ There is also a convenience script for this flow:
 npm run vscode:install
 ```
 
-The script requires the `code` CLI on `PATH`. Set `VARRO_VSCODE_CLI` to another executable or command shim, such as `code-insiders`, when needed.
+The script requires the `code` CLI on `PATH`. Set `LOOMERY_VSCODE_CLI` to another executable or command shim, such as `code-insiders`, when needed.
 
 After installation, reload the window:
 
@@ -165,6 +165,8 @@ After installation, reload the window:
 3. If prompted, select **VS Code Extension Development**.
 4. A new Extension Development Host window opens with the extension loaded.
 
+`F5` first runs the `.vscode/tasks.json` `watch` task, which starts the extension and webview watchers, then launches the host in the isolated `Loomery Extension Dev` profile with `--disable-extensions`. Only this extension is active in that window, and source edits rebuild `dist/` and reload the host automatically.
+
 To rebuild while developing and open the webview preview:
 
 ```sh
@@ -173,7 +175,7 @@ npm run dev
 
 This uses `npx concurrently` to start the extension watcher, the webview bundle watcher, and `preview.html` in Vite so you can inspect style changes immediately in the browser. If you prefer not to use `npx concurrently`, start `npm run watch:extension`, `npm run watch:webview`, and `npm run preview:webview` in separate terminals.
 
-Reload the Extension Development Host window after extension changes.
+While the extension runs in a development host, it watches its own build output and restarts the extension host about 400 ms after a rebuild. Extension and webview changes are picked up without a manual reload, so `npm run dev`, `npm run watch:extension` with `npm run watch:webview`, or repeated `npm run build` runs all update the running host. This automatic restart only runs when VS Code loads the extension from `--extensionDevelopmentPath`; installed extensions and the AI and sandbox harnesses never restart themselves.
 
 If you only want the standalone browser preview:
 
@@ -185,7 +187,7 @@ This serves the existing `preview.html`, which proxies to your local OpenCode se
 
 ## Runtime Overview
 
-Varro has three layers:
+Loomery has three layers:
 
 1. VS Code extension host code in `src/extension/`
 2. Shared protocol and context helpers in `src/shared/`
@@ -193,7 +195,7 @@ Varro has three layers:
 
 At activation time, `src/extension/extension.ts`:
 
-- Reads `varro.*` configuration
+- Reads `loomery.*` configuration
 - Creates `OpenCodeServer`
 - Creates `ContextProvider`
 - Creates and registers `SidebarProvider`
@@ -210,7 +212,7 @@ See [architecture.md](architecture.md) for a deeper component-by-component break
 `src/extension/server.ts` orchestrates the bridge to the local OpenCode HTTP server. Process, update, and port behavior lives in `open-code-process.ts`; REST and SSE transport lives in `open-code-transport.ts`; and `server-lifecycle.ts` coordinates lifecycle state.
 
 - Detects the API through v2 `/api/info` or `/api/status`, or v1 `/global/health`, before spawning anything
-- Starts `opencode serve --port <port>` only when Varro first needs the server and auto-start is enabled
+- Starts `opencode serve --port <port>` only when Loomery first needs the server and auto-start is enabled
 - Scopes workspace-sensitive requests and filters deliberately unscoped responses
 - Opens an SSE connection to v2 `/api/event` or v1 `/global/event` and normalizes events for workspace-scoped endpoints
 - Reconnects the event stream with backoff
@@ -218,12 +220,12 @@ See [architecture.md](architecture.md) for a deeper component-by-component break
 
 Important behavior:
 
-- The extension-host adapters normalize v1 and v2 into Varro's shared contracts. V2 uses authenticated requests and location-scoped APIs; the directory query/header behavior below describes the v1 transport. See [OpenCode v1 and v2 support](opencode-v2-support.md).
+- The extension-host adapters normalize v1 and v2 into Loomery's shared contracts. V2 uses authenticated requests and location-scoped APIs; the directory query/header behavior below describes the v1 transport. See [OpenCode v1 and v2 support](opencode-v2-support.md).
 
 - Workspace-sensitive non-global requests carry both a `directory` query param and `x-opencode-directory` header. Global paths omit the `directory` query param; health and `/global/event` are explicitly unscoped, while generic global REST calls can still carry the directory header. Session status and most session-child routes are deliberately unscoped; Windows leaves additional session reads unscoped to avoid path casing and separator regressions. Aggregate session lists, statuses, permissions, and questions are filtered locally to the active workspace. Direct session-child routes remain ID-addressed and are normally reached through IDs from filtered session state.
-- If the spawned server reports that the configured port is already in use, Varro can retry on nearby ports.
-- If the SSE stream drops while REST is still available, Varro keeps the chat usable and reports the event stream as degraded.
-- A background maintenance loop checks the installed OpenCode CLI version, can suggest `opencode upgrade`, and can restart a Varro-managed server when the CLI is newer and no sessions are active.
+- If the spawned server reports that the configured port is already in use, Loomery can retry on nearby ports.
+- If the SSE stream drops while REST is still available, Loomery keeps the chat usable and reports the event stream as degraded.
+- A background maintenance loop checks the installed OpenCode CLI version, can suggest `opencode upgrade`, and can restart a Loomery-managed server when the CLI is newer and no sessions are active.
 
 ### `ContextProvider`
 
@@ -247,43 +249,43 @@ It debounces editor and diagnostics updates before posting them to the webview.
 - Owns host services for commit messages, usage reports, queued-message persistence, provider-file observation and revalidation, session diffs, long tool output, and fallback session titles
 - Delegates loading and lifecycle recovery to `WebviewSession`
 - Routes validated webview messages through `MessageRouter` and `sidebar-provider-actions.ts`
-- Proxies OpenCode and local `/varro/*` calls through `RestProxy`
+- Proxies OpenCode and local `/loomery/*` calls through `RestProxy`
 - Forwards workspace-scoped server events through `ServerEventBridge`
 - Tracks session attention through `SessionStateManager` for notifications and the status bar
 
-It also exposes the Varro extension-host API namespace, `/varro/*`:
+It also exposes the Loomery extension-host API namespace, `/loomery/*`:
 
-- `GET /varro/provider-limit`
-- `POST /varro/plan/open`
-- `GET /varro/opencode-config`
-- `POST /varro/opencode-config/model-routing`
-- `GET /varro/workspace-file`
-- `GET /varro/workspace-file/pick`
-- `GET /varro/workspace-path/resolve`
-- `POST /varro/permission/judge`
-- `GET /varro/permission/judge/model`
-- `GET /varro/session/:sessionID/diff-summary`
-- `POST /varro/session/:sessionID/pin`
-- `POST /varro/session/:sessionID/rename-if-untitled`
-- `DELETE /varro/session/:sessionID/delete`
-- `GET /varro/session-trash`
-- `POST /varro/session-trash/:rootID/restore`
-- `DELETE /varro/session-trash/:rootID/delete`
-- `DELETE /varro/session-trash`
+- `GET /loomery/provider-limit`
+- `POST /loomery/plan/open`
+- `GET /loomery/opencode-config`
+- `POST /loomery/opencode-config/model-routing`
+- `GET /loomery/workspace-file`
+- `GET /loomery/workspace-file/pick`
+- `GET /loomery/workspace-path/resolve`
+- `POST /loomery/permission/judge`
+- `GET /loomery/permission/judge/model`
+- `GET /loomery/session/:sessionID/diff-summary`
+- `POST /loomery/session/:sessionID/pin`
+- `POST /loomery/session/:sessionID/rename-if-untitled`
+- `DELETE /loomery/session/:sessionID/delete`
+- `GET /loomery/session-trash`
+- `POST /loomery/session-trash/:rootID/restore`
+- `DELETE /loomery/session-trash/:rootID/delete`
+- `DELETE /loomery/session-trash`
 
 Those paths share the same `api/request` bridge as OpenCode REST calls, but the extension host resolves them locally instead of forwarding them to OpenCode.
 
-Commit-message generation is invoked by a VS Code command. Usage reports, opening a session in the OpenCode TUI, and read-only tool-output documents use dedicated bridge messages rather than `/varro/*` routes.
+Commit-message generation is invoked by a VS Code command. Usage reports, opening a session in the OpenCode TUI, and read-only tool-output documents use dedicated bridge messages rather than `/loomery/*` routes.
 
-This is also the architecture boundary: the extension host acts as transport plus local `/varro/*` services, while the webview computes higher-level UI state from raw `server/event` traffic and follow-up `/varro/*` reads when needed.
+This is also the architecture boundary: the extension host acts as transport plus local `/loomery/*` services, while the webview computes higher-level UI state from raw `server/event` traffic and follow-up `/loomery/*` reads when needed.
 
-Drag and drop also has a fallback path for environments that do not expose local file paths. In that case, the webview sends file bytes and the extension writes them to a temporary `varro-drops` directory before attaching them as context.
+Drag and drop also has a fallback path for environments that do not expose local file paths. In that case, the webview sends file bytes and the extension writes them to a temporary `loomery-drops` directory before attaching them as context.
 
 ### `commands.ts`
 
 `src/extension/commands.ts` registers the VS Code command surface.
 
-- Focus the Varro view and composer
+- Focus the Loomery view and composer
 - Handle status-bar navigation to sessions that need attention
 - Start a new session
 - Search, move to the previous session, or move to the next session
@@ -293,7 +295,7 @@ Drag and drop also has a fallback path for environments that do not expose local
 - Generate a commit message from staged changes
 - Add Explorer files, editor selections, or terminal selections to context
 
-The selection-oriented `varro.chat.explainSelection`, `varro.chat.reviewSelection`, and `varro.chat.improveSelection` handlers are registered for programmatic use but are not contributed to the Command Palette or editor menus.
+The selection-oriented `loomery.chat.explainSelection`, `loomery.chat.reviewSelection`, and `loomery.chat.improveSelection` handlers are registered for programmatic use but are not contributed to the Command Palette or editor menus.
 
 ## Webview Responsibilities
 
@@ -329,7 +331,7 @@ Permission handling is governed by the lifecycle, inheritance, timeout, and visi
 
 - `src/shared/protocol.ts` defines extension-to-webview and webview-to-extension messages.
 - `src/webview/lib/bridge.ts` wraps `postMessage` and API request/response correlation.
-- `src/webview/lib/client.ts` exposes typed helpers for OpenCode endpoints such as `/session`, `/agent`, `/config/providers`, `/provider`, `/provider/auth`, provider OAuth, `/auth/:providerID`, `/question`, `/mcp`, and Varro pseudo-endpoints.
+- `src/webview/lib/client.ts` exposes typed helpers for OpenCode endpoints such as `/session`, `/agent`, `/config/providers`, `/provider`, `/provider/auth`, provider OAuth, `/auth/:providerID`, `/question`, `/mcp`, and Loomery pseudo-endpoints.
 
 Provider credentials are submitted from the webview directly through the existing `api/request` proxy to OpenCode. `ProviderConnectionDialog` supports API-key and OAuth methods advertised by OpenCode, while `ProviderDisconnectionDialog` removes saved credentials. Terminal login and logout remain fallback paths. On a successful embedded authentication change, the webview sends `providers/auth-changed` so `ProviderFileRefreshController` can coalesce the auth-file event and restart a managed server after sustained idle. The process restart is required for providers such as Amazon Bedrock that copy saved credentials into process environment state. Configuration-only changes continue to use deferred instance invalidation.
 
@@ -346,7 +348,7 @@ When sending a prompt, the webview builds message parts in roughly this order:
 
 1. User text
 2. `[Working directory: ...]`
-3. Active file or active selection reference, when current-document context is enabled for the session
+3. Active selection reference, when current-document context is enabled for the session
 4. Terminal selection block
 5. Explicitly attached diagnostics
 6. Explicit files and folders, clipboard images, and native PDFs in their attachment order, subject to model capabilities; unsupported path-backed PDFs use text references
@@ -369,7 +371,7 @@ Session message history is paged in 200-message windows. Opening a session loads
 
 ## Provider Limits
 
-Varro exposes `/varro/provider-limit` under the `/varro/*` extension-host API namespace.
+Loomery exposes `/loomery/provider-limit` under the `/loomery/*` extension-host API namespace.
 
 The implementation in `src/extension/provider-limit-service.ts` and `src/extension/provider-limits/` tries these sources in order:
 
@@ -383,7 +385,7 @@ Adapters may read OpenCode and provider-specific local credentials, inspect loca
 
 ## MCP And Plan Flows
 
-Varro can manage MCP connectivity per session.
+Loomery can manage MCP connectivity per session.
 
 - The webview loads MCP status from OpenCode on startup.
 - The MCP picker stores the desired MCP set per session.
@@ -414,7 +416,7 @@ The browser preview serves source through Vite, but the built webview has `sourc
 
 ## Connect To An Existing OpenCode Server
 
-By default, Varro selects and remembers an automatic loopback port. You can connect to an already running server instead.
+By default, Loomery selects and remembers an automatic loopback port. You can connect to an already running server instead.
 
 Start OpenCode manually:
 
@@ -424,11 +426,11 @@ opencode serve --port 4096
 
 Then configure these VS Code settings as needed:
 
-- `varro.server.port` (set an integer from 1 through 65535 for a manually managed endpoint; the default is `"auto"`)
-- `varro.server.autoStart`
-- `varro.server.command`
+- `loomery.server.port` (set an integer from 1 through 65535 for a manually managed endpoint; the default is `"auto"`)
+- `loomery.server.autoStart`
+- `loomery.server.command`
 
-Varro checks `http://127.0.0.1:<port>/global/health` to verify the server.
+Loomery checks `http://127.0.0.1:<port>/global/health` to verify the server.
 
 Automatic launches use random ports in the dynamic range with bounded collision retries. An explicit port never changes after a collision. The existing default lease remains the coordination key for automatic mode so legacy windows and rollback can discover its recorded actual port. See [server ownership](server-ownership.md) for migration and admission checks.
 

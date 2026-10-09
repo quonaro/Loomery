@@ -81,7 +81,7 @@ export async function recordSessionPause(sessionId: string): Promise<void> {
   const message = messages.at(-1);
   if (!message) return;
   const metadata = asRecord(session.metadata) ?? {};
-  const varro = asRecord(metadata.varro) ?? {};
+  const loomery = asRecord(metadata.loomery) ?? {};
   const pauses = readSessionPauses(session.metadata);
   if (pauses.some((pause) => pause.messageId === message.info.id)) return;
   const updated = await client.session.update(
@@ -89,8 +89,8 @@ export async function recordSessionPause(sessionId: string): Promise<void> {
     {
       metadata: {
         ...metadata,
-        varro: {
-          ...varro,
+        loomery: {
+          ...loomery,
           pauses: [...pauses, { messageId: message.info.id, pausedAt }],
         },
       },

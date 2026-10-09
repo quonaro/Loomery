@@ -1,10 +1,10 @@
 import { availableParallelism } from 'node:os';
 import { defineConfig, devices } from '@playwright/test';
 
-const playback = process.env.VARRO_E2E_MODE === 'playback';
-const raster = process.env.VARRO_E2E_MODE === 'raster';
-const diagnostics = process.env.VARRO_E2E_MODE === 'diagnostics';
-const port = process.env.VARRO_E2E_PORT ?? '4174';
+const playback = process.env.LOOMERY_E2E_MODE === 'playback';
+const raster = process.env.LOOMERY_E2E_MODE === 'raster';
+const diagnostics = process.env.LOOMERY_E2E_MODE === 'diagnostics';
+const port = process.env.LOOMERY_E2E_PORT ?? '4174';
 const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({

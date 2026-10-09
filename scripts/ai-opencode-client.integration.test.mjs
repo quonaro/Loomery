@@ -13,7 +13,7 @@ import { requireIsolatedTestServer } from './ai-test-isolation.mjs';
 import { CdpController, sessionSnapshotMatches } from './ai-fuzzy-live.mjs';
 import { cleanupOwnedHost } from './ai-streaming.mjs';
 
-const binary = process.env.VARRO_OPENCODE_TEST_BINARY;
+const binary = process.env.LOOMERY_OPENCODE_TEST_BINARY;
 test(
   'AI controller lifecycle against an isolated released backend',
   { skip: !binary, timeout: 90000 },
@@ -163,7 +163,7 @@ test(
         JSON.stringify(messages)
       );
       assert.ok(generationCount > 0);
-      if (process.env.VARRO_AI_TEST_EDITOR === '1') {
+      if (process.env.LOOMERY_AI_TEST_EDITOR === '1') {
         const { stdout } = await promisify(execFile)(
           process.execPath,
           ['scripts/launch-ai-vscode.mjs'],
@@ -171,9 +171,9 @@ test(
             cwd: path.resolve('.'),
             env: {
               ...process.env,
-              VARRO_AI_SERVER_URL: url,
-              VARRO_AI_WORKSPACE: workspace,
-              VARRO_AI_DATA_DIR: path.join(root, 'data/opencode'),
+              LOOMERY_AI_SERVER_URL: url,
+              LOOMERY_AI_WORKSPACE: workspace,
+              LOOMERY_AI_DATA_DIR: path.join(root, 'data/opencode'),
             },
             timeout: 60000,
           }

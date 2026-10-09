@@ -338,6 +338,6 @@ test('shipped AI07 controller installs telemetry before prompting and records ex
   assert.match(controller, /scenarioVerification: 'NEEDS_AI_REVIEW'/);
   assert.match(
     controller,
-    /activityObservation = await cdp.evaluate\('globalThis.varroAiStreamingObserver.stop\(\)'\)/
+    /activityObservation = await cdp.evaluate\('globalThis.loomeryAiStreamingObserver.stop\(\)'\)/
   );
 });

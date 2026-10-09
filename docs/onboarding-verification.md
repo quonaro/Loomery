@@ -11,7 +11,7 @@ Run the complete disposable Extension Host matrix:
 npm run test:vscode-sandbox
 ```
 
-The runner builds Varro, launches each scenario in a separate VS Code window with isolated user
+The runner builds Loomery, launches each scenario in a separate VS Code window with isolated user
 data, extensions, workspace settings, and global state, and removes the sandbox afterward. It uses
 a fake OpenCode CLI/server and does not modify or stop the user's installed OpenCode CLI. On macOS,
 the disposable instances launch hidden in the background so they do not steal keyboard focus.
@@ -24,9 +24,9 @@ npm run test:vscode-sandbox -- startup-process-exit explicit-port-conflict
 node scripts/vscode-sandbox/run.mjs --list
 ```
 
-Set `VARRO_VSCODE_EXECUTABLE` to select another VS Code-compatible application binary. This must
+Set `LOOMERY_VSCODE_EXECUTABLE` to select another VS Code-compatible application binary. This must
 be the GUI test executable (`Code`, `Code.exe`, or the Linux `code` binary), not the `code` command
-management shim on macOS. Set `VARRO_KEEP_VSCODE_SANDBOX=1` to retain generated profiles for
+management shim on macOS. Set `LOOMERY_KEEP_VSCODE_SANDBOX=1` to retain generated profiles for
 inspection.
 
 The Extension Host matrix covers:
@@ -34,7 +34,7 @@ The Extension Host matrix covers:
 | Scenario | Simulated condition | Expected outcome |
 | --- | --- | --- |
 | `clean-install-missing-cli` | Empty profile, isolated home/PATH, and deterministic missing-CLI simulation | First reveal starts onboarding and reports install guidance |
-| `invalid-cli-path` | `varro.server.command` points to a missing file | Reports the configured path instead of generic install guidance |
+| `invalid-cli-path` | `loomery.server.command` points to a missing file | Reports the configured path instead of generic install guidance |
 | `auto-start-disabled` | No server and automatic startup disabled | Reports the manual `opencode serve` recovery path |
 | `version-command-failure` | `opencode --version` exits with an error | Continues startup and reports the diagnostic in About |
 | `malformed-cli-version` | `opencode --version` returns no parseable version | Uses the healthy server while reporting that the CLI version is unavailable |
@@ -47,7 +47,7 @@ The Extension Host matrix covers:
 | `required-update-no-change` | Updater exits successfully but leaves the old CLI in place | Rejects the false success and explains that an older CLI may be shadowing the update |
 | `healthy-first-run` | Compatible CLI and server | Starts, passes health, and connects the event stream |
 
-The assertions use the `Varro: About` diagnostics from the real extension host. Webview DOM and
+The assertions use the `Loomery: About` diagnostics from the real extension host. Webview DOM and
 action assertions remain in Playwright because VS Code's stable extension API does not expose a
 webview's DOM to Extension Host tests.
 
@@ -85,14 +85,14 @@ Verify native Windows and VS Code WSL separately. They are different extension h
 share an assumed CLI installation.
 
 1. Open a normal local folder in VS Code on Windows. Download the standalone v2 CLI from the
-   [install page](https://opencode.ai/v2/docs/) and set its path in `varro.server.command`, open
-   Varro, and run `Varro: About`. Confirm `Platform` is `win32`, the resolved binary is a Windows path,
+   [install page](https://opencode.ai/v2/docs/) and set its path in `loomery.server.command`, open
+   Loomery, and run `Loomery: About`. Confirm `Platform` is `win32`, the resolved binary is a Windows path,
    and OpenCode data appears under `%USERPROFILE%\.local\share\opencode`.
-2. Open a folder in a VS Code WSL window. Install OpenCode inside that distribution, open Varro,
-   and run `Varro: About`. Confirm `Platform` is `linux`, the resolved binary is a Linux path, and data
+2. Open a folder in a VS Code WSL window. Install OpenCode inside that distribution, open Loomery,
+   and run `Loomery: About`. Confirm `Platform` is `linux`, the resolved binary is a Linux path, and data
    appears under `~/.local/share/opencode` in the distribution.
 3. Confirm a Windows-only CLI does not satisfy the WSL host and a WSL-only CLI does not satisfy the
-   native host. `varro.server.command` must also name a path that exists on the active extension host.
+   native host. `loomery.server.command` must also name a path that exists on the active extension host.
 
 Verify both supported CLI families. V2 is the recommended first-run choice; the missing-CLI screen
 also offers v1. Confirm that each install action uses its own package and that update recovery keeps
@@ -100,13 +100,13 @@ the installed family. For v1 Windows setup, see the [v1 Windows guide](https://o
 
 ## Native Windows Checks
 
-- Leave `varro.server.autoUpdate` enabled with an older compatible CLI. Confirm Varro prompts instead
+- Leave `loomery.server.autoUpdate` enabled with an older compatible CLI. Confirm Loomery prompts instead
   of replacing the CLI in the background.
-- Exercise the terminal update fallback with a Varro-managed server. Confirm Varro waits for active
+- Exercise the terminal update fallback with a Loomery-managed server. Confirm Loomery waits for active
   work, stops the managed server, then opens the update terminal. Keep that terminal open and confirm
-  Varro does not restart the managed server until the terminal closes, so `opencode.exe` stays
+  Loomery does not restart the managed server until the terminal closes, so `opencode.exe` stays
   unlocked.
-- Connect to a server that Varro does not own and try to update. Confirm Varro asks you to stop that
+- Connect to a server that Loomery does not own and try to update. Confirm Loomery asks you to stop that
   server instead of attempting to replace its locked executable.
 - With an empty Git index, generate a commit message from a tracked unstaged change plus an untracked
   file. Confirm the tracked diff is present in the helper evidence while the untracked path is marked
@@ -120,7 +120,7 @@ npm run test -- src/extension/provider-limits/adapters/antigravity.discovery.tes
 
 ## Manual Checks
 
-Use the `Varro: Extension Development Host` launch configuration for exploratory testing. For a
+Use the `Loomery: Extension Development Host` launch configuration for exploratory testing. For a
 true first install, prefer the sandbox runner because reinstalling into a normal VS Code profile
 preserves extension global state.
 
@@ -131,8 +131,8 @@ Before release, manually inspect situations that are not deterministic on every 
 - Proxy, TLS interception, DNS failure, offline mode, and authentication expiry.
 - Read-only home/config directories, executable permission errors, and full disks.
 - Sleep/wake, network changes, server crashes, and multiple VS Code windows sharing a configured port.
-- Closing a native Windows update terminal, which allows Varro to use the CLI again after the file lock is released.
-- OpenCode versions newer than Varro's tested version and malformed version output.
+- Closing a native Windows update terminal, which allows Loomery to use the CLI again after the file lock is released.
+- OpenCode versions newer than Loomery's tested version and malformed version output.
 - No providers, provider API failure, provider login cancellation, and invalid provider credentials.
 - Embedded API-key and OAuth connection, code-based and automatic OAuth completion, provider disconnection, terminal fallbacks, and provider-catalog load failure.
 - Expired or revoked provider credentials, targeted reauthentication from both a failed response and the Models view, and authentication-only refresh while another agent is running.

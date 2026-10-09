@@ -60,7 +60,7 @@ vi.mock('../../lib/client', () => ({
       create: clientMocks.create,
       sendAsync: clientMocks.sendAsync,
     },
-    varro: {
+    loomery: {
       pickWorkspaceFile: clientMocks.pickWorkspaceFile,
       readWorkspaceFile: clientMocks.readWorkspaceFile,
     },

@@ -22,7 +22,7 @@ export type PlaybackFixture = {
 };
 
 type HarnessWindow = typeof window & {
-  __varroE2E: {
+  __loomeryE2E: {
     getSessionMessages: (id: string) => MessageEntry[];
     replayServerEvent: (event: ServerEvent, projectedMessage?: MessageEntry) => void;
   };
@@ -64,9 +64,9 @@ export async function verifySessionPlayback(page: Page, playback: PlaybackFixtur
       // SAFETY: The harness owns this injected fixture slot and validates it before startup.
       (
         window as typeof window & {
-          varroPlaybackCapture: typeof fixture;
+          loomeryPlaybackCapture: typeof fixture;
         }
-      ).varroPlaybackCapture = fixture;
+      ).loomeryPlaybackCapture = fixture;
     },
     { session: capture.session, initialMessages: capture.initialMessages }
   );
@@ -169,7 +169,7 @@ export async function verifySessionPlayback(page: Page, playback: PlaybackFixtur
       };
       requestAnimationFrame(sample);
       // SAFETY: This page is the controlled harness, which installs the typed test API before rows mount.
-      const harness = (window as HarnessWindow).__varroE2E;
+      const harness = (window as HarnessWindow).__loomeryE2E;
       for (const entry of replayTimeline) {
         if (entry.delayMs > 0) {
           await new Promise((resolve) => setTimeout(resolve, entry.delayMs));

@@ -1010,7 +1010,7 @@ export function registerSessionEventHandlers(deps: EventHandlerDependencies) {
       if (!allowLatestFallback) return null;
     }
     // OpenCode's v2 `assistantMessageID` is not the legacy assistant message id
-    // rendered in Varro. For terminal step events, fall back to the latest active
+    // rendered in Loomery. For terminal step events, fall back to the latest active
     // legacy assistant in the same session so completion does not wait for polls.
     return findLatestStepAssistantMessage(sessionId);
   };
@@ -1718,7 +1718,7 @@ export function registerSessionEventHandlers(deps: EventHandlerDependencies) {
         } else {
           // Synchronized events arrive in durable order, so a contiguous seq means we have
           // not missed anything. Events that create transcript records still need a fetch
-          // because Varro does not project those record types directly.
+          // because Loomery does not project those record types directly.
           // V2 creates a separate assistant message for each step. A contiguous event
           // sequence still needs a fetch when that new message is not loaded yet.
           const transcriptSync =

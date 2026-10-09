@@ -82,7 +82,7 @@ describe(
     });
 
     it('returns null for an unsupported schema', async () => {
-      const directory = mkdtempSync(join(tmpdir(), 'varro-session-summary-'));
+      const directory = mkdtempSync(join(tmpdir(), 'loomery-session-summary-'));
       temporaryDirectories.push(directory);
       const databasePath = join(directory, 'opencode.db');
       const database = new DatabaseSync(databasePath);
@@ -206,7 +206,7 @@ describe(
           .prepare('INSERT INTO session_v2 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
           .run('root', null, 0, 0, 0, 0, 0, null, null);
         database.exec('ALTER TABLE session_v2 ADD COLUMN metadata TEXT');
-        const metadata = { varro: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } };
+        const metadata = { loomery: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } };
         database.prepare('UPDATE session_v2 SET metadata = ?').run(JSON.stringify(metadata));
         const insert = database.prepare('INSERT INTO session_message VALUES (?, ?, ?, ?, ?)');
         insert.run(
@@ -231,7 +231,7 @@ describe(
             ? metadata
             : pausedAt === null
               ? {}
-              : { varro: { pauses: [{ messageId: 'paused', pausedAt }] } };
+              : { loomery: { pauses: [{ messageId: 'paused', pausedAt }] } };
         if (pausedAt !== undefined)
           await annotations.update('root', { metadata: expectedMetadata });
         else await annotations.update('root', { parentID: 'unrelated-annotation' });
@@ -268,7 +268,7 @@ describe(
     });
 
     it('logs the missing database path', async () => {
-      const directory = mkdtempSync(join(tmpdir(), 'varro-session-summary-'));
+      const directory = mkdtempSync(join(tmpdir(), 'loomery-session-summary-'));
       temporaryDirectories.push(directory);
       const databasePath = join(directory, 'missing.db');
       await expect(readLocalSessionSummary('root', databasePath)).resolves.toBeNull();
@@ -378,7 +378,7 @@ describe(
 );
 
 function createDatabase(): string {
-  const directory = mkdtempSync(join(tmpdir(), 'varro-session-summary-'));
+  const directory = mkdtempSync(join(tmpdir(), 'loomery-session-summary-'));
   temporaryDirectories.push(directory);
   const databasePath = join(directory, 'opencode.db');
   const database = new DatabaseSync(databasePath);

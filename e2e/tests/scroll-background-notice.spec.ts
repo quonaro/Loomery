@@ -16,9 +16,9 @@ for (const width of [486, 900]) {
       // SAFETY: The isolated fixture exposes the canonical event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+          __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       harness.replayServerEvent({
         type: 'message.part.updated',
         properties: {
@@ -51,12 +51,12 @@ for (const width of [486, 900]) {
       // SAFETY: The isolated fixture exposes the canonical store and event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             replayServerEvent: (event: ServerEvent) => void;
             getSessionMessages: (id: string) => MessageEntry[];
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const sessionID = 'session-rapid-streaming-jitter';
       const messages = harness.getSessionMessages(sessionID);
       const user = messages.find((m) => m.info.id === 'message-rapid-user-streaming')!.info;

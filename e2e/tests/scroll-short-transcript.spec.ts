@@ -12,7 +12,7 @@ for (const width of [480, 1280]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated E2E harness reads this fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       {
@@ -33,7 +33,7 @@ for (const width of [480, 1280]) {
       // SAFETY: Acknowledge the native send through the isolated transport without completing it.
       const harness = window as {
         __sendToExtension?: (message: WebviewMessage) => void | Promise<void>;
-        __varroE2E?: { replayServerEvent(event: ServerEvent): void };
+        __loomeryE2E?: { replayServerEvent(event: ServerEvent): void };
       };
       const send = harness.__sendToExtension;
       harness.__sendToExtension = (message) => {
@@ -46,7 +46,7 @@ for (const width of [480, 1280]) {
             parts: MessageEntry['parts'];
           };
           const sessionID = 'first-send-stream';
-          harness.__varroE2E!.replayServerEvent({
+          harness.__loomeryE2E!.replayServerEvent({
             type: 'message.updated',
             properties: {
               info: {
@@ -60,14 +60,14 @@ for (const width of [480, 1280]) {
             },
           });
           for (const [index, part] of body.parts.entries()) {
-            harness.__varroE2E!.replayServerEvent({
+            harness.__loomeryE2E!.replayServerEvent({
               type: 'message.part.updated',
               properties: {
                 part: { ...part, id: `prompt-${index}`, messageID: body.messageID, sessionID },
               },
             });
           }
-          harness.__varroE2E!.replayServerEvent({
+          harness.__loomeryE2E!.replayServerEvent({
             type: 'session.status',
             properties: { sessionID, status: { type: 'busy' } },
           });
@@ -88,8 +88,8 @@ for (const width of [480, 1280]) {
     const samples = await list.evaluate(async (element) => {
       // SAFETY: This replay transport and canonical store belong to the isolated E2E fixture.
       const harness = (
-        window as typeof window & { __varroE2E: { replayServerEvent(event: ServerEvent): void } }
-      ).__varroE2E;
+        window as typeof window & { __loomeryE2E: { replayServerEvent(event: ServerEvent): void } }
+      ).__loomeryE2E;
       const sessionID = 'first-send-stream';
       const marker = element.querySelector<HTMLElement>('.user-message-card')!;
       const userID = marker.closest<HTMLElement>('[data-msg-id]')!.dataset.msgId!;
@@ -299,7 +299,7 @@ for (const width of [480, 1280]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated E2E harness reads this fixture before mounting.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       {
@@ -321,8 +321,8 @@ for (const width of [480, 1280]) {
         const startedAt = Date.now();
         // SAFETY: This transport belongs to the isolated E2E fixture.
         const harness = (
-          window as Window & { __varroE2E?: { replayServerEvent(event: ServerEvent): void } }
-        ).__varroE2E!;
+          window as Window & { __loomeryE2E?: { replayServerEvent(event: ServerEvent): void } }
+        ).__loomeryE2E!;
         const list = document.querySelector<HTMLElement>('.interactive-list')!;
         const marker = list.querySelector('.user-message-card')!;
         harness.replayServerEvent({

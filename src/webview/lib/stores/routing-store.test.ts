@@ -167,7 +167,7 @@ describe('routingStore', () => {
     expect(routingStore.isModelVisible(provider.id, 'model-2')).toBe(false);
     expect(routingStore.isModelVisible(provider.id, 'model-3')).toBe(true);
     expect(state.removedModels).toEqual(['provider-1:model-1']);
-    expect(JSON.parse(window.localStorage.getItem('varro.removedModels')!)).toEqual(
+    expect(JSON.parse(window.localStorage.getItem('loomery.removedModels')!)).toEqual(
       state.removedModels
     );
     routingStore.setModelsAdded(provider.id, ['model-2', 'model-3']);
@@ -218,7 +218,7 @@ describe('routingStore', () => {
     routingStore.setProviders([connected], {}, ['provider-1']);
 
     expect(state.hiddenModels).toEqual(['provider-1:existing', 'provider-1:model-1']);
-    expect(JSON.parse(window.localStorage.getItem('varro.hiddenModels') ?? 'null')).toEqual(
+    expect(JSON.parse(window.localStorage.getItem('loomery.hiddenModels') ?? 'null')).toEqual(
       state.hiddenModels
     );
   });

@@ -8,7 +8,7 @@ import { defineConfig, type Plugin } from 'vite';
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const webviewAssetVersionPlugin: Plugin = {
-  name: 'varro-webview-asset-version',
+  name: 'loomery-webview-asset-version',
   generateBundle(_options, bundle) {
     const hash = createHash('sha256');
     for (const fileName of Object.keys(bundle).toSorted()) {

@@ -27,12 +27,12 @@ for (const { width, toolCount } of [
         // SAFETY: The isolated browser fixture installs this event transport and canonical mock store.
         const harness = (
           window as typeof window & {
-            __varroE2E: {
+            __loomeryE2E: {
               replayServerEvent: (event: ServerEvent) => void;
               getSessionMessages: (id: string) => MessageEntry[];
             };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const list = document.querySelector<HTMLElement>('.interactive-list')!;
         const marker = document.querySelector<HTMLElement>(
           `[data-msg-id="${messageID}"] .rendered-markdown p`
@@ -240,12 +240,12 @@ test('alternates a long-running tool with queued tools in one-second previews', 
       // SAFETY: This isolated fixture exposes its event transport and canonical session snapshots.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             replayServerEvent: (event: ServerEvent) => void;
             getSessionMessages: (id: string) => MessageEntry[];
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const startedAt = Date.now();
       for (const id of ['long', 'two', 'three']) {
         const part: ToolPart = {
@@ -322,9 +322,9 @@ test('keeps a single Explored summary across hidden tools, rotation, and complet
       // SAFETY: This isolated fixture exposes its typed event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+          __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const startedAt = Date.now();
       const tools = ['before', 'long', 'next', 'after'].map((id): ToolPart => ({
         id: `single-group-${id}`,
@@ -420,9 +420,9 @@ for (const status of ['running', 'completed'] as const) {
         // SAFETY: The isolated fixture exposes its typed event transport.
         const harness = (
           window as typeof window & {
-            __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+            __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const now = Date.now();
         for (const id of ['first', 'next']) {
           const part: ToolPart = {

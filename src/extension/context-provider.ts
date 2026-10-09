@@ -31,7 +31,7 @@ export type WorkspaceResolutionOptions = {
 };
 
 export class ContextProvider implements vscode.Disposable {
-  private static readonly SELECTED_WORKSPACE_KEY = 'varro.selectedWorkspaceFolder';
+  private static readonly SELECTED_WORKSPACE_KEY = 'loomery.selectedWorkspaceFolder';
   private static readonly MAX_SELECTION_CHARACTERS = 32 * 1024;
   private static readonly MAX_DIRTY_BUFFER_CHARACTERS = 16 * 1024;
   private static readonly MAX_DIRTY_BUFFER_LINES = 300;
@@ -42,7 +42,7 @@ export class ContextProvider implements vscode.Disposable {
   private static readonly ACTIVE_EDITOR_SETTLE_DELAY_MS = 60;
   private static readonly RECENT_TERMINAL_TEXT_CHARACTERS = 256 * 1024;
   private static readonly RECENT_TERMINAL_COMMANDS = 50;
-  private static readonly TERMINAL_HISTORY_KEY = 'varro.recentTerminalOutput';
+  private static readonly TERMINAL_HISTORY_KEY = 'loomery.recentTerminalOutput';
   private static readonly SAVED_TERMINAL_TEXT_CHARACTERS = 64 * 1024;
   private static readonly SAVED_TERMINALS = 10;
   private static readonly TERMINAL_HISTORY_SAVE_DELAY_MS = 1000;
@@ -363,7 +363,7 @@ export class ContextProvider implements vscode.Disposable {
     // Prime the clipboard with a value the terminal cannot produce. Comparing
     // against the *previous* clipboard instead would report "empty selection"
     // whenever the selected text already happened to be on the clipboard.
-    const sentinel = `varro-terminal-selection-${randomUUID()}`;
+    const sentinel = `loomery-terminal-selection-${randomUUID()}`;
     let selectionText = '';
     let capturedSelection = false;
     let restoreCompleted = false;

@@ -6,17 +6,17 @@ test('About copies diagnostics without local paths and waits for export acknowle
 }) => {
   const html = renderAboutHtml(
     {
-      name: 'Varro',
+      name: 'Loomery',
       description: 'OpenCode workbench',
       logoUri: '',
-      varroVersion: '0.28.9',
+      loomeryVersion: '0.28.9',
       cliVersion: '1.18.4',
       installMethod: 'bun',
       installedOn: 'Oct 1, 2026, 9:45:12 AM',
       binary: '/Users/alex/opencode',
       serverVersion: '1.18.4',
       serverUrl: 'http://localhost:4096',
-      ownership: 'Managed by Varro',
+      ownership: 'Managed by Loomery',
       serverStatus: 'Running',
       healthy: true,
       activeAgents: '0',

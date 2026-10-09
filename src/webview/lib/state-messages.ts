@@ -1050,7 +1050,7 @@ function areMatchingImageFileParts(left: Part, right: Part) {
   return (
     left.url === right.url ||
     (Boolean(left.filename) &&
-      (left.url.startsWith('varro-content:') || right.url.startsWith('varro-content:')))
+      (left.url.startsWith('loomery-content:') || right.url.startsWith('loomery-content:')))
   );
 }
 

@@ -64,7 +64,7 @@ describe('Tooltip', () => {
       );
 
       expect(
-        addEventListener.mock.calls.filter(([type]) => type === 'varro:composer-overlay-dismiss')
+        addEventListener.mock.calls.filter(([type]) => type === 'loomery:composer-overlay-dismiss')
       ).toHaveLength(0);
     } finally {
       addEventListener.mockRestore();

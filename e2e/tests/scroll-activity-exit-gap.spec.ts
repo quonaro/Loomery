@@ -95,7 +95,7 @@ for (const virtualized of [false, true]) {
     await page.addInitScript(
       (fixture) => {
         // SAFETY: The isolated harness reads its fixture before mounting the application.
-        (window as typeof window & { varroPlaybackCapture: typeof fixture }).varroPlaybackCapture =
+        (window as typeof window & { loomeryPlaybackCapture: typeof fixture }).loomeryPlaybackCapture =
           fixture;
       },
       { session, initialMessages: initial }
@@ -118,9 +118,9 @@ for (const virtualized of [false, true]) {
         // SAFETY: This controlled page exposes only the mock replay transport.
         const harness = (
           window as typeof window & {
-            __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+            __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         harness.replayServerEvent({
           type: 'message.updated',
           properties: {
@@ -148,9 +148,9 @@ for (const virtualized of [false, true]) {
       // SAFETY: The isolated fixture owns these message accessors and transcript nodes.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+          __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const list = element.closest<HTMLElement>('.interactive-list')!;
       const marker = [...element.querySelectorAll<HTMLElement>('.rendered-markdown p')].at(-1)!;
       const result: Array<{

@@ -154,7 +154,7 @@ describe('FileSearchService', () => {
   });
 
   it('searches tracked and new project files without ignored artifacts, including nested Git rules', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'varro-file-search-'));
+    const root = await mkdtemp(join(tmpdir(), 'loomery-file-search-'));
     const { execFile } = await vi.importActual<typeof ChildProcess>('child_process');
     gitMock.execFile.mockImplementation(execFile);
     const { FileSearchService } = await loadModule();
@@ -777,8 +777,8 @@ describe('FileSearchService', () => {
   });
 
   it('searches only scratch in an empty window and stops authorizing it when a project opens', async () => {
-    const { getVarroStateDirectory } = await import('./varro-state-paths');
-    const scratch = getVarroStateDirectory('scratch');
+    const { getLoomeryStateDirectory } = await import('./loomery-state-paths');
+    const scratch = getLoomeryStateDirectory('scratch');
     vscodeMock.workspace.workspaceFolders = [];
     vscodeMock.workspace.getWorkspaceFolder.mockReturnValue(undefined);
     vscodeMock.workspace.findFiles.mockResolvedValue([{ fsPath: `${scratch}/notes/todo.txt` }]);

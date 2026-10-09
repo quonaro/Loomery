@@ -1,8 +1,8 @@
-# Use Varro with Docker Sandboxes
+# Use Loomery with Docker Sandboxes
 
-Run Varro and OpenCode inside a Docker Sandbox while using VS Code on your desktop. VS Code connects through Remote SSH, and Varro starts the OpenCode server inside the sandbox automatically. The main walkthrough uses the template's bundled OpenCode, currently V1. See [Use V2 instead](#use-v2-instead) for the optional V2 setup.
+Run Loomery and OpenCode inside a Docker Sandbox while using VS Code on your desktop. VS Code connects through Remote SSH, and Loomery starts the OpenCode server inside the sandbox automatically. The main walkthrough uses the template's bundled OpenCode, currently V1. See [Use V2 instead](#use-v2-instead) for the optional V2 setup.
 
-This is a suggested setup based on Docker's documented SSH support and Varro's remote-workspace support. It has not yet been verified end to end with Docker Sandboxes.
+This is a suggested setup based on Docker's documented SSH support and Loomery's remote-workspace support. It has not yet been verified end to end with Docker Sandboxes.
 
 ## Before you start
 
@@ -82,15 +82,15 @@ Docker documents that mounted workspaces appear at their original absolute paths
 
 Confirm that VS Code's remote indicator shows `my-app-dev.sbx` and the Explorer contains your project. The initial remote folder may be `/home/agent`; select the project explicitly.
 
-## 4. Install Varro in the remote window
+## 4. Install Loomery in the remote window
 
 In that VS Code window:
 
 1. Open Extensions.
-2. Find **Varro: OpenCode Workbench**.
+2. Find **Loomery: OpenCode Workbench**.
 3. Install it in **SSH: my-app-dev.sbx**. If it is already installed locally, use the remote installation action.
 
-Varro must run in the sandbox's extension host. Installing it only in the local VS Code environment is not enough.
+Loomery must run in the sandbox's extension host. Installing it only in the local VS Code environment is not enough.
 
 ## 5. Check OpenCode inside the sandbox
 
@@ -101,31 +101,31 @@ pwd
 opencode --version
 ```
 
-The directory should be your project. The template currently bundles V1, but its version can change. Check that it meets Varro's [supported version requirements](usage.md#choose-and-update-opencode). No separate OpenCode installation is needed when the bundled version is supported.
+The directory should be your project. The template currently bundles V1, but its version can change. Check that it meets Loomery's [supported version requirements](usage.md#choose-and-update-opencode). No separate OpenCode installation is needed when the bundled version is supported.
 
 Install your project's build tools and dependencies inside the sandbox too. The sandbox runs Linux, so host-installed native dependencies may not work there.
 
-## 6. Let Varro start the server
+## 6. Let Loomery start the server
 
-Keep Varro's normal server settings. If you previously changed them, run **Preferences: Open Remote Settings (JSON)** in the Command Palette and merge these settings into the existing file. Remove conflicting workspace overrides.
+Keep Loomery's normal server settings. If you previously changed them, run **Preferences: Open Remote Settings (JSON)** in the Command Palette and merge these settings into the existing file. Remove conflicting workspace overrides.
 
 ```json
 {
-  "varro.server.autoStart": true,
-  "varro.server.command": "",
-  "varro.server.port": 4096
+  "loomery.server.autoStart": true,
+  "loomery.server.command": "",
+  "loomery.server.port": 4096
 }
 ```
 
-Open Varro. When it first needs OpenCode, Varro should find the bundled CLI and start the server inside the sandbox. Confirm the connected version in Varro's status bar.
+Open Loomery. When it first needs OpenCode, Loomery should find the bundled CLI and start the server inside the sandbox. Confirm the connected version in Loomery's status bar.
 
-You do not need to run `opencode serve`, publish a Docker port, or create an SSH port forward for this setup. Varro and OpenCode share the sandbox's localhost network.
+You do not need to run `opencode serve`, publish a Docker port, or create an SSH port forward for this setup. Loomery and OpenCode share the sandbox's localhost network.
 
-If automatic CLI discovery fails or selects another installation, run `command -v opencode` in the remote terminal and put the resulting absolute path in `varro.server.command`. Finish active work and run **Varro: Restart Server** after changing the executable.
+If automatic CLI discovery fails or selects another installation, run `command -v opencode` in the remote terminal and put the resulting absolute path in `loomery.server.command`. Finish active work and run **Loomery: Restart Server** after changing the executable.
 
 ## 7. Connect a provider and send a first message
 
-Use Varro's provider connection flow to sign in or supply an API key, then choose an available model. Host OpenCode credentials and user-level configuration are not automatically available inside the sandbox.
+Use Loomery's provider connection flow to sign in or supply an API key, then choose an available model. Host OpenCode credentials and user-level configuration are not automatically available inside the sandbox.
 
 If you prefer Docker's provider-secret integration, configure it using the [Docker OpenCode guide](https://docs.docker.com/ai/sandboxes/agents/opencode/). For a first setup, choose one authentication method and complete it before testing chat.
 
@@ -136,7 +136,7 @@ Tell me the current working directory and summarize the top-level project files.
 Do not modify any files.
 ```
 
-Check that the response refers to the project you opened and that Varro shows a connected server. This confirms folder context and a working provider request.
+Check that the response refers to the project you opened and that Loomery shows a connected server. This confirms folder context and a working provider request.
 
 ## Daily use
 
@@ -162,7 +162,7 @@ sbx create --name workspace-dev opencode \
   /Users/alex/projects/shared-library
 ```
 
-Connect to `workspace-dev.sbx`, open the first folder, and use **File > Add Folder to Workspace...** for the second. Select the intended folder in Varro when creating a session. Varro sends that folder as OpenCode's session context.
+Connect to `workspace-dev.sbx`, open the first folder, and use **File > Add Folder to Workspace...** for the second. Select the intended folder in Loomery when creating a session. Loomery sends that folder as OpenCode's session context.
 
 ## Use V2 instead
 
@@ -178,19 +178,19 @@ printf '%s\n' "$HOME/.local/opencode-v2/bin/opencode"
 
 If Node.js or npm is unavailable, install a supported Node.js release inside the sandbox first. See the [OpenCode installation guide](usage.md#choose-and-update-opencode).
 
-The OpenCode version must start with `2.`. Run **Preferences: Open Remote Settings (JSON)** and set `varro.server.command` to the absolute path printed by the last command, normally:
+The OpenCode version must start with `2.`. Run **Preferences: Open Remote Settings (JSON)** and set `loomery.server.command` to the absolute path printed by the last command, normally:
 
 ```json
 {
-  "varro.server.autoStart": true,
-  "varro.server.command": "/home/agent/.local/opencode-v2/bin/opencode",
-  "varro.server.port": 4096
+  "loomery.server.autoStart": true,
+  "loomery.server.command": "/home/agent/.local/opencode-v2/bin/opencode",
+  "loomery.server.port": 4096
 }
 ```
 
-Bare `opencode` and `sbx run` may still select the bundled V1. The explicit executable path makes Varro use V2.
+Bare `opencode` and `sbx run` may still select the bundled V1. The explicit executable path makes Loomery use V2.
 
-Finish active work, run **Varro: Restart Server**, and confirm that the status bar shows OpenCode `2.x`. Installing V2 does not replace a running V1 server. If V1 remains connected, follow the [restart recovery steps](usage.md#if-restart-does-not-switch-to-v2). Selecting a different executable does not migrate session history; see [version differences and history](usage.md#version-differences-and-history).
+Finish active work, run **Loomery: Restart Server**, and confirm that the status bar shows OpenCode `2.x`. Installing V2 does not replace a running V1 server. If V1 remains connected, follow the [restart recovery steps](usage.md#if-restart-does-not-switch-to-v2). Selecting a different executable does not migrate session history; see [version differences and history](usage.md#version-differences-and-history).
 
 ## Troubleshooting
 
@@ -199,17 +199,17 @@ Finish active work, run **Varro: Restart Server**, and confirm that the status b
 | Sandbox is missing from the SSH picker | Enter `my-app-dev.sbx` manually. The wildcard SSH configuration does not list individual sandboxes. |
 | SSH cannot connect | Run `sbx ls`, then try `ssh my-app-dev.sbx` from the host terminal. Confirm Docker sign-in and rerun `sbx setup ssh` if needed. |
 | VS Code repeatedly reconnects on macOS | Set `"remote.SSH.useLocalServer": false` in local VS Code user settings, as recommended by Docker. |
-| Varro cannot find OpenCode | Check `opencode --version` and `command -v opencode` in the remote terminal and set the absolute executable path if needed. |
-| Varro shows V1 after installing V2 | Follow [Use V2 instead](#use-v2-instead) to set the explicit V2 executable path and restart the server. |
-| Varro opens the wrong project | Check the remote Explorer and selected session folder. Open the mounted project rather than `/home/agent`. |
+| Loomery cannot find OpenCode | Check `opencode --version` and `command -v opencode` in the remote terminal and set the absolute executable path if needed. |
+| Loomery shows V1 after installing V2 | Follow [Use V2 instead](#use-v2-instead) to set the explicit V2 executable path and restart the server. |
+| Loomery opens the wrong project | Check the remote Explorer and selected session folder. Open the mounted project rather than `/home/agent`. |
 | Provider or model is unavailable | Configure authentication inside the sandbox. Check sandbox network rules if provider requests fail. |
 | A build fails despite working on the host | Install the required Linux toolchain and dependencies inside the sandbox. |
 
-## Why this setup fits Varro
+## Why this setup fits Loomery
 
-VS Code runs the Varro extension inside the sandbox, alongside OpenCode. Varro can manage the server process, read its configuration, and pass the selected remote folder to its API. Your desktop displays the UI through VS Code's SSH connection.
+VS Code runs the Loomery extension inside the sandbox, alongside OpenCode. Loomery can manage the server process, read its configuration, and pass the selected remote folder to its API. Your desktop displays the UI through VS Code's SSH connection.
 
-Keeping Varro on the host and forwarding only the OpenCode server is a separate, reduced-functionality setup. See [Docker and remote servers](docker-server.md) if you specifically need attach-only mode.
+Keeping Loomery on the host and forwarding only the OpenCode server is a separate, reduced-functionality setup. See [Docker and remote servers](docker-server.md) if you specifically need attach-only mode.
 
 ## References
 
@@ -217,4 +217,4 @@ Keeping Varro on the host and forwarding only the OpenCode server is a separate,
 - [Docker's VS Code connection guide](https://docs.docker.com/ai/sandboxes/integrations/vscode/)
 - [Docker workspace and lifecycle commands](https://docs.docker.com/ai/sandboxes/usage/)
 - [OpenCode in Docker Sandboxes](https://docs.docker.com/ai/sandboxes/agents/opencode/)
-- [Varro usage guide](usage.md)
+- [Loomery usage guide](usage.md)

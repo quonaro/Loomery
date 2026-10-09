@@ -1,9 +1,9 @@
 import type { ExtensionConfigSnapshot } from '../../shared/provider-limit-config';
 
-const CHAT_FONT_SIZE_PROPERTY = '--varro-chat-font-size';
-const CHAT_PROSE_FONT_SIZE_OFFSET_PROPERTY = '--varro-chat-prose-font-size-offset';
-const CHAT_EDITOR_FONT_SIZE_PROPERTY = '--varro-chat-editor-font-size';
-const CHAT_FONT_FAMILY_PROPERTY = '--varro-chat-font-family';
+const CHAT_FONT_SIZE_PROPERTY = '--loomery-chat-font-size';
+const CHAT_PROSE_FONT_SIZE_OFFSET_PROPERTY = '--loomery-chat-prose-font-size-offset';
+const CHAT_EDITOR_FONT_SIZE_PROPERTY = '--loomery-chat-editor-font-size';
+const CHAT_FONT_FAMILY_PROPERTY = '--loomery-chat-font-family';
 const beforeChangeListeners = new Set<() => void>();
 const afterChangeListeners = new Set<() => void>();
 

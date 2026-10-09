@@ -211,13 +211,13 @@ test('routes safe external markdown links through the extension bridge', async (
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { externalUrls?: string[] };
+            __loomeryE2E?: { externalUrls?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.externalUrls || [];
       })
     )
-    .toEqual(['https://example.com/varro/releases']);
+    .toEqual(['https://example.com/loomery/releases']);
 });
 
 test('renders real-session file variants as isolated canonical links', async ({ page }) => {
@@ -247,13 +247,13 @@ test('renders real-session file variants as isolated canonical links', async ({ 
 
   const readme = page.getByRole('link', { name: 'README.md' });
   const license = page.getByRole('link', { name: 'LICENSE' });
-  await expect(readme).toHaveAttribute('href', '/workspace/varro/README.md');
+  await expect(readme).toHaveAttribute('href', '/workspace/loomery/README.md');
   await expect(readme).not.toHaveAttribute('title');
   await readme.focus();
   const tooltip = page.getByRole('tooltip');
   await expect(tooltip).toBeVisible();
-  await expect(tooltip).toHaveText('/workspace/varro/README.md');
-  await expect(readme).toHaveAccessibleDescription('/workspace/varro/README.md');
+  await expect(tooltip).toHaveText('/workspace/loomery/README.md');
+  await expect(readme).toHaveAccessibleDescription('/workspace/loomery/README.md');
   await expect
     .poll(() => readme.evaluate((element) => getComputedStyle(element).outlineStyle))
     .toBe('none');
@@ -290,9 +290,9 @@ test('renders real-session file variants as isolated canonical links', async ({ 
   const openCountAfterFailure = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { openTargets?: Array<{ path: string }> };
+        __loomeryE2E?: { openTargets?: Array<{ path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.openTargets?.length ?? 0;
   });
   await missingLink.click({ force: true });
@@ -301,9 +301,9 @@ test('renders real-session file variants as isolated canonical links', async ({ 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { openTargets?: Array<{ path: string }> };
+            __loomeryE2E?: { openTargets?: Array<{ path: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.openTargets?.length ?? 0;
       })
     )
@@ -316,16 +316,16 @@ test('renders real-session file variants as isolated canonical links', async ({ 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
+            __loomeryE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.openTargets || [];
       })
     )
     .toEqual([
-      { path: '/workspace/varro/missing-file.ts', kind: 'file' },
+      { path: '/workspace/loomery/missing-file.ts', kind: 'file' },
       {
-        path: '/workspace/varro/MarkdownRenderer.tsx',
+        path: '/workspace/loomery/MarkdownRenderer.tsx',
         kind: 'file',
         line: 1447,
       },
@@ -337,19 +337,19 @@ test('renders real-session file variants as isolated canonical links', async ({ 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
+            __loomeryE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.openTargets || [];
       })
     )
     .toEqual([
-      { path: '/workspace/varro/missing-file.ts', kind: 'file' },
+      { path: '/workspace/loomery/missing-file.ts', kind: 'file' },
       {
-        path: '/workspace/varro/MarkdownRenderer.tsx',
+        path: '/workspace/loomery/MarkdownRenderer.tsx',
         kind: 'file',
         line: 1447,
       },
-      { path: '/workspace/varro/README.md', kind: 'file' },
+      { path: '/workspace/loomery/README.md', kind: 'file' },
     ]);
 });

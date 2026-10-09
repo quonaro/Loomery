@@ -24,7 +24,7 @@ export function projectDeferredPart<T extends UnknownRecord>(
   directory?: string
 ): T & { deferred?: string } {
   if (part.type === 'file' && isString(part.url)) {
-    return { ...part, url: `varro-content:${deferredPartPath(part, directory)}` };
+    return { ...part, url: `loomery-content:${deferredPartPath(part, directory)}` };
   }
   if (
     part.type === 'reasoning' &&

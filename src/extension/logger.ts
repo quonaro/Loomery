@@ -1,7 +1,7 @@
 /* oxlint-disable anti-slop/no-unknown-parameters -- Logging intentionally accepts arbitrary diagnostic values and serializes them defensively. */
 import * as vscode from 'vscode';
 
-const channel = vscode.window.createOutputChannel('Varro');
+const channel = vscode.window.createOutputChannel('Loomery');
 
 interface SerializedError {
   name: string;

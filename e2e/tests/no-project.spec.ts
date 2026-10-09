@@ -9,7 +9,7 @@ test('empty window renders the composer and sends a scratch-scoped chat through 
   await page.goto('/e2e/harness/index.html?scenario=blank&noProject=1');
   const composer = page.locator('[role="textbox"][aria-multiline="true"]').first();
   await expect(composer).toBeVisible();
-  await expect(page.getByText('Open a folder to use Varro')).toHaveCount(0);
+  await expect(page.getByText('Open a folder to use Loomery')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Open Folder', exact: true })).toHaveCount(0);
   await expect(page.locator('.workspace-picker-button')).toHaveCount(0);
   await composer.fill('Hello without a project');
@@ -23,24 +23,24 @@ test('empty window renders the composer and sends a scratch-scoped chat through 
     () =>
       (
         window as Window & {
-          __varroE2E?: { requests: Array<{ method: string; path: string }> };
+          __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
         }
-      ).__varroE2E?.requests ?? []
+      ).__loomeryE2E?.requests ?? []
   );
   const creation = requests.find(
     (request) =>
       request.method === 'POST' &&
-      new URL(request.path, 'http://varro.test').pathname === '/session'
+      new URL(request.path, 'http://loomery.test').pathname === '/session'
   );
   expect(creation).toBeDefined();
-  expect(new URL(creation!.path, 'http://varro.test').searchParams.get('directory')).toBe(
-    '/varro/scratch'
+  expect(new URL(creation!.path, 'http://loomery.test').searchParams.get('directory')).toBe(
+    '/loomery/scratch'
   );
   expect(
     requests.some(
       (request) =>
         request.method === 'POST' &&
-        new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+        new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
     )
   ).toBe(true);
   expect(errors).toEqual([]);
@@ -54,5 +54,5 @@ test('empty window still exposes missing CLI recovery instead of asking for a fo
   await expect(
     page.getByRole('button', { name: 'Open terminal and install', exact: true })
   ).toBeVisible();
-  await expect(page.getByText('Open a folder to use Varro')).toHaveCount(0);
+  await expect(page.getByText('Open a folder to use Loomery')).toHaveCount(0);
 });

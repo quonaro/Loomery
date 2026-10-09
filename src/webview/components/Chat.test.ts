@@ -36,6 +36,7 @@ import { EMPTY_SESSION_PRUNE_GRACE_MS } from '../lib/empty-session';
 import {
   requestOpenAttentionSessions,
   requestOpenCompletedSessions,
+  requestOpenAllSessions,
   applySessionSelectedModelsSnapshot,
   requestSessionSearchFocus,
   startLoading,
@@ -57,6 +58,7 @@ import {
 import { ralphStore } from '../lib/stores/ralph-store';
 import { sessionStore } from '../lib/stores/session-store';
 import { clearDirectSessionReturn, rememberDirectSessionReturn } from '../lib/session-navigation';
+import { setOpenSessionTabsForTest } from '../lib/session-tabs';
 import {
   requestProviderConnection,
   resetProviderConnectionState,
@@ -79,7 +81,7 @@ const hostWindow = window as typeof window & {
 };
 
 type TestWebviewState = {
-  'varro.lastOpenedView'?: { type: string; sessionId?: string; timestamp?: number };
+  'loomery.lastOpenedView'?: { type: string; sessionId?: string; timestamp?: number };
 };
 
 function dispatchDesktopMediaQueryChange(matches: boolean) {
@@ -168,6 +170,7 @@ afterEach(() => {
   setDesktopSessionPaneSide('left');
   setShowSessionPicker(false);
   setShowModels(false);
+  setOpenSessionTabsForTest([]);
   setConnectionInitialized(false);
   stopLoading();
   clearDirectSessionReturn();
@@ -522,6 +525,35 @@ describe('empty session pruning', () => {
       (item) => item.textContent?.trim()
     );
     expect(titles).not.toContain('New chat');
+    expect(deleteImmediatelySpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps and shows a stale empty session while its tab is open', async () => {
+    const deleteImmediatelySpy = vi
+      .spyOn(openCodeModule, 'deleteSessionImmediately')
+      .mockResolvedValue(undefined);
+
+    const staleTime = Date.now() - EMPTY_SESSION_PRUNE_GRACE_MS - 100;
+
+    setOpenSessionTabsForTest(['empty']);
+    setState('sessions', [
+      session('empty', staleTime, {
+        title: 'New Session',
+        time: { created: staleTime, updated: staleTime },
+      }),
+    ]);
+    setState('activeSessionId', null);
+    setShowSessionPicker(true);
+
+    cleanup = render(() => Chat(), container!);
+    await Promise.resolve();
+    vi.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(
+      (item) => item.textContent?.trim()
+    );
+    expect(titles).toContain('New Session');
     expect(deleteImmediatelySpy).not.toHaveBeenCalled();
   });
 
@@ -1422,7 +1454,7 @@ describe('header status badges', () => {
     setShowSessionPicker(false);
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
+    expect(container?.querySelector('.interactive-session > .chat-header')).toBeNull();
   });
 
   it('renders an embedded session sidebar alongside the active chat view', () => {
@@ -1513,16 +1545,13 @@ describe('header status badges', () => {
     expect(sidebarHeader?.querySelector('.chat-header-btn[aria-label="New chat"]')).toBeInstanceOf(
       HTMLButtonElement
     );
-    expect(compactHeader?.querySelector('.chat-header-running-badge')).toBeInstanceOf(
-      HTMLButtonElement
-    );
-    expect(compactHeader?.querySelector('.chat-header-btn[aria-label="New chat"]')).toBeInstanceOf(
-      HTMLButtonElement
-    );
+    expect(compactHeader).toBeNull();
+    expect(
+      container?.querySelector('.session-tabs-new .chat-header-btn[aria-label="New chat"]')
+    ).toBeInstanceOf(HTMLButtonElement);
   });
 
-  it('shows a background plan completion in the narrow header without a metadata update', async () => {
-    const selectSessionSpy = vi.spyOn(openCodeModule, 'selectSession').mockResolvedValue(undefined);
+  it('shows a background plan completion in the session list without a metadata update', async () => {
     const now = Date.now();
     setState('sessions', [session('active', now), session('plan-1', now - 1000)]);
     setState('activeSessionId', 'plan-1');
@@ -1535,20 +1564,13 @@ describe('header status badges', () => {
     setShowSessionPicker(true);
     setState('activeSessionId', 'active');
     setShowSessionPicker(false);
-    const header = container?.querySelector('.interactive-session > .chat-header');
-    expect(header?.querySelector('.chat-header-plan-badge')).toBeNull();
+    expect(container?.querySelector('.interactive-session > .chat-header')).toBeNull();
 
     vi.advanceTimersByTime(100);
     sessionStore.setSessionStatusEntry('plan-1', { type: 'idle' });
     vi.advanceTimersByTime(1200);
 
     expect(state.sessions.find((entry) => entry.id === 'plan-1')?.time.updated).toBe(now - 1000);
-
-    const badge = header?.querySelector<HTMLButtonElement>('.chat-header-plan-badge');
-    expect(badge).toBeInstanceOf(HTMLButtonElement);
-    badge?.click();
-    await Promise.resolve();
-    expect(selectSessionSpy).toHaveBeenCalledWith('plan-1');
 
     setShowSessionPicker(true);
     expect(
@@ -1558,9 +1580,6 @@ describe('header status badges', () => {
     ).not.toBeNull();
     sessionStore.markSessionSeen('plan-1');
     setShowSessionPicker(false);
-    expect(
-      container?.querySelector('.interactive-session > .chat-header .chat-header-plan-badge')
-    ).toBeNull();
     expect(
       container?.querySelector(
         '[data-session-id="plan-1"] .session-item-indicator.is-plan-completed'
@@ -2126,7 +2145,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    expect(webviewState['varro.lastOpenedView']).toMatchObject({
+    expect(webviewState['loomery.lastOpenedView']).toMatchObject({
       type: 'session',
       sessionId: 'session-1',
     });
@@ -2318,16 +2337,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to sub-agent sessions"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-    expect(
-      container?.querySelectorAll('.chat-header-btn[aria-label="Back to sub-agent sessions"]')
-    ).toHaveLength(1);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
     expect(selectSessionSpy).not.toHaveBeenCalled();
@@ -2352,13 +2362,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to parent session"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
     expect(selectSessionSpy).toHaveBeenCalledWith('parent');
@@ -2401,12 +2405,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    const backButton = container?.querySelector<HTMLButtonElement>(
-      '.chat-header .chat-header-btn[aria-label="Back to parent session"]'
-    );
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.click();
+    requestOpenAllSessions();
     await Promise.resolve();
 
     expect(selectSessionSpy).toHaveBeenCalledWith('manager');
@@ -2427,13 +2426,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to parent session"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
     expect(selectSessionSpy).toHaveBeenCalledWith('origin');
@@ -2513,13 +2506,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const topButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to sub-agent sessions"]'
-    ) as HTMLButtonElement | null;
-    expect(topButton).toBeInstanceOf(HTMLButtonElement);
-
-    topButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
     expect(selectSessionSpy).not.toHaveBeenCalled();
@@ -2634,10 +2621,8 @@ describe('header status badges', () => {
     expect(container?.querySelector('.chat-header-filter-chip')).toBeNull();
   });
 
-  it('switches to a draft chat view without creating a session', async () => {
-    const createSessionSpy = vi
-      .spyOn(openCodeModule, 'createSession')
-      .mockResolvedValue('new-session');
+  it('switches to a draft chat view and starts a new session', async () => {
+    const startNewSessionSpy = vi.spyOn(openCodeModule, 'startNewSession');
 
     setState('sessions', [session('active', 500)]);
     setState('activeSessionId', 'active');
@@ -2654,7 +2639,7 @@ describe('header status badges', () => {
     newChatButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 
-    expect(createSessionSpy).not.toHaveBeenCalled();
+    expect(startNewSessionSpy).toHaveBeenCalled();
     expect(state.activeSessionId).toBeNull();
     expect(
       container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
@@ -2740,13 +2725,8 @@ describe('header status badges', () => {
     expect(state.streamingText).toBe('');
   });
 
-  it('reuses an untouched active session instead of creating another from chat view', async () => {
-    const createSessionSpy = vi
-      .spyOn(openCodeModule, 'createSession')
-      .mockResolvedValue('new-session');
-    const deleteImmediatelySpy = vi
-      .spyOn(openCodeModule, 'deleteSessionImmediately')
-      .mockResolvedValue(undefined);
+  it('creates a new empty session instead of reusing an active blank session from chat view', async () => {
+    const startNewSessionSpy = vi.spyOn(openCodeModule, 'startNewSession');
 
     const now = Date.now();
     setState('sessions', [
@@ -2769,18 +2749,13 @@ describe('header status badges', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(deleteImmediatelySpy).not.toHaveBeenCalled();
-    expect(createSessionSpy).not.toHaveBeenCalled();
-    expect(state.activeSessionId).toBe('draft-session');
+    expect(startNewSessionSpy).toHaveBeenCalled();
+    expect(state.activeSessionId).toBeNull();
+    expect(state.sessions.some((item) => item.id === 'draft-session')).toBe(true);
   });
 
-  it('reuses an untouched active session instead of creating another from the session picker', async () => {
-    const createSessionSpy = vi
-      .spyOn(openCodeModule, 'createSession')
-      .mockResolvedValue('new-session');
-    const deleteImmediatelySpy = vi
-      .spyOn(openCodeModule, 'deleteSessionImmediately')
-      .mockResolvedValue(undefined);
+  it('creates a new empty session instead of reusing an active blank session from the session picker', async () => {
+    const startNewSessionSpy = vi.spyOn(openCodeModule, 'startNewSession');
 
     const now = Date.now();
     setState('sessions', [
@@ -2804,15 +2779,15 @@ describe('header status badges', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(deleteImmediatelySpy).not.toHaveBeenCalled();
-    expect(createSessionSpy).not.toHaveBeenCalled();
-    expect(state.activeSessionId).toBe('draft-session');
+    expect(startNewSessionSpy).toHaveBeenCalled();
+    expect(state.activeSessionId).toBeNull();
+    expect(state.sessions.some((item) => item.id === 'draft-session')).toBe(true);
     expect(
       container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
     ).toBeNull();
   });
 
-  it('deletes an untouched active session when returning to the sessions list', async () => {
+  it('keeps an untouched active session when returning to the sessions list', async () => {
     const deleteImmediatelySpy = vi
       .spyOn(openCodeModule, 'deleteSessionImmediately')
       .mockResolvedValue(undefined);
@@ -2828,16 +2803,10 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to sessions"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
-    expect(deleteImmediatelySpy).toHaveBeenCalledWith('draft-session');
+    expect(deleteImmediatelySpy).not.toHaveBeenCalled();
     expect(container?.querySelector('.session-list-view')).toBeInstanceOf(HTMLDivElement);
   });
 
@@ -2880,8 +2849,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    const chatHeader = container?.querySelector('.interactive-session > .chat-header');
-    expect(chatHeader?.querySelector('.chat-header-completed-badge')).toBeNull();
+    expect(container?.querySelector('.interactive-session > .chat-header')).toBeNull();
     expect(
       container?.querySelector('.chat-session-sidebar-header .chat-header-completed-badge')
     ).toBeInstanceOf(HTMLButtonElement);
@@ -3189,13 +3157,7 @@ describe('header status badges', () => {
 
     cleanup = render(() => Chat(), container!);
 
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to sessions"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    requestOpenAllSessions();
     await Promise.resolve();
 
     const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(

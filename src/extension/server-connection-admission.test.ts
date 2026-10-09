@@ -37,7 +37,7 @@ describe('server connection admission', () => {
     expect(admission.isExternal).toBe(false);
   });
 
-  it('quietly admits a verified Varro process without inventing same-user evidence', async () => {
+  it('quietly admits a verified Loomery process without inventing same-user evidence', async () => {
     const { admission, inspect, confirm, verifyManaged } = setup({ kind: 'unknown' });
     verifyManaged.mockResolvedValue(true);
     await admission.admit();

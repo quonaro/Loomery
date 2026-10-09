@@ -65,7 +65,7 @@ input:focus-visible {
   height: 100%;
   position: relative;
   font-family: var(--font-chat);
-  font-size: var(--varro-chat-font-size, var(--vscode-font-size, 13px));
+  font-size: var(--loomery-chat-font-size, var(--vscode-font-size, 13px));
 }
 
 .chat-main-column {

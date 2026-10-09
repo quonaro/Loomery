@@ -94,7 +94,7 @@ export class SessionExportService {
     workspaceIdentity: string | null,
     enforceWorkspaceStability: boolean
   ): Promise<string> {
-    const tempDir = await mkdtemp(join(tmpdir(), 'varro-opencode-export-'));
+    const tempDir = await mkdtemp(join(tmpdir(), 'loomery-opencode-export-'));
     const tempFile = join(tempDir, 'session-export.json');
 
     try {

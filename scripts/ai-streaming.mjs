@@ -310,7 +310,7 @@ export async function createBootstrapProxy(replay) {
       return send(response, 405, { error: 'Replay is read-only' });
     }
     const pathname = new URL(request.url, 'http://127.0.0.1').pathname;
-    if (pathname === '/varro/test-isolation')
+    if (pathname === '/loomery/test-isolation')
       return send(response, 200, { kind: 'read-only-replay' });
     if (pathname === '/provider')
       return send(response, 200, {
@@ -349,8 +349,8 @@ export function isSidebarContext(context) {
 export function readRouteEvidence() {
   const context = globalThis.__initialWebviewState?.webviewContext ?? null;
   const route =
-    globalThis.__vscodeWebviewState?.getState()?.['varro.lastOpenedView'] ??
-    JSON.parse(localStorage.getItem('varro.lastOpenedView') ?? 'null');
+    globalThis.__vscodeWebviewState?.getState()?.['loomery.lastOpenedView'] ??
+    JSON.parse(localStorage.getItem('loomery.lastOpenedView') ?? 'null');
   return {
     context,
     route,
@@ -380,7 +380,7 @@ export async function waitForSessionRoute(frame, sessionID, signal) {
 
 // Executed in the selected frame. No application state, DOM, scroll, or styles are changed.
 export function installObserver() {
-  if (globalThis.varroAiStreamingObserver) throw new Error('Observer already installed');
+  if (globalThis.loomeryAiStreamingObserver) throw new Error('Observer already installed');
   const metrics = {
     frames: 0,
     maxGapMs: 0,
@@ -435,7 +435,7 @@ export function installObserver() {
     : null;
   observer?.observe({ type: 'longtask' });
   raf = requestAnimationFrame(tick);
-  globalThis.varroAiStreamingObserver = {
+  globalThis.loomeryAiStreamingObserver = {
     start() {
       if (active) throw new Error('Observer already running');
       active = true;
@@ -447,7 +447,7 @@ export function installObserver() {
       for (const entry of observer?.takeRecords() ?? [])
         record(metrics.longtasks, { at: entry.startTime, duration: entry.duration });
       observer?.disconnect();
-      delete globalThis.varroAiStreamingObserver;
+      delete globalThis.loomeryAiStreamingObserver;
       return {
         ...metrics,
         stoppedAt: performance.now(),
@@ -630,14 +630,14 @@ async function findSidebar(port, signal) {
     }
     try {
       for (const target of targets.filter(
-        (entry) => entry.type === 'iframe' && entry.url.includes('extensionId=koltyakov.varro')
+        (entry) => entry.type === 'iframe' && entry.url.includes('extensionId=quonaro.loomery')
       )) {
         signal.throwIfAborted();
         const frame = await connectFrameTarget(target, signal).catch(() => null);
         if (frame) matches.push(frame);
         signal.throwIfAborted();
       }
-      if (matches.length > 1) throw new Error('Multiple exact Varro sidebar frames');
+      if (matches.length > 1) throw new Error('Multiple exact Loomery sidebar frames');
     } catch (error) {
       for (const frame of matches) frame.close();
       throw error;
@@ -925,10 +925,10 @@ export async function runCapture(options) {
       { mode: 0o700 }
     );
     await json(path.join(workspace, '.vscode/settings.json'), {
-      'varro.server.port': proxy.port,
-      'varro.server.command': fakeCommand,
-      'varro.server.autoUpdate': false,
-      'varro.server.autoStart': false,
+      'loomery.server.port': proxy.port,
+      'loomery.server.command': fakeCommand,
+      'loomery.server.autoUpdate': false,
+      'loomery.server.autoStart': false,
       'security.workspace.trust.enabled': false,
       'telemetry.telemetryLevel': 'off',
       'update.mode': 'none',
@@ -993,11 +993,11 @@ export async function runCapture(options) {
       cwd: root,
       env: {
         ...process.env,
-        VARRO_AI_WORKSPACE: workspace,
-        VARRO_AI_REPLAY_URL: proxy.url,
-        VARRO_AI_LAUNCH_INTENT: path.join(output, 'launch-intent.json'),
-        VARRO_SANDBOX_FAKE_MODE: 'startup-exit',
-        VARRO_SANDBOX_FAKE_VERSION: '1.18.30',
+        LOOMERY_AI_WORKSPACE: workspace,
+        LOOMERY_AI_REPLAY_URL: proxy.url,
+        LOOMERY_AI_LAUNCH_INTENT: path.join(output, 'launch-intent.json'),
+        LOOMERY_SANDBOX_FAKE_MODE: 'startup-exit',
+        LOOMERY_SANDBOX_FAKE_VERSION: '1.18.30',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -1088,7 +1088,7 @@ export async function runCapture(options) {
     metadata.routeAtStart = await bounded(routeSearch, 5_000, 'Replay route at start', routeSignal);
     if (metadata.observer.installed)
       await bounded(
-        frame.evaluate(() => globalThis.varroAiStreamingObserver.start()),
+        frame.evaluate(() => globalThis.loomeryAiStreamingObserver.start()),
         5_000,
         'Start observer',
         controller.signal
@@ -1149,7 +1149,7 @@ export async function runCapture(options) {
     if (frame)
       await clean('Observer evidence', async () => {
         const metrics = await frame.evaluate(
-          () => globalThis.varroAiStreamingObserver?.stop() ?? null
+          () => globalThis.loomeryAiStreamingObserver?.stop() ?? null
         );
         if (metrics) await json(path.join(output, 'observer.json'), metrics);
       });

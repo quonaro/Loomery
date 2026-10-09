@@ -6,7 +6,7 @@ tmp/
 .DS_Store
 opencode.json
 opencode.jsonc
-varro-playback.db*
+loomery-playback.db*
 .idea
 research_notes/
 reports/

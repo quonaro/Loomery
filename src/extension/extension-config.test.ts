@@ -52,39 +52,39 @@ describe('readExtensionConfigState', () => {
   });
 
   it('reads the expand-thinking setting', () => {
-    mocks.values.set('varro.chat.expandThinking', true);
+    mocks.values.set('loomery.chat.expandThinking', true);
 
     expect(readExtensionConfigState().expandThinking).toBe(true);
   });
 
   it('reads the turn-timer setting', () => {
-    mocks.values.set('varro.chat.showTurnTimer', false);
+    mocks.values.set('loomery.chat.showTurnTimer', false);
 
     expect(readExtensionConfigState().showTurnTimer).toBe(false);
   });
 
   it('reads the quota-warning debug setting', () => {
-    mocks.values.set('varro.debug.showQuotaWarning', true);
+    mocks.values.set('loomery.debug.showQuotaWarning', true);
     expect(readExtensionConfigState().debugShowQuotaWarning).toBe(true);
   });
 
   it.each([14, 30, 5.5])('reads a custom reset warning window of %s days', (days) => {
-    mocks.values.set('varro.debug.resetWarningDays', days);
+    mocks.values.set('loomery.debug.resetWarningDays', days);
     expect(readExtensionConfigState().debugResetWarningDays).toBe(days);
   });
 
   it.each([0, 4, -1, NaN, Infinity, '14'])('defaults invalid reset warning days %s', (days) => {
-    mocks.values.set('varro.debug.resetWarningDays', days);
+    mocks.values.set('loomery.debug.resetWarningDays', days);
     expect(readExtensionConfigState().debugResetWarningDays).toBe(5);
   });
 
   it('reads the Problems context opt-out', () => {
-    mocks.values.set('varro.chat.enableProblemsContext', false);
+    mocks.values.set('loomery.chat.enableProblemsContext', false);
     expect(readExtensionConfigState().enableProblemsContext).toBe(false);
   });
 
-  it('prefers the Varro chat font size override', () => {
-    mocks.values.set('varro.chat.fontSize', 17);
+  it('prefers the Loomery chat font size override', () => {
+    mocks.values.set('loomery.chat.fontSize', 17);
     mocks.values.set('chat.fontSize', 15);
 
     expect(readExtensionConfigState().chatFontSize).toBe(17);
@@ -117,9 +117,9 @@ describe('readExtensionConfigState', () => {
   );
 
   it.each([null, 5, 101, Number.NaN, Number.POSITIVE_INFINITY, '14'])(
-    'inherits chat.fontSize for Varro override %s',
+    'inherits chat.fontSize for Loomery override %s',
     (value) => {
-      mocks.values.set('varro.chat.fontSize', value);
+      mocks.values.set('loomery.chat.fontSize', value);
       mocks.values.set('chat.fontSize', 16);
       expect(readExtensionConfigState().chatFontSize).toBe(16);
     }

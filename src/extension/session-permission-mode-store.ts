@@ -7,8 +7,8 @@ import {
 import { asRecord, isNumber } from '../shared/type-utils';
 import type { UnknownRecord } from '../shared/type-utils';
 
-const SESSION_PERMISSION_MODES_KEY = 'varro.sessionPermissionModes';
-const SESSION_PERMISSION_MODE_FALLBACKS_KEY = 'varro.sessionPermissionModeFallbacks';
+const SESSION_PERMISSION_MODES_KEY = 'loomery.sessionPermissionModes';
+const SESSION_PERMISSION_MODE_FALLBACKS_KEY = 'loomery.sessionPermissionModeFallbacks';
 
 export class SessionPermissionModeStore {
   private modes: Record<string, PermissionMode>;
@@ -58,7 +58,7 @@ export class SessionPermissionModeStore {
 
   restoreSessionMetadata(session: UnknownRecord): boolean {
     const sessionId = session.id;
-    const mode = asRecord(asRecord(session.metadata)?.varro)?.permissionMode;
+    const mode = asRecord(asRecord(session.metadata)?.loomery)?.permissionMode;
     if (!isSafePersistedSessionId(sessionId) || !isPermissionMode(mode)) return false;
     const updatedAt = asRecord(session.time)?.updated;
     const confirmedAt = this.metadataUpdatedAt.get(sessionId);

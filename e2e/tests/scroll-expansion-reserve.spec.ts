@@ -18,12 +18,12 @@ test('opening and closing Explored during an activity exit preserves its painted
   await page.evaluate(() => {
     const harness = (
       window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages: (id: string) => MessageEntry[];
           updateMessagePart: (part: Part) => void;
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     if (!harness) throw new Error('Missing E2E harness');
     for (const part of harness.getSessionMessages('session-tool-cards').flatMap((m) => m.parts)) {
       if (part.type !== 'reasoning' || part.time.end !== undefined) continue;
@@ -131,12 +131,12 @@ test('fast read completion does not reverse an easing mixed-content viewport', a
     if (!marker) throw new Error('Missing painted mixed-content marker');
     const harness = (
       window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages: (id: string) => MessageEntry[];
           updateMessagePart: (part: Part) => void;
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     if (!harness) throw new Error('Missing E2E harness');
     const result = [];
     for (let frame = 0; frame < 240; frame++) {

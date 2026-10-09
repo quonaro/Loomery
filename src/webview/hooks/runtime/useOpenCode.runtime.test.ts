@@ -18,6 +18,7 @@ function createRuntimeMock(label: string) {
     loadOlderSessionHistoryPage: vi.fn().mockResolvedValue(true),
     loadOlderSessionPrompts: vi.fn().mockResolvedValue(true),
     createSession: vi.fn().mockResolvedValue(`${label}-session`),
+    startNewSession: vi.fn(),
     forkSession: vi.fn().mockResolvedValue(`${label}-fork`),
     renameSession: vi.fn().mockResolvedValue(true),
     deleteSession: vi.fn().mockResolvedValue(undefined),
@@ -122,6 +123,9 @@ describe('useOpenCode.runtime', () => {
       'session-1',
       'permission-1'
     );
+
+    module.startNewSession('prefill');
+    expect(installed.runtime.startNewSession).toHaveBeenCalledWith('prefill');
   });
 
   it('forwards session pagination to the installed runtime', async () => {

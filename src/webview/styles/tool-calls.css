@@ -2,7 +2,7 @@
 .rich-composer {
   --scrollbar-thumb-color: color-mix(in srgb, var(--color-vscode-fg) 10%, transparent);
   --rich-composer-line-height: calc(
-    var(--varro-chat-font-size, var(--vscode-font-size, 13px)) * 1.7
+    var(--loomery-chat-font-size, var(--vscode-font-size, 13px)) * 1.7
   );
   min-height: 30px;
   max-height: 200px;
@@ -11,7 +11,7 @@
   background: transparent;
   padding: 4px 11px 4px 4px;
   margin-bottom: 8px;
-  font-size: var(--varro-chat-font-size, var(--vscode-font-size, 13px));
+  font-size: var(--loomery-chat-font-size, var(--vscode-font-size, 13px));
   line-height: var(--rich-composer-line-height);
   color: var(--color-vscode-input-fg);
   outline: none;
@@ -759,7 +759,7 @@
 }
 
 .diff-view-lines {
-  --diff-view-font-size: var(--varro-chat-editor-font-size, 12px);
+  --diff-view-font-size: var(--loomery-chat-editor-font-size, 12px);
   --diff-view-line-height: calc(var(--diff-view-font-size) * 1.4);
 
   position: relative;
@@ -1573,7 +1573,7 @@ kbd {
 .chat-tool-invocation-part .tool-invocation-detail {
   border-top: 1px solid var(--color-vscode-border-soft);
   padding: var(--space-5) var(--space-6) var(--space-6) var(--tool-detail-indent);
-  font-size: calc(var(--varro-chat-editor-font-size, 12px) - 1px);
+  font-size: calc(var(--loomery-chat-editor-font-size, 12px) - 1px);
 }
 
 /* Terminal and structured cards are the detail surface, rather than content

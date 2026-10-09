@@ -27,7 +27,7 @@ describe('SidebarProvider local config routing', () => {
       const { posted } = attachTestView(provider);
       await provider.handleMessage({
         type: 'api/request',
-        payload: { id: 901, method: 'GET', path: '/varro/opencode-config' },
+        payload: { id: 901, method: 'GET', path: '/loomery/opencode-config' },
       });
       expect(posted).toContainEqual({
         type: 'api/response',
@@ -48,18 +48,23 @@ describe('SidebarProvider local config routing', () => {
     const { provider } = await createSidebarProviderInstance({ server });
     const { posted } = attachTestView(provider);
     const requests = [
-      { id: 901, method: 'GET', path: '/varro/opencode-config/permissions' },
-      { id: 902, method: 'POST', path: '/varro/opencode-config/permissions', body: { rules: [] } },
+      { id: 901, method: 'GET', path: '/loomery/opencode-config/permissions' },
+      {
+        id: 902,
+        method: 'POST',
+        path: '/loomery/opencode-config/permissions',
+        body: { rules: [] },
+      },
       {
         id: 903,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target: 'small_model', providerID: 'remote', modelID: 'model' },
       },
       {
         id: 904,
         method: 'POST',
-        path: '/varro/opencode-config/disable-provider',
+        path: '/loomery/opencode-config/disable-provider',
         body: { providerID: 'ollama' },
       },
     ];
@@ -98,7 +103,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 905,
         method: 'POST',
-        path: '/varro/permission/project-allow',
+        path: '/loomery/permission/project-allow',
         body: { sessionId: 'session-1', permissionId: 'permission-1' },
       },
     });
@@ -152,7 +157,7 @@ describe('SidebarProvider local config routing', () => {
         payload: {
           id: 301,
           method: 'POST',
-          path: '/varro/opencode-config/disable-provider',
+          path: '/loomery/opencode-config/disable-provider',
           body: { providerID: 'ollama' },
         },
       });
@@ -193,17 +198,17 @@ describe('SidebarProvider local config routing', () => {
     const { posted } = attachTestView(provider);
     const listener = vscodeMock.workspace.onDidChangeConfiguration.mock.calls.at(-1)?.[0];
     await vscodeMock.workspace
-      .getConfiguration('varro')
+      .getConfiguration('loomery')
       .update('chat.enableProblemsContext', false);
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.chat.enableProblemsContext',
+      affectsConfiguration: (key: string) => key === 'loomery.chat.enableProblemsContext',
     });
     expect(posted).toContainEqual({
       type: 'config/update',
       payload: expect.objectContaining({ enableProblemsContext: false }),
     });
   });
-  it.each(['varro.chat.fontSize', 'chat.fontSize', 'chat.editor.fontSize', 'chat.fontFamily'])(
+  it.each(['loomery.chat.fontSize', 'chat.fontSize', 'chat.editor.fontSize', 'chat.fontFamily'])(
     'broadcasts font configuration when %s changes',
     async (changedKey) => {
       const { provider } = await createSidebarProviderInstance();
@@ -211,7 +216,7 @@ describe('SidebarProvider local config routing', () => {
       const listener = vscodeMock.workspace.onDidChangeConfiguration.mock.calls.at(-1)?.[0];
       expect(listener).toBeTypeOf('function');
 
-      await vscodeMock.workspace.getConfiguration('varro').update('chat.fontSize', 15);
+      await vscodeMock.workspace.getConfiguration('loomery').update('chat.fontSize', 15);
       await vscodeMock.workspace.getConfiguration('chat').update('fontSize', 14);
       await vscodeMock.workspace.getConfiguration('chat.editor').update('fontSize', 16);
       await vscodeMock.workspace
@@ -236,9 +241,9 @@ describe('SidebarProvider local config routing', () => {
     const listener = vscodeMock.workspace.onDidChangeConfiguration.mock.calls.at(-1)?.[0];
     expect(listener).toBeTypeOf('function');
 
-    await vscodeMock.workspace.getConfiguration('varro').update('chat.showTurnTimer', true);
+    await vscodeMock.workspace.getConfiguration('loomery').update('chat.showTurnTimer', true);
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.chat.showTurnTimer',
+      affectsConfiguration: (key: string) => key === 'loomery.chat.showTurnTimer',
     });
 
     expect(posted).toContainEqual({
@@ -246,9 +251,9 @@ describe('SidebarProvider local config routing', () => {
       payload: expect.objectContaining({ showTurnTimer: true }),
     });
 
-    await vscodeMock.workspace.getConfiguration('varro').update('debug.showQuotaWarning', true);
+    await vscodeMock.workspace.getConfiguration('loomery').update('debug.showQuotaWarning', true);
     listener?.({
-      affectsConfiguration: (key: string) => key === 'varro.debug.showQuotaWarning',
+      affectsConfiguration: (key: string) => key === 'loomery.debug.showQuotaWarning',
     });
     expect(posted).toContainEqual({
       type: 'config/update',
@@ -283,7 +288,7 @@ describe('SidebarProvider local config routing', () => {
 
     await provider.handleMessage({
       type: 'api/request',
-      payload: { id: 1, method: 'GET', path: '/varro/opencode-config' },
+      payload: { id: 1, method: 'GET', path: '/loomery/opencode-config' },
     });
 
     expect(posted).toContainEqual({
@@ -317,7 +322,7 @@ describe('SidebarProvider local config routing', () => {
     server.apiVersion = 2;
     await provider.handleMessage({
       type: 'api/request',
-      payload: { id: 101, method: 'GET', path: '/varro/opencode-config' },
+      payload: { id: 101, method: 'GET', path: '/loomery/opencode-config' },
     });
     expect(posted).toContainEqual({
       type: 'api/response',
@@ -348,7 +353,7 @@ describe('SidebarProvider local config routing', () => {
 
     await provider.handleMessage({
       type: 'api/request',
-      payload: { id: 7, method: 'GET', path: '/varro/opencode-config' },
+      payload: { id: 7, method: 'GET', path: '/loomery/opencode-config' },
     });
 
     expect(server.start).not.toHaveBeenCalled();
@@ -385,7 +390,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 2,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target: 'small_model', providerID: 'openai', modelID: 'gpt-5-mini' },
       },
     });
@@ -438,7 +443,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 21,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: {
           target: 'small_model',
           providerID: 'openai',
@@ -473,7 +478,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 20,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target, providerID: 'openai', modelID: 'gpt-5-mini' },
       },
     });
@@ -495,7 +500,7 @@ describe('SidebarProvider local config routing', () => {
     ['commit_message', 'commitMessage.model', 'commitMessageModel'],
     ['auto_approve', 'chat.autoApproveModel', 'autoApproveModel'],
   ] as const)('clears %s routing from VS Code user settings', async (target, key, responseKey) => {
-    const config = vscodeMock.workspace.getConfiguration('varro');
+    const config = vscodeMock.workspace.getConfiguration('loomery');
     await config.update(key, 'openai/gpt-5-mini', vscodeMock.ConfigurationTarget.Global);
     vscodeMock.workspace.fs.readFile.mockRejectedValue({ code: 'FileNotFound' });
     const { provider } = await createSidebarProviderInstance();
@@ -506,7 +511,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 22,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target, providerID: 'openai', modelID: 'gpt-5-mini', unset: true },
       },
     });
@@ -552,7 +557,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 3,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: {
           target: 'agent',
           agentName: 'review',
@@ -599,7 +604,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 23,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: {
           target: 'agent',
           agentName: 'review',
@@ -636,7 +641,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 4,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target: 'small_model', providerID: 'openai', modelID: 'gpt-5' },
       },
     });
@@ -673,7 +678,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 10,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target: 'small_model', providerID: 'openai', modelID: 'gpt-5' },
       },
     });
@@ -723,7 +728,7 @@ describe('SidebarProvider local config routing', () => {
     const { posted } = attachTestView(provider);
     await provider.handleMessage({
       type: 'api/request',
-      payload: { id: 8, method: 'GET', path: '/varro/opencode-config' },
+      payload: { id: 8, method: 'GET', path: '/loomery/opencode-config' },
     });
 
     expect(posted).toContainEqual({
@@ -758,7 +763,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 9,
         method: 'POST',
-        path: '/varro/opencode-config/model-routing',
+        path: '/loomery/opencode-config/model-routing',
         body: { target: 'small_model', providerID: 'openai', modelID: 'gpt-5' },
       },
     });
@@ -791,7 +796,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 11,
         method: 'POST',
-        path: '/varro/opencode-config/permissions',
+        path: '/loomery/opencode-config/permissions',
         body: {
           rules: [
             { permission: 'bash', pattern: '*', action: 'ask' },
@@ -825,7 +830,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 14,
         method: 'POST',
-        path: '/varro/opencode-config/permissions',
+        path: '/loomery/opencode-config/permissions',
         body: {
           rules: [
             { permission: 'todowrite', pattern: '*', action: 'allow' },
@@ -870,7 +875,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 16,
         method: 'POST',
-        path: '/varro/opencode-config/permissions',
+        path: '/loomery/opencode-config/permissions',
         body: {
           rules: [{ permission: 'webfetch', pattern: 'https://example.com/*', action: 'allow' }],
         },
@@ -917,7 +922,7 @@ describe('SidebarProvider local config routing', () => {
       payload: {
         id: 13,
         method: 'POST',
-        path: '/varro/opencode-config/permissions',
+        path: '/loomery/opencode-config/permissions',
         body: { rules: [{ permission: 'bash', pattern: 'npm *', action: 'ask' }] },
       },
     });
@@ -964,7 +969,7 @@ describe('SidebarProvider local config routing', () => {
 
       await provider.handleMessage({
         type: 'api/request',
-        payload: { id: 12, method: 'GET', path: '/varro/opencode-config/permissions' },
+        payload: { id: 12, method: 'GET', path: '/loomery/opencode-config/permissions' },
       });
 
       expect(posted).toContainEqual({
@@ -1008,7 +1013,7 @@ describe('SidebarProvider local config routing', () => {
 
     await provider.handleMessage({
       type: 'api/request',
-      payload: { id: 15, method: 'GET', path: '/varro/opencode-config/permissions' },
+      payload: { id: 15, method: 'GET', path: '/loomery/opencode-config/permissions' },
     });
 
     expect(posted).toContainEqual({

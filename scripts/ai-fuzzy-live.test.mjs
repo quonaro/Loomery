@@ -28,7 +28,7 @@ import {
   queueHandoffMatches,
   recordLivePreparationResult,
   restoreSidebarSessionFromPicker,
-  selectVarroTargetDescriptor,
+  selectLoomeryTargetDescriptor,
   sendComposerPromptWithRetry,
   sessionSnapshotMatches,
   shouldRetryAi08WithFreshStream,
@@ -790,7 +790,7 @@ test('checks the exact canonical provider and model for each marked turn', () =>
   );
 });
 
-test('selects Varro targets by surface, stable viewId, and session route', () => {
+test('selects Loomery targets by surface, stable viewId, and session route', () => {
   const targets = [
     {
       id: 'sidebar-target',
@@ -810,7 +810,7 @@ test('selects Varro targets by surface, stable viewId, and session route', () =>
   ];
 
   assert.equal(
-    selectVarroTargetDescriptor(targets, {
+    selectLoomeryTargetDescriptor(targets, {
       surface: 'editor',
       viewId: 'editor-b',
       sessionId: 'child',
@@ -818,17 +818,17 @@ test('selects Varro targets by surface, stable viewId, and session route', () =>
     'editor-b-target'
   );
   assert.throws(
-    () => selectVarroTargetDescriptor(targets, { surface: 'editor' }),
+    () => selectLoomeryTargetDescriptor(targets, { surface: 'editor' }),
     /ambiguous.*editor-a.*editor-b/i
   );
   assert.throws(
     () =>
-      selectVarroTargetDescriptor(targets, {
+      selectLoomeryTargetDescriptor(targets, {
         surface: 'editor',
         viewId: 'editor-b',
         sessionId: 'other',
       }),
-    /No Varro iframe matched.*session=other/i
+    /No Loomery iframe matched.*session=other/i
   );
 });
 

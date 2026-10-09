@@ -40,7 +40,7 @@ async function fixture(versions: number[]) {
   const path = join(directory, 'opencode.db');
   vi.stubEnv('OPENCODE_DB', path);
   vi.stubEnv('XDG_STATE_HOME', directory);
-  vi.stubEnv('VARRO_TEST_STATE_ROOT', join(directory, 'varro-state'));
+  vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(directory, 'loomery-state'));
   const database = new DatabaseSync(path);
   if (versions.includes(1)) {
     database.exec(`CREATE TABLE session (id TEXT PRIMARY KEY, time_updated INTEGER);
@@ -74,7 +74,7 @@ async function fixture(versions: number[]) {
         .run(
           id,
           updated,
-          sourceID ? JSON.stringify({ varroLegacyImport: { sourceSessionID: sourceID } }) : null
+          sourceID ? JSON.stringify({ loomeryLegacyImport: { sourceSessionID: sourceID } }) : null
         );
       const insert = database.prepare('INSERT INTO session_message VALUES (?, ?, ?, ?, ?)');
       insert.run(`${id}-prompt`, id, 'user', 1, '{}');
@@ -112,7 +112,7 @@ describe('local usage database versions', () => {
       .run(now - 3_610_000, now);
     await new OpenCodeV2SessionState().update('paused-session', {
       metadata: {
-        varro: { pauses: [{ messageId: 'paused-session-reply', pausedAt: now - 3_600_000 }] },
+        loomery: { pauses: [{ messageId: 'paused-session-reply', pausedAt: now - 3_600_000 }] },
       },
     });
     const insert = database.prepare('INSERT INTO session_message VALUES (?, ?, ?, ?, ?)');

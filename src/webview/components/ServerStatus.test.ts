@@ -52,17 +52,17 @@ describe('ServerStatus', () => {
     expect(container?.textContent).not.toContain('Spawning the local server');
   });
 
-  it('shows a pulsing Varro logo while server detection is pending', () => {
+  it('shows a pulsing Loomery logo while server detection is pending', () => {
     setState('serverStatus', { state: 'stopped' });
-    setState('emptyStateLogoUri', 'https://example.test/varro.png');
+    setState('emptyStateLogoUri', 'https://example.test/loomery.png');
 
     renderServerStatus();
 
     const status = container?.querySelector('[role="status"]');
     const logo = status?.querySelector<HTMLImageElement>('img');
     expect(status?.getAttribute('aria-label')).toBe('Detecting OpenCode server');
-    expect(logo?.src).toBe('https://example.test/varro.png');
-    expect(logo?.alt).toBe('Varro');
+    expect(logo?.src).toBe('https://example.test/loomery.png');
+    expect(logo?.alt).toBe('Loomery');
     expect(logo?.classList).toContain('animate-pulse-soft');
     expect(container?.textContent).not.toContain('Server not running');
     expect(
@@ -108,7 +108,7 @@ describe('ServerStatus', () => {
     expect(container?.textContent).toContain('Use OpenCode v1 instead');
     // Recovery is a button now, not an instruction to open the Command Palette.
     expect(container?.textContent).toContain('Restart Server');
-    expect(container?.textContent).toContain('varro.server.command');
+    expect(container?.textContent).toContain('loomery.server.command');
 
     const buttons = Array.from(container?.querySelectorAll('button') || []);
     const inlineLink = buttons.find((button) => button.textContent?.includes('OpenCode'));
@@ -165,7 +165,7 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the running server is 1.15.13.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the running server is 1.15.13.',
     });
 
     renderServerStatus();
@@ -181,7 +181,7 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed. Windows could not replace opencode.exe because it is still running. Update it manually with: npm install -g opencode-ai@latest',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed. Windows could not replace opencode.exe because it is still running. Update it manually with: npm install -g opencode-ai@latest',
       detail: {
         kind: 'update-failed',
         installMethod: 'npm',
@@ -210,7 +210,7 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the running server is 1.15.13. The old server has active sessions and was not stopped to avoid interrupting work.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the running server is 1.15.13. The old server has active sessions and was not stopped to avoid interrupting work.',
       detail: { kind: 'update-blocked', blockedBy: 'active-sessions' },
     });
 
@@ -232,7 +232,7 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. The automatic update failed.',
       detail: { kind: 'update-failed', installMethod: 'npm' },
     });
 
@@ -245,11 +245,11 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode update required. Varro requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. Automatic updates are disabled.',
+        'OpenCode update required. Loomery requires OpenCode 1.16.0 or newer, but the installed CLI is 1.15.13. Automatic updates are disabled.',
       detail: {
         kind: 'update-blocked',
         blockedBy: 'auto-update-disabled',
-        settingId: 'varro.server.autoUpdate',
+        settingId: 'loomery.server.autoUpdate',
         installMethod: 'brew',
         suggestedCommand: 'brew upgrade opencode',
       },
@@ -265,7 +265,7 @@ describe('ServerStatus', () => {
 
     expect(postMessageMock).toHaveBeenCalledWith({
       type: 'vscode/open-settings',
-      payload: { query: 'varro.server.autoUpdate' },
+      payload: { query: 'loomery.server.autoUpdate' },
     });
     expect(container?.textContent).toContain('brew upgrade opencode');
 
@@ -279,10 +279,10 @@ describe('ServerStatus', () => {
     });
   });
 
-  it('allows restart from a different Varro host without offering a duplicate update', () => {
+  it('allows restart from a different Loomery host without offering a duplicate update', () => {
     setState('serverStatus', {
       state: 'error',
-      message: 'The running server is actively owned by another Varro extension host.',
+      message: 'The running server is actively owned by another Loomery extension host.',
       detail: {
         kind: 'update-blocked',
         blockedBy: 'foreign-owner',
@@ -317,11 +317,11 @@ describe('ServerStatus', () => {
     setState('serverStatus', {
       state: 'error',
       message:
-        'OpenCode CLI not found at the configured path: /opt/nope/opencode. Update varro.server.command to point at your OpenCode executable, or clear it to let Varro search PATH.',
+        'OpenCode CLI not found at the configured path: /opt/nope/opencode. Update loomery.server.command to point at your OpenCode executable, or clear it to let Loomery search PATH.',
       detail: {
         kind: 'cli-path-invalid',
         configuredCommand: '/opt/nope/opencode',
-        settingId: 'varro.server.command',
+        settingId: 'loomery.server.command',
       },
     });
 

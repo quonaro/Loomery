@@ -310,8 +310,8 @@ describe('MessageRouter', () => {
   it('dispatches vscode/open-settings with query', async () => {
     const cb = createCallbacks();
     const router = new MessageRouter(cb);
-    await router.handleMessage({ type: 'vscode/open-settings', payload: { query: 'varro' } });
-    expect(cb.openSettings).toHaveBeenCalledWith('varro');
+    await router.handleMessage({ type: 'vscode/open-settings', payload: { query: 'loomery' } });
+    expect(cb.openSettings).toHaveBeenCalledWith('loomery');
   });
 
   it('dispatches vscode/open-settings without query', async () => {
@@ -566,7 +566,7 @@ const DISPATCH_EXPECTATIONS = {
   ],
   'session/export': [{ callback: 'exportSession', args: ['session-1'] }],
   'usage/report': [{ callback: 'generateUsageReport', args: [true] }],
-  'vscode/open-settings': [{ callback: 'openSettings', args: ['varro.server'] }],
+  'vscode/open-settings': [{ callback: 'openSettings', args: ['loomery.server'] }],
   'vscode/mermaid-preview': [{ callback: 'setMermaidPreviewOpen', args: [true] }],
   'server/restart': [{ callback: 'restartServer', args: [true] }],
   'server/restart/check': [{ callback: 'checkServerRestart', args: [3] }],

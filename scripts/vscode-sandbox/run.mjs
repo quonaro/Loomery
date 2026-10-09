@@ -7,13 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 import { writeVscodeLaunchMetadata } from '../vscode-launch-process.mjs';
-import { isolateVarroTestState } from '../varro-test-state.mjs';
+import { isolateLoomeryTestState } from '../loomery-test-state.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, '../..');
 const suitePath = path.join(scriptDirectory, 'suite.cjs');
 const fakeCliPath = path.join(scriptDirectory, 'fake-opencode.mjs');
-const keepSandboxes = process.env.VARRO_KEEP_VSCODE_SANDBOX === '1';
+const keepSandboxes = process.env.LOOMERY_KEEP_VSCODE_SANDBOX === '1';
 const OPTIONAL_SCENARIOS = ['v2-first-run'];
 
 const SCENARIOS = [
@@ -50,7 +50,7 @@ function selectScenarios(args) {
 }
 
 async function resolveVscodeExecutable() {
-  const configured = process.env.VARRO_VSCODE_EXECUTABLE?.trim();
+  const configured = process.env.LOOMERY_VSCODE_EXECUTABLE?.trim();
   if (configured) {
     await access(configured);
     return configured;
@@ -74,7 +74,7 @@ async function resolveVscodeExecutable() {
   }
 
   throw new Error(
-    'Could not locate the VS Code application executable; set VARRO_VSCODE_EXECUTABLE to Code, Code.exe, or the Linux code binary'
+    'Could not locate the VS Code application executable; set LOOMERY_VSCODE_EXECUTABLE to Code, Code.exe, or the Linux code binary'
   );
 }
 
@@ -133,32 +133,32 @@ function getScenarioSettings(scenario, port, fakeCommand, missingCommand) {
     'telemetry.telemetryLevel': 'off',
     'update.mode': 'none',
     'workbench.startupEditor': 'none',
-    'varro.server.port': port,
+    'loomery.server.port': port,
   };
 
   switch (scenario) {
     case 'clean-install-missing-cli':
     case 'empty-window-missing-cli':
-      return { ...common, 'varro.debug.simulateMissingCli': true };
+      return { ...common, 'loomery.debug.simulateMissingCli': true };
     case 'invalid-cli-path':
-      return { ...common, 'varro.server.command': missingCommand };
+      return { ...common, 'loomery.server.command': missingCommand };
     case 'auto-start-disabled':
-      return { ...common, 'varro.server.autoStart': false };
+      return { ...common, 'loomery.server.autoStart': false };
     case 'required-update-disabled':
     case 'v2-first-run':
       return {
         ...common,
-        'varro.server.autoUpdate': false,
-        'varro.server.command': fakeCommand,
+        'loomery.server.autoUpdate': false,
+        'loomery.server.command': fakeCommand,
       };
     case 'required-update-failure':
       return {
         ...common,
-        'varro.debug.simulateUpgradeFailure': 'network request failed while downloading OpenCode',
-        'varro.server.command': fakeCommand,
+        'loomery.debug.simulateUpgradeFailure': 'network request failed while downloading OpenCode',
+        'loomery.server.command': fakeCommand,
       };
     default:
-      return { ...common, 'varro.server.command': fakeCommand };
+      return { ...common, 'loomery.server.command': fakeCommand };
   }
 }
 
@@ -179,19 +179,19 @@ function getScenarioEnvironment(scenario, root) {
     return { HOME: home, PATH: '/usr/bin:/bin' };
   }
   if (scenario === 'version-command-failure') {
-    return { VARRO_SANDBOX_FAKE_MODE: 'version-error', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+    return { LOOMERY_SANDBOX_FAKE_MODE: 'version-error', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
   }
   if (scenario === 'malformed-cli-version') {
-    return { VARRO_SANDBOX_FAKE_MODE: 'malformed-version', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+    return { LOOMERY_SANDBOX_FAKE_MODE: 'malformed-version', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
   }
   if (scenario === 'startup-process-exit') {
-    return { VARRO_SANDBOX_FAKE_MODE: 'startup-exit', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+    return { LOOMERY_SANDBOX_FAKE_MODE: 'startup-exit', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
   }
   if (scenario === 'runtime-crash-recovery') {
-    return { VARRO_SANDBOX_FAKE_MODE: 'crash-once', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+    return { LOOMERY_SANDBOX_FAKE_MODE: 'crash-once', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
   }
   if (scenario === 'event-stream-failure') {
-    return { VARRO_SANDBOX_FAKE_MODE: 'event-error', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+    return { LOOMERY_SANDBOX_FAKE_MODE: 'event-error', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
   }
   if (
     scenario === 'required-update-disabled' ||
@@ -199,12 +199,12 @@ function getScenarioEnvironment(scenario, root) {
     scenario === 'required-update-no-change'
   ) {
     return {
-      VARRO_SANDBOX_FAKE_MODE:
+      LOOMERY_SANDBOX_FAKE_MODE:
         scenario === 'required-update-no-change' ? 'upgrade-no-change' : 'healthy',
-      VARRO_SANDBOX_FAKE_VERSION: '1.15.0',
+      LOOMERY_SANDBOX_FAKE_VERSION: '1.15.0',
     };
   }
-  return { VARRO_SANDBOX_FAKE_MODE: 'healthy', VARRO_SANDBOX_FAKE_VERSION: '1.18.15' };
+  return { LOOMERY_SANDBOX_FAKE_MODE: 'healthy', LOOMERY_SANDBOX_FAKE_VERSION: '1.18.15' };
 }
 
 function runCode(executable, args, env, launchDetails) {
@@ -314,14 +314,14 @@ async function runScenario(scenario, vscodeExecutable) {
     const port = await reservePort();
     const fakeCommand =
       scenario === 'v2-first-run'
-        ? process.env.VARRO_SANDBOX_V2_COMMAND
+        ? process.env.LOOMERY_SANDBOX_V2_COMMAND
         : await createFakeCliLauncher(root);
-    if (!fakeCommand) throw new Error('Set VARRO_SANDBOX_V2_COMMAND to a released v2 binary');
+    if (!fakeCommand) throw new Error('Set LOOMERY_SANDBOX_V2_COMMAND to a released v2 binary');
     await access(fakeCommand);
     const missingCommand = path.join(root, 'missing-opencode');
     const settings = getScenarioSettings(scenario, port, fakeCommand, missingCommand);
     const environment = { ...process.env, ...getScenarioEnvironment(scenario, root) };
-    await isolateVarroTestState(environment, root);
+    await isolateLoomeryTestState(environment, root);
     if (scenario === 'v2-first-run') {
       for (const key of Object.keys(environment)) {
         if (/^OPENCODE_|_API_KEY$|_TOKEN$|^AWS_|^AZURE_|^GOOGLE_|^ANTHROPIC_/.test(key))
@@ -330,7 +330,7 @@ async function runScenario(scenario, vscodeExecutable) {
       environment.HOME = path.join(root, 'home');
       environment.USERPROFILE = path.join(root, 'home');
       environment.OPENCODE_TEST_HOME = path.join(root, 'home');
-      environment.VARRO_TEST_SERVER_URL = `http://127.0.0.1:${port}`;
+      environment.LOOMERY_TEST_SERVER_URL = `http://127.0.0.1:${port}`;
       environment.OPENCODE_CONFIG = path.join(dataRoot, 'opencode.json');
       await writeFile(environment.OPENCODE_CONFIG, JSON.stringify({ enabled_providers: [] }));
       const { stdout } = await promisify(execFile)(fakeCommand, ['--version'], {
@@ -340,7 +340,7 @@ async function runScenario(scenario, vscodeExecutable) {
       });
       const version = /^(?:opencode\s+v?)?(2\.\d+\.\d+(?:-[\w.-]+)?)\s*$/.exec(stdout.trim())?.[1];
       if (!version) throw new Error(`Expected a released v2 executable, got ${stdout.trim()}`);
-      environment.VARRO_SANDBOX_V2_VERSION = version;
+      environment.LOOMERY_SANDBOX_V2_VERSION = version;
     }
     await writeFile(
       path.join(settingsDirectory, 'settings.json'),
@@ -369,6 +369,7 @@ async function runScenario(scenario, vscodeExecutable) {
         `--user-data-dir=${userData}`,
         `--extensions-dir=${extensions}`,
         `--extensionDevelopmentPath=${projectRoot}`,
+        '--enable-proposed-api=quonaro.loomery',
         `--extensionTestsPath=${suitePath}`,
         ...(workspace ? [workspace] : []),
       ],
@@ -380,12 +381,12 @@ async function runScenario(scenario, vscodeExecutable) {
         XDG_CONFIG_HOME: path.join(dataRoot, 'config'),
         OPENCODE_DB: path.join(dataRoot, 'opencode.db'),
         OPENCODE_PID: '',
-        VARRO_SANDBOX_LAUNCH_FILE: launchFile,
-        VARRO_SANDBOX_PID_FILE: pidFile,
-        VARRO_SANDBOX_PORT: String(port),
-        VARRO_SANDBOX_SCENARIO: scenario,
-        VARRO_SANDBOX_FILE_LINK_ROOT: fileLinkRoot,
-        VARRO_SANDBOX_FILE_LINK_TARGET: fileLinkTarget,
+        LOOMERY_SANDBOX_LAUNCH_FILE: launchFile,
+        LOOMERY_SANDBOX_PID_FILE: pidFile,
+        LOOMERY_SANDBOX_PORT: String(port),
+        LOOMERY_SANDBOX_SCENARIO: scenario,
+        LOOMERY_SANDBOX_FILE_LINK_ROOT: fileLinkRoot,
+        LOOMERY_SANDBOX_FILE_LINK_TARGET: fileLinkTarget,
       },
       {
         metadataPath: path.join(root, 'launch.json'),

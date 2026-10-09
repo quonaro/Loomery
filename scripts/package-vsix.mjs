@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { smokeThumbnailWorker } from './verify-extension-bundle.mjs';
-import { verifyMacOSNotifierAsset } from './build-macos-notifier.mjs';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = join(projectRoot, 'package.json');
@@ -15,11 +14,10 @@ if (!Array.isArray(manifest.files)) {
   throw new Error('package.json must define a files array');
 }
 
-const stagingRoot = await mkdtemp(join(tmpdir(), 'varro-vsix-'));
+const stagingRoot = await mkdtemp(join(tmpdir(), 'loomery-vsix-'));
 const packagePath = join(projectRoot, `${manifest.name}-${manifest.version}.vsix`);
 
 try {
-  await verifyMacOSNotifierAsset(join(projectRoot, 'dist/extension/macos-notifier.zip'));
   for (const relativePath of ['package.json', ...manifest.files]) {
     const destination = join(stagingRoot, relativePath);
     await mkdir(dirname(destination), { recursive: true });

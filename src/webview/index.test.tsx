@@ -33,13 +33,13 @@ mocks.entryRoot.remove();
 let root: HTMLDivElement;
 let cleanup: (() => void) | undefined;
 let consoleError: ReturnType<typeof vi.spyOn>;
-const STARTUP_HANDLERS_KEY = '__clearVarroBootstrapFailureHandlers';
-const APP_CLEANUP_KEY = '__cleanupVarroApp';
+const STARTUP_HANDLERS_KEY = '__clearLoomeryBootstrapFailureHandlers';
+const APP_CLEANUP_KEY = '__cleanupLoomeryApp';
 // SAFETY: The fixture provides the unknown fields read by this statement.
 const bootstrapWindow = fixture<
   UnknownRecord & {
-    __clearVarroBootstrapFailureHandlers?: () => void;
-    __cleanupVarroApp?: () => void;
+    __clearLoomeryBootstrapFailureHandlers?: () => void;
+    __cleanupLoomeryApp?: () => void;
     __initialWebviewState?: unknown;
   }
 >(window);
@@ -49,11 +49,11 @@ describe('webview bootstrap', () => {
     bootstrapWindow[APP_CLEANUP_KEY]?.();
     delete bootstrapWindow[APP_CLEANUP_KEY];
     delete bootstrapWindow.__initialWebviewState;
-    document.documentElement.classList.remove('varro-editor-surface');
-    document.documentElement.classList.remove('varro-editor-layout-pending');
-    document.documentElement.style.removeProperty('--varro-chat-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-editor-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-font-family');
+    document.documentElement.classList.remove('loomery-editor-surface');
+    document.documentElement.classList.remove('loomery-editor-layout-pending');
+    document.documentElement.style.removeProperty('--loomery-chat-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-editor-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-font-family');
     mocks.cleanupBridge.mockReset();
     mocks.initializeBridge.mockReset();
     mocks.postMessage.mockReset().mockReturnValue(true);
@@ -74,11 +74,11 @@ describe('webview bootstrap', () => {
     delete bootstrapWindow[STARTUP_HANDLERS_KEY];
     delete bootstrapWindow[APP_CLEANUP_KEY];
     delete bootstrapWindow.__initialWebviewState;
-    document.documentElement.classList.remove('varro-editor-surface');
-    document.documentElement.classList.remove('varro-editor-layout-pending');
-    document.documentElement.style.removeProperty('--varro-chat-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-editor-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-font-family');
+    document.documentElement.classList.remove('loomery-editor-surface');
+    document.documentElement.classList.remove('loomery-editor-layout-pending');
+    document.documentElement.style.removeProperty('--loomery-chat-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-editor-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-font-family');
     consoleError.mockRestore();
   });
 
@@ -94,7 +94,7 @@ describe('webview bootstrap', () => {
     expect(root.textContent).not.toContain('boot failed');
     expect(mocks.clearStartupHandlers).toHaveBeenCalledOnce();
     expect(mocks.cleanupBridge).toHaveBeenCalledOnce();
-    expect(consoleError).toHaveBeenCalledWith('Varro webview bootstrap failed', error);
+    expect(consoleError).toHaveBeenCalledWith('Loomery webview bootstrap failed', error);
 
     root.querySelector<HTMLButtonElement>('button')?.click();
     expect(mocks.postMessage).toHaveBeenCalledWith({ type: 'webview/reload' });
@@ -111,10 +111,10 @@ describe('webview bootstrap', () => {
 
     cleanup = bootstrap(root);
 
-    expect(document.documentElement.classList.contains('varro-editor-surface')).toBe(true);
+    expect(document.documentElement.classList.contains('loomery-editor-surface')).toBe(true);
     cleanup();
     cleanup = undefined;
-    expect(document.documentElement.classList.contains('varro-editor-surface')).toBe(false);
+    expect(document.documentElement.classList.contains('loomery-editor-surface')).toBe(false);
   });
 
   it('applies initial chat font properties before rendering', () => {
@@ -126,13 +126,13 @@ describe('webview bootstrap', () => {
 
     cleanup = bootstrap(root);
 
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
       '15.5px'
     );
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-editor-font-size')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-editor-font-size')).toBe(
       '14px'
     );
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-family')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-family')).toBe(
       'Iosevka, monospace'
     );
   });
@@ -414,22 +414,22 @@ describe('webview bootstrap', () => {
     };
 
     cleanup = bootstrap(root);
-    expect(document.documentElement.classList.contains('varro-editor-layout-pending')).toBe(true);
+    expect(document.documentElement.classList.contains('loomery-editor-layout-pending')).toBe(true);
     await vi.waitFor(() => {
-      expect(document.documentElement.classList.contains('varro-editor-layout-pending')).toBe(
+      expect(document.documentElement.classList.contains('loomery-editor-layout-pending')).toBe(
         false
       );
     });
 
     visibilityState = 'hidden';
     document.dispatchEvent(new Event('visibilitychange'));
-    expect(document.documentElement.classList.contains('varro-editor-layout-pending')).toBe(true);
+    expect(document.documentElement.classList.contains('loomery-editor-layout-pending')).toBe(true);
 
     visibilityState = 'visible';
     document.dispatchEvent(new Event('visibilitychange'));
     window.dispatchEvent(new Event('resize'));
     await vi.waitFor(() => {
-      expect(document.documentElement.classList.contains('varro-editor-layout-pending')).toBe(
+      expect(document.documentElement.classList.contains('loomery-editor-layout-pending')).toBe(
         false
       );
     });
@@ -443,7 +443,7 @@ describe('webview bootstrap', () => {
     expect(mocks.clearStartupHandlers).toHaveBeenCalledOnce();
     expect(mocks.cleanupBridge).toHaveBeenCalledOnce();
     expect(consoleError).toHaveBeenCalledWith(
-      'Varro webview bootstrap failed',
+      'Loomery webview bootstrap failed',
       expect.objectContaining({ message: 'Webview root element not found' })
     );
   });
@@ -499,7 +499,7 @@ describe('webview bootstrap', () => {
     cleanup();
     cleanup = undefined;
 
-    expect(consoleError).toHaveBeenCalledWith('Varro webview disposal failed', error);
+    expect(consoleError).toHaveBeenCalledWith('Loomery webview disposal failed', error);
     expect(mocks.cleanupBridge).toHaveBeenCalledOnce();
   });
 
@@ -517,6 +517,9 @@ describe('webview bootstrap', () => {
 
     expect(root.textContent).toContain('Something went wrong');
     expect(root.textContent).not.toContain('boot failed');
-    expect(consoleError).toHaveBeenCalledWith('Varro webview bridge cleanup failed', cleanupError);
+    expect(consoleError).toHaveBeenCalledWith(
+      'Loomery webview bridge cleanup failed',
+      cleanupError
+    );
   });
 });

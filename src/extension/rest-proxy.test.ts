@@ -273,25 +273,25 @@ describe('scopeOpenCodeRequest', () => {
     const result = scopeOpenCodeRequest(
       'http://127.0.0.1:4096',
       '/session',
-      'C:\\Users\\Andrew\\Projects\\Varro\\'
+      'C:\\Users\\Andrew\\Projects\\Loomery\\'
     );
 
     expect(result.url).toBe(
-      'http://127.0.0.1:4096/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro'
+      'http://127.0.0.1:4096/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery'
     );
-    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Varro');
+    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Loomery');
   });
 
   it('preserves Windows path separators and casing when scoping requests', () => {
     const result = scopeOpenCodeRequest(
       'http://127.0.0.1:4096',
       '/session',
-      'C:\\Users\\Andrew\\Projects\\Varro'
+      'C:\\Users\\Andrew\\Projects\\Loomery'
     );
 
-    expect(result.url).toContain('directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro');
-    expect(result.url).not.toContain('c%3A%2Fusers%2Fandrew%2Fprojects%2Fvarro');
-    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Varro');
+    expect(result.url).toContain('directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery');
+    expect(result.url).not.toContain('c%3A%2Fusers%2Fandrew%2Fprojects%2Floomery');
+    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Loomery');
   });
 
   it('preserves Windows drive and UNC roots', () => {
@@ -306,26 +306,26 @@ describe('scopeOpenCodeRequest', () => {
   it('prefers an explicit directory query over the fallback workspace directory', () => {
     const result = scopeOpenCodeRequest(
       'http://127.0.0.1:4096',
-      '/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro',
+      '/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery',
       'D:\\Other'
     );
 
     expect(result.url).toBe(
-      'http://127.0.0.1:4096/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro'
+      'http://127.0.0.1:4096/session?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery'
     );
-    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Varro');
+    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Loomery');
   });
 
   it('normalizes an explicit Windows directory query for session deletes', () => {
     const result = scopeOpenCodeRequest(
       'http://127.0.0.1:4096',
-      '/session/some-id?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro%5C'
+      '/session/some-id?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery%5C'
     );
 
     expect(result.url).toBe(
-      'http://127.0.0.1:4096/session/some-id?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro'
+      'http://127.0.0.1:4096/session/some-id?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery'
     );
-    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Varro');
+    expect(result.directory).toBe('C:\\Users\\Andrew\\Projects\\Loomery');
   });
 
   it('skips directory param for global paths', () => {
@@ -414,8 +414,8 @@ describe('getOpenCodeDirectoryHeaders', () => {
   });
 
   it('encodes Windows directories without changing separators or casing', () => {
-    expect(getOpenCodeDirectoryHeaders('C:\\Users\\Andrew\\Projects\\Varro')).toEqual({
-      'x-opencode-directory': 'C%3A%5CUsers%5CAndrew%5CProjects%5CVarro',
+    expect(getOpenCodeDirectoryHeaders('C:\\Users\\Andrew\\Projects\\Loomery')).toEqual({
+      'x-opencode-directory': 'C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery',
     });
   });
 
@@ -442,7 +442,7 @@ describe('RestProxy handleRequest', () => {
     try {
       const callbacks = createCallbacks();
       const proxy = new RestProxy(callbacks);
-      await proxy.handleRequest(makePayload(990, 'GET', '/varro/workspace-problems'));
+      await proxy.handleRequest(makePayload(990, 'GET', '/loomery/workspace-problems'));
       expect(collect).toHaveBeenCalledWith('/repo');
       expect(callbacks.postApiResponse).toHaveBeenCalledWith(expect.any(Number), {
         id: 990,
@@ -460,7 +460,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy();
 
     await proxy.handleRequest(
-      makePayload(1, 'POST', '/varro/plan/open', { content: '# Plan\n\n1. Ship it' })
+      makePayload(1, 'POST', '/loomery/plan/open', { content: '# Plan\n\n1. Ship it' })
     );
 
     expect(mocks.vscode.commands.executeCommand).toHaveBeenCalledWith(
@@ -475,7 +475,7 @@ describe('RestProxy handleRequest', () => {
   it('persists workspace scope in OpenCode session metadata', async () => {
     const { proxy, callbacks } = createProxy();
     const metadata = {
-      varro: { workspaceScope: 'workspace', schemaVersion: 1 },
+      loomery: { workspaceScope: 'workspace', schemaVersion: 1 },
     };
     vi.mocked(callbacks.server.request).mockResolvedValue({
       id: 'session-workspace',
@@ -519,7 +519,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     const workspaceMetadata = {
-      varro: { workspaceScope: 'workspace', schemaVersion: 1 },
+      loomery: { workspaceScope: 'workspace', schemaVersion: 1 },
     };
     vi.mocked(callbacks.server.request).mockResolvedValueOnce({
       id: 'workspace-session',
@@ -604,7 +604,7 @@ describe('RestProxy handleRequest', () => {
   it.each([1, 2] as const)(
     'scopes no-project creation, prompts, and history to scratch on API v%s',
     async (apiVersion) => {
-      const scratch = '/varro/scratch';
+      const scratch = '/loomery/scratch';
       const { proxy, callbacks } = createProxy({
         server: { ...createCallbacks().server, apiVersion },
       });
@@ -624,11 +624,11 @@ describe('RestProxy handleRequest', () => {
       vi.mocked(callbacks.server.request).mockResolvedValueOnce(session);
 
       await proxy.handleRequest(
-        makePayload(1, 'POST', '/session?directory=%2Fvarro%2Fscratch', {})
+        makePayload(1, 'POST', '/session?directory=%2Floomery%2Fscratch', {})
       );
       expect(callbacks.server.request).toHaveBeenLastCalledWith(
         'POST',
-        '/session?directory=%2Fvarro%2Fscratch',
+        '/session?directory=%2Floomery%2Fscratch',
         {},
         withSignal({ directory: scratch })
       );
@@ -637,7 +637,7 @@ describe('RestProxy handleRequest', () => {
         makePayload(
           2,
           'POST',
-          '/session/scratch-session/prompt_async?directory=%2Fvarro%2Fscratch',
+          '/session/scratch-session/prompt_async?directory=%2Floomery%2Fscratch',
           {
             system: 'Keep this instruction',
             agent: 'build',
@@ -649,7 +649,7 @@ describe('RestProxy handleRequest', () => {
       for (const instruction of [
         'Keep this instruction',
         'No project or workspace folder is open in VS Code.',
-        'general-purpose Varro scratch folder, not a project root',
+        'general-purpose Loomery scratch folder, not a project root',
         'Do not assume any repository or project is in scope',
         'subject to tool permissions',
         'do not retry the denied action',
@@ -670,7 +670,7 @@ describe('RestProxy handleRequest', () => {
       await proxy.handleRequest(makePayload(3, 'GET', '/session'));
       expect(callbacks.postApiResponse).toHaveBeenLastCalledWith(1, {
         id: 3,
-        error: 'OpenCode returned a session outside workspace root /varro/scratch',
+        error: 'OpenCode returned a session outside workspace root /loomery/scratch',
       });
       vi.mocked(callbacks.server.request).mockResolvedValue([session]);
       await proxy.handleRequest(makePayload(5, 'GET', '/session'));
@@ -688,7 +688,7 @@ describe('RestProxy handleRequest', () => {
   it('persists inherited workspace metadata when OpenCode omits it from a fork', async () => {
     const { proxy, callbacks } = createProxy();
     const metadata = {
-      varro: { workspaceScope: 'workspace', schemaVersion: 1 },
+      loomery: { workspaceScope: 'workspace', schemaVersion: 1 },
     };
     vi.mocked(callbacks.server.request)
       .mockResolvedValueOnce({
@@ -908,7 +908,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(8, 'POST', '/varro/session/session-1/pin', { pinned: true })
+      makePayload(8, 'POST', '/loomery/session/session-1/pin', { pinned: true })
     );
 
     expect(setPinned).toHaveBeenCalledWith('session-1', true);
@@ -923,7 +923,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy();
 
     await proxy.handleRequest(
-      makePayload(9, 'POST', '/varro/session/session-1/pin', { pinned: 'yes' })
+      makePayload(9, 'POST', '/loomery/session/session-1/pin', { pinned: 'yes' })
     );
 
     expect(callbacks.pinnedSessions.setPinned).not.toHaveBeenCalled();
@@ -940,7 +940,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(93, 'POST', '/varro/session/session-1/reorder-pin?directory=%2Frepo', {
+      makePayload(93, 'POST', '/loomery/session/session-1/reorder-pin?directory=%2Frepo', {
         targetSessionID: 'session-2',
         targetDirectory: '/repo',
       })
@@ -958,7 +958,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy();
 
     await proxy.handleRequest(
-      makePayload(94, 'POST', '/varro/session/session-1/reorder-pin', {
+      makePayload(94, 'POST', '/loomery/session/session-1/reorder-pin', {
         targetSessionID: '',
       })
     );
@@ -994,7 +994,7 @@ describe('RestProxy handleRequest', () => {
     });
   });
 
-  it('rejects foreign sessions before local Varro actions run', async () => {
+  it('rejects foreign sessions before local Loomery actions run', async () => {
     const setPinned = vi.fn(() => Promise.resolve(['foreign']));
     const { proxy, callbacks } = createProxy({
       server: {
@@ -1009,7 +1009,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(92, 'POST', '/varro/session/foreign/pin', { pinned: true })
+      makePayload(92, 'POST', '/loomery/session/foreign/pin', { pinned: true })
     );
 
     expect(setPinned).not.toHaveBeenCalled();
@@ -1023,9 +1023,9 @@ describe('RestProxy handleRequest', () => {
     const serverRequest = vi.fn(async (method: string, path: string) => {
       if (
         method === 'GET' &&
-        path === '/session/session%20one?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro'
+        path === '/session/session%20one?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery'
       ) {
-        return { id: 'session one', directory: 'c:/users/andrew/projects/VARRO/' };
+        return { id: 'session one', directory: 'c:/users/andrew/projects/LOOMERY/' };
       }
       if (method === 'GET' && path === '/session/session%20one/message') return [];
       throw new Error(`Unexpected request: ${method} ${path}`);
@@ -1034,7 +1034,7 @@ describe('RestProxy handleRequest', () => {
       contextProvider: {
         ...createCallbacks().contextProvider,
         context: {
-          workspacePath: 'C:\\Users\\Andrew\\Projects\\Varro',
+          workspacePath: 'C:\\Users\\Andrew\\Projects\\Loomery',
           activeFile: null,
           selection: null,
           diagnostics: [],
@@ -1050,7 +1050,7 @@ describe('RestProxy handleRequest', () => {
     await proxy.handleRequest(makePayload(93, 'GET', '/session/session%20one/message'));
 
     expect(serverRequest.mock.calls).toEqual([
-      ['GET', '/session/session%20one?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CVarro'],
+      ['GET', '/session/session%20one?directory=C%3A%5CUsers%5CAndrew%5CProjects%5CLoomery'],
       ['GET', '/session/session%20one/message', undefined, withSignal()],
     ]);
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 93, data: [] });
@@ -1098,9 +1098,9 @@ describe('RestProxy handleRequest', () => {
     };
     const { proxy, callbacks } = createProxy({ decisionProviders: decisionProviders as never });
 
-    await proxy.handleRequest(makePayload(935, 'GET', '/varro/decision-providers'));
+    await proxy.handleRequest(makePayload(935, 'GET', '/loomery/decision-providers'));
     await proxy.handleRequest(
-      makePayload(936, 'POST', '/varro/decision-providers', {
+      makePayload(936, 'POST', '/loomery/decision-providers', {
         action: 'update',
         autoApprove: true,
         ignored: 'x',
@@ -1240,7 +1240,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(934, 'GET', '/varro/workspace-file?path=README.md&directory=%2Frepo-b')
+      makePayload(934, 'GET', '/loomery/workspace-file?path=README.md&directory=%2Frepo-b')
     );
 
     expect(serverRequest).not.toHaveBeenCalled();
@@ -1274,20 +1274,20 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({
       contextProvider: {
         ...createCallbacks().contextProvider,
-        getOpenWorkspaceRoot: vi.fn(() => 'C:\\Projects\\Varro'),
+        getOpenWorkspaceRoot: vi.fn(() => 'C:\\Projects\\Loomery'),
       } as never,
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
     await proxy.handleRequest(
-      makePayload(941, 'POST', '/session?directory=c%3A%2Fprojects%2FVARRO%2F', {})
+      makePayload(941, 'POST', '/session?directory=c%3A%2Fprojects%2FLOOMERY%2F', {})
     );
 
     expect(serverRequest).toHaveBeenCalledWith(
       'POST',
-      '/session?directory=C%3A%5CProjects%5CVarro',
+      '/session?directory=C%3A%5CProjects%5CLoomery',
       {},
-      withSignal({ directory: 'C:\\Projects\\Varro' })
+      withSignal({ directory: 'C:\\Projects\\Loomery' })
     );
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 941,
@@ -1414,7 +1414,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({ activateSession });
 
     await proxy.handleRequest(
-      makePayload(97, 'POST', '/varro/session/session-b/activate', {
+      makePayload(97, 'POST', '/loomery/session/session-b/activate', {
         directory: '/repo-b',
       })
     );
@@ -1432,7 +1432,7 @@ describe('RestProxy handleRequest', () => {
   });
 
   it('remembers workspace scope from an activated session', async () => {
-    const metadata = { varro: { workspaceScope: 'workspace', schemaVersion: 1 } };
+    const metadata = { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } };
     const activateSession = vi.fn(() =>
       Promise.resolve({ id: 'session-workspace', directory: '/workspace', metadata })
     );
@@ -1442,7 +1442,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy(callbacks);
 
     await proxy.handleRequest(
-      makePayload(98, 'POST', '/varro/session/session-workspace/activate', {
+      makePayload(98, 'POST', '/loomery/session/session-workspace/activate', {
         directory: '/workspace',
       })
     );
@@ -1466,7 +1466,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => trashList),
       } as never,
     });
-    await proxy.handleRequest(makePayload(2, 'GET', '/varro/session-trash'));
+    await proxy.handleRequest(makePayload(2, 'GET', '/loomery/session-trash'));
     expect(callbacks.sessionTrash.list).toHaveBeenCalledWith();
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 2, data: trashList });
   });
@@ -1487,7 +1487,7 @@ describe('RestProxy handleRequest', () => {
     });
     const { proxy } = createProxy(callbacks);
 
-    await proxy.handleRequest(makePayload(21, 'GET', '/varro/session-trash'));
+    await proxy.handleRequest(makePayload(21, 'GET', '/loomery/session-trash'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 21, data: [nested] });
   });
@@ -1518,10 +1518,10 @@ describe('RestProxy handleRequest', () => {
       } as never,
     });
 
-    await proxy.handleRequest(makePayload(211, 'GET', '/varro/session-trash'));
-    await proxy.handleRequest(makePayload(212, 'POST', '/varro/session-trash/sibling/restore'));
-    await proxy.handleRequest(makePayload(213, 'DELETE', '/varro/session-trash/sibling/delete'));
-    await proxy.handleRequest(makePayload(214, 'DELETE', '/varro/session-trash'));
+    await proxy.handleRequest(makePayload(211, 'GET', '/loomery/session-trash'));
+    await proxy.handleRequest(makePayload(212, 'POST', '/loomery/session-trash/sibling/restore'));
+    await proxy.handleRequest(makePayload(213, 'DELETE', '/loomery/session-trash/sibling/delete'));
+    await proxy.handleRequest(makePayload(214, 'DELETE', '/loomery/session-trash'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 211, data: [sibling] });
     expect(restore).toHaveBeenCalledWith('sibling', '/worktrees/feature');
@@ -1561,7 +1561,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => [recycleBinEntry('s1', '/repo/a'), recycleBinEntry('s2', '/repo/b')]),
       } as never,
     });
-    await proxy.handleRequest(makePayload(3, 'DELETE', '/varro/session-trash'));
+    await proxy.handleRequest(makePayload(3, 'DELETE', '/loomery/session-trash'));
     expect(callbacks.sessionTrash.empty).toHaveBeenCalledWith(expect.any(Function), '/repo/a', [
       's1',
     ]);
@@ -1584,7 +1584,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => [recycleBinEntry('abc', '/repo')]),
       } as never,
     });
-    await proxy.handleRequest(makePayload(4, 'POST', '/varro/session-trash/abc/restore'));
+    await proxy.handleRequest(makePayload(4, 'POST', '/loomery/session-trash/abc/restore'));
     expect(callbacks.sessionTrash.restore).toHaveBeenCalledWith('abc', '/repo');
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 4, data: true });
   });
@@ -1613,7 +1613,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => [recycleBinEntry('abc', '/repo', ['s1', 's2'])]),
       } as never,
     });
-    await proxy.handleRequest(makePayload(5, 'DELETE', '/varro/session-trash/abc/delete'));
+    await proxy.handleRequest(makePayload(5, 'DELETE', '/loomery/session-trash/abc/delete'));
     expect(callbacks.sessionTrash.deletePermanently).toHaveBeenCalledWith(
       'abc',
       expect.any(Function),
@@ -1655,7 +1655,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => [recycleBinEntry('legacy-1', '/repo')]),
       } as never,
     });
-    await proxy.handleRequest(makePayload(6, 'DELETE', '/varro/session-trash/legacy-1/delete'));
+    await proxy.handleRequest(makePayload(6, 'DELETE', '/loomery/session-trash/legacy-1/delete'));
     expect(callbacks.sessionState.removeSessions).toHaveBeenCalledWith(['legacy-1']);
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 6, data: true });
   });
@@ -1685,7 +1685,7 @@ describe('RestProxy handleRequest', () => {
         list: vi.fn(() => [recycleBinEntry('busy-1', '/repo')]),
       } as never,
     });
-    await proxy.handleRequest(makePayload(7, 'DELETE', '/varro/session-trash/busy-1/delete'));
+    await proxy.handleRequest(makePayload(7, 'DELETE', '/loomery/session-trash/busy-1/delete'));
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 7,
       error: '500 Unexpected server error',
@@ -1700,7 +1700,7 @@ describe('RestProxy handleRequest', () => {
         readFile: vi.fn(() => Promise.resolve(fileContent)),
       } as never,
     });
-    await proxy.handleRequest(makePayload(6, 'GET', '/varro/workspace-file?path=src/foo.ts'));
+    await proxy.handleRequest(makePayload(6, 'GET', '/loomery/workspace-file?path=src/foo.ts'));
     expect(callbacks.contextProvider.readFile).toHaveBeenCalledWith('src/foo.ts', {
       restrictToWorkspace: true,
       workspaceDirectory: '/repo',
@@ -1722,7 +1722,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(61, 'GET', '/varro/workspace-path/resolve?path=src/foo.ts')
+      makePayload(61, 'GET', '/loomery/workspace-path/resolve?path=src/foo.ts')
     );
 
     expect(callbacks.contextProvider.resolvePath).toHaveBeenCalledWith('src/foo.ts', {
@@ -1757,7 +1757,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy();
     try {
       await proxy.handleRequest(
-        makePayload(62, 'POST', '/varro/copied-selection/match', { text: 'selected code' })
+        makePayload(62, 'POST', '/loomery/copied-selection/match', { text: 'selected code' })
       );
       expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
         id: 62,
@@ -1785,7 +1785,7 @@ describe('RestProxy handleRequest', () => {
     });
     try {
       await proxy.handleRequest(
-        makePayload(62, 'POST', '/varro/copied-selection/match', {
+        makePayload(62, 'POST', '/loomery/copied-selection/match', {
           text: 'selected code',
           plainTextOnly: true,
         })
@@ -1809,7 +1809,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy();
     try {
       await proxy.handleRequest(
-        makePayload(63, 'POST', '/varro/copied-selection/match', { text: 'fooBar = 1;\nend' })
+        makePayload(63, 'POST', '/loomery/copied-selection/match', { text: 'fooBar = 1;\nend' })
       );
       expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
         id: 63,
@@ -1831,19 +1831,19 @@ describe('RestProxy handleRequest', () => {
       contextProvider: { ...createCallbacks().contextProvider, findTerminalText } as never,
     });
     await proxy.handleRequest(
-      makePayload(64, 'POST', '/varro/copied-selection/match', {
+      makePayload(64, 'POST', '/loomery/copied-selection/match', {
         text: 'terminal output',
         plainTextOnly: true,
       })
     );
     await proxy.handleRequest(
-      makePayload(65, 'POST', '/varro/copied-selection/match', {
+      makePayload(65, 'POST', '/loomery/copied-selection/match', {
         text: 'different output',
         plainTextOnly: true,
       })
     );
     await proxy.handleRequest(
-      makePayload(66, 'POST', '/varro/copied-selection/match', {
+      makePayload(66, 'POST', '/loomery/copied-selection/match', {
         text: 'terminal output',
         plainTextOnly: false,
       })
@@ -1867,7 +1867,7 @@ describe('RestProxy handleRequest', () => {
     mocks.vscode.workspace.asRelativePath.mockReturnValueOnce('docs/RALPH.md');
     const { proxy, callbacks } = createProxy();
 
-    await proxy.handleRequest(makePayload(62, 'GET', '/varro/workspace-file/pick'));
+    await proxy.handleRequest(makePayload(62, 'GET', '/loomery/workspace-file/pick'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 62,
@@ -1881,7 +1881,7 @@ describe('RestProxy handleRequest', () => {
     mocks.vscode.workspace.getWorkspaceFolder.mockReturnValueOnce(undefined);
     const { proxy, callbacks } = createProxy();
 
-    await proxy.handleRequest(makePayload(63, 'GET', '/varro/workspace-file/pick'));
+    await proxy.handleRequest(makePayload(63, 'GET', '/loomery/workspace-file/pick'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 63,
@@ -1891,7 +1891,7 @@ describe('RestProxy handleRequest', () => {
 
   it('returns error for workspace file request without path', async () => {
     const { proxy, callbacks } = createProxy();
-    await proxy.handleRequest(makePayload(7, 'GET', '/varro/workspace-file'));
+    await proxy.handleRequest(makePayload(7, 'GET', '/loomery/workspace-file'));
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 7,
       error: 'Unsupported API request',
@@ -1904,7 +1904,7 @@ describe('RestProxy handleRequest', () => {
       providerLimitService: { get: vi.fn(() => Promise.resolve(limitStatus)) } as never,
     });
     await proxy.handleRequest(
-      makePayload(8, 'GET', '/varro/provider-limit?providerID=openai&modelID=gpt-4')
+      makePayload(8, 'GET', '/loomery/provider-limit?providerID=openai&modelID=gpt-4')
     );
     expect(callbacks.providerLimitService.get).toHaveBeenCalledWith('openai', 'gpt-4', '/repo');
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 8, data: limitStatus });
@@ -1928,7 +1928,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest({
-      ...makePayload(81, 'POST', '/varro/permission/judge', {
+      ...makePayload(81, 'POST', '/loomery/permission/judge', {
         permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
         model: { providerID: 'openai', modelID: 'gpt-4.1' },
         approvedReferences: [{ type: 'bash', title: 'bash npm publish', response: 'reject' }],
@@ -1952,7 +1952,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy();
 
     await proxy.handleRequest(
-      makePayload(82, 'POST', '/varro/permission/judge', {
+      makePayload(82, 'POST', '/loomery/permission/judge', {
         permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
       })
     );
@@ -2018,7 +2018,7 @@ describe('RestProxy handleRequest', () => {
       makePayload(
         89,
         'GET',
-        '/varro/permission/server-memory?sessionId=session-1&directory=%2Frepo'
+        '/loomery/permission/server-memory?sessionId=session-1&directory=%2Frepo'
       )
     );
 
@@ -2046,7 +2046,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest({
-      ...makePayload(84, 'POST', '/varro/permission/judge', {
+      ...makePayload(84, 'POST', '/loomery/permission/judge', {
         permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
       }),
       permissionAutomationLease: 7,
@@ -2074,7 +2074,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     const request = proxy.handleRequest({
-      ...makePayload(86, 'POST', '/varro/permission/judge', {
+      ...makePayload(86, 'POST', '/loomery/permission/judge', {
         permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
       }),
       permissionAutomationLease: 7,
@@ -2156,7 +2156,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(85, 'POST', '/varro/session/session-1/permission-mode', { mode: 'auto' })
+      makePayload(85, 'POST', '/loomery/session/session-1/permission-mode', { mode: 'auto' })
     );
 
     expect(callbacks.updatePermissionMode).toHaveBeenCalledWith('session-1', 'auto', '/repo');
@@ -2172,7 +2172,7 @@ describe('RestProxy handleRequest', () => {
     ];
 
     await proxy.handleRequest(
-      makePayload(850, 'POST', '/varro/session/session-1/permission-mode', {
+      makePayload(850, 'POST', '/loomery/session/session-1/permission-mode', {
         mode: 'default',
         defaultPermission,
       })
@@ -2218,7 +2218,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(852, 'POST', '/varro/permission/project-allow?directory=%2Frepo', {
+      makePayload(852, 'POST', '/loomery/permission/project-allow?directory=%2Frepo', {
         sessionId: 'session-1',
         permissionId: 'perm-1',
       })
@@ -2308,7 +2308,7 @@ describe('RestProxy handleRequest', () => {
       makePayload(
         8521,
         'POST',
-        `/varro/permission/${scope}-allow?directory=${encodeURIComponent(directory)}`,
+        `/loomery/permission/${scope}-allow?directory=${encodeURIComponent(directory)}`,
         { sessionId: 'session-other', permissionId: 'perm-other' }
       )
     );
@@ -2357,7 +2357,7 @@ describe('RestProxy handleRequest', () => {
       });
 
       await proxy.handleRequest(
-        makePayload(8522, 'POST', `/varro/permission/${scope}-allow?directory=%2Frepo-b`, {
+        makePayload(8522, 'POST', `/loomery/permission/${scope}-allow?directory=%2Frepo-b`, {
           sessionId: 'session-1',
           permissionId: 'perm-1',
         })
@@ -2402,7 +2402,7 @@ describe('RestProxy handleRequest', () => {
       });
 
       await proxy.handleRequest(
-        makePayload(8523, 'POST', `/varro/permission/${scope}-allow?directory=%2Frepo-b`, {
+        makePayload(8523, 'POST', `/loomery/permission/${scope}-allow?directory=%2Frepo-b`, {
           sessionId: 'session-1',
           permissionId: 'perm-1',
         })
@@ -2449,7 +2449,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(856, 'POST', '/varro/permission/project-allow?directory=%2Frepo', {
+      makePayload(856, 'POST', '/loomery/permission/project-allow?directory=%2Frepo', {
         sessionId: 'session-1',
         permissionId: 'perm-webfetch',
       })
@@ -2492,7 +2492,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(857, 'POST', '/varro/permission/project-allow?directory=%2Frepo', {
+      makePayload(857, 'POST', '/loomery/permission/project-allow?directory=%2Frepo', {
         sessionId: 'session-1',
         permissionId: 'perm-bash',
       })
@@ -2530,7 +2530,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(854, 'POST', '/varro/permission/session-allow?directory=%2Frepo', {
+      makePayload(854, 'POST', '/loomery/permission/session-allow?directory=%2Frepo', {
         sessionId: 'session-1',
         permissionId: 'perm-1',
       })
@@ -2558,7 +2558,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({ updatePermissionRulesForSession });
 
     await proxy.handleRequest(
-      makePayload(855, 'POST', '/varro/permission/session-rules?directory=%2Frepo', {
+      makePayload(855, 'POST', '/loomery/permission/session-rules?directory=%2Frepo', {
         sessionId: 'session-1',
         rules,
       })
@@ -2607,11 +2607,11 @@ describe('RestProxy handleRequest', () => {
       makePayload(
         856,
         'GET',
-        '/varro/permission/server-memory?sessionId=session-1&directory=%2Frepo'
+        '/loomery/permission/server-memory?sessionId=session-1&directory=%2Frepo'
       )
     );
     await proxy.handleRequest(
-      makePayload(857, 'DELETE', '/varro/permission/server-memory?directory=%2Frepo', {
+      makePayload(857, 'DELETE', '/loomery/permission/server-memory?directory=%2Frepo', {
         sessionId: 'session-1',
         id: 'saved-1',
       })
@@ -2670,10 +2670,10 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(858, 'GET', '/varro/permission/server-memory?directory=%2Frepo')
+      makePayload(858, 'GET', '/loomery/permission/server-memory?directory=%2Frepo')
     );
     await proxy.handleRequest(
-      makePayload(859, 'DELETE', '/varro/permission/server-memory?directory=%2Frepo', {
+      makePayload(859, 'DELETE', '/loomery/permission/server-memory?directory=%2Frepo', {
         id: 'saved-1',
       })
     );
@@ -2707,7 +2707,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest(
-      makePayload(853, 'POST', '/varro/permission/project-allow', {
+      makePayload(853, 'POST', '/loomery/permission/project-allow', {
         sessionId: 'session-1',
         permissionId: 'perm-missing',
       })
@@ -2725,7 +2725,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({ updatePermissionMode });
 
     await proxy.handleRequest(
-      makePayload(851, 'POST', '/varro/session/session-1/permission-mode', {
+      makePayload(851, 'POST', '/loomery/session/session-1/permission-mode', {
         mode: 'full',
         preconfigured: true,
       })
@@ -2747,7 +2747,7 @@ describe('RestProxy handleRequest', () => {
     });
 
     await proxy.handleRequest({
-      ...makePayload(83, 'POST', '/varro/permission/judge', {
+      ...makePayload(83, 'POST', '/loomery/permission/judge', {
         permission: { id: 'perm-foreign', type: 'edit', sessionID: 'session-foreign' },
       }),
       permissionAutomationLease: 0,
@@ -2773,7 +2773,7 @@ describe('RestProxy handleRequest', () => {
       makePayload(
         82,
         'GET',
-        '/varro/permission/judge/model?providerID=openai&modelID=gpt-4.1&variant=low'
+        '/loomery/permission/judge/model?providerID=openai&modelID=gpt-4.1&variant=low'
       )
     );
 
@@ -2798,7 +2798,7 @@ describe('RestProxy handleRequest', () => {
       });
 
       await proxy.handleRequest(
-        makePayload(1, 'POST', `/varro/session/session-1/rename-if-untitled${query}`)
+        makePayload(1, 'POST', `/loomery/session/session-1/rename-if-untitled${query}`)
       );
 
       expect(callbacks.sessionTitleFallback.renameIfUntitled).toHaveBeenCalledWith(
@@ -2916,7 +2916,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(82, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(82, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(serverRequest.mock.calls).toEqual([
       ['GET', '/session/session-1/diff', undefined, { directory: '/repo' }],
@@ -3031,7 +3031,7 @@ describe('RestProxy handleRequest', () => {
         server: { ...createCallbacks().server, apiVersion, request: serverRequest } as never,
       });
 
-      await proxy.handleRequest(makePayload(822, 'GET', '/varro/session/session-1/diff-summary'));
+      await proxy.handleRequest(makePayload(822, 'GET', '/loomery/session/session-1/diff-summary'));
 
       expect(readLocalSessionSummary).toHaveBeenCalledWith('session-1');
       expect(serverRequest).not.toHaveBeenCalled();
@@ -3083,7 +3083,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({
       server: { ...createCallbacks().server, apiVersion: 2, request: serverRequest } as never,
       readLocalSessionSummary: vi.fn(async () => ({
-        metadata: { varro: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } },
+        metadata: { loomery: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } },
         messages: [
           { info: { id: 'prompt', role: 'user', time: { created: 1_000 } }, parts: [] },
           { info: { id: 'paused', role: 'assistant', time: { created: 2_000 } }, parts: [] },
@@ -3091,7 +3091,7 @@ describe('RestProxy handleRequest', () => {
         descendants: [],
       })),
     });
-    await proxy.handleRequest(makePayload(827, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(827, 'GET', '/loomery/session/session-1/diff-summary'));
     expect(serverRequest).not.toHaveBeenCalled();
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 827,
@@ -3102,7 +3102,7 @@ describe('RestProxy handleRequest', () => {
   it('preserves v2 API pause metadata when SQLite is unavailable', async () => {
     const serverRequest = vi.fn<RestProxyCallbacks['server']['request']>(async (_method, path) => {
       if (path === '/session/session-1')
-        return { metadata: { varro: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } } };
+        return { metadata: { loomery: { pauses: [{ messageId: 'paused', pausedAt: 11_000 }] } } };
       if (path.endsWith('/message'))
         return [
           { info: { id: 'prompt', role: 'user', time: { created: 1_000 } }, parts: [] },
@@ -3114,7 +3114,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, apiVersion: 2, request: serverRequest } as never,
       readLocalSessionSummary: vi.fn(async () => null),
     });
-    await proxy.handleRequest(makePayload(828, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(828, 'GET', '/loomery/session/session-1/diff-summary'));
     expect(serverRequest).toHaveBeenCalledWith('GET', '/session/session-1', undefined, {
       directory: '/repo',
     });
@@ -3134,7 +3134,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(823, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(823, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(readLocalSessionSummary).toHaveBeenCalledWith('session-1');
     expect(serverRequest).toHaveBeenCalledWith('GET', '/session/session-1/diff', undefined, {
@@ -3163,7 +3163,7 @@ describe('RestProxy handleRequest', () => {
         server: { ...createCallbacks().server, request: serverRequest } as never,
       });
 
-      await proxy.handleRequest(makePayload(824, 'GET', '/varro/session/session-1/diff-summary'));
+      await proxy.handleRequest(makePayload(824, 'GET', '/loomery/session/session-1/diff-summary'));
 
       expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
         id: 824,
@@ -3205,7 +3205,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(825, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(825, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 825,
@@ -3237,7 +3237,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(88, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(88, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 88,
@@ -3264,7 +3264,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(89, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(89, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 89,
@@ -3302,7 +3302,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(821, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(821, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(serverRequest).toHaveBeenCalledWith('GET', '/session?limit=1000000', undefined, {
       directory: '/repo',
@@ -3368,7 +3368,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(83, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(83, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 83,
@@ -3418,7 +3418,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(831, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(831, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(messageAttempts).toBe(1);
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
@@ -3477,7 +3477,7 @@ describe('RestProxy handleRequest', () => {
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
 
-    await proxy.handleRequest(makePayload(832, 'GET', '/varro/session/session-1/diff-summary'));
+    await proxy.handleRequest(makePayload(832, 'GET', '/loomery/session/session-1/diff-summary'));
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 832,
@@ -3505,8 +3505,8 @@ describe('RestProxy handleRequest', () => {
     });
 
     const requests = [
-      proxy.handleRequest(makePayload(84, 'GET', '/varro/session/session-1/diff-summary')),
-      proxy.handleRequest(makePayload(85, 'GET', '/varro/session/session-2/diff-summary')),
+      proxy.handleRequest(makePayload(84, 'GET', '/loomery/session/session-1/diff-summary')),
+      proxy.handleRequest(makePayload(85, 'GET', '/loomery/session/session-2/diff-summary')),
     ];
     await vi.waitFor(() => {
       expect(
@@ -3527,7 +3527,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy({
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
-    const path = '/varro/session/session-1/diff-summary?revision=123';
+    const path = '/loomery/session/session-1/diff-summary?revision=123';
 
     await proxy.handleRequest(makePayload(84, 'GET', path));
     await proxy.handleRequest(makePayload(85, 'GET', path));
@@ -3554,7 +3554,7 @@ describe('RestProxy handleRequest', () => {
       const readLocalSessionSummary = vi.fn(() => summary.promise);
       const { proxy } = createProxy({ readLocalSessionSummary });
       const clock = vi.spyOn(Date, 'now').mockReturnValue(1_000);
-      const path = `/varro/session/session-1/diff-summary${query}`;
+      const path = `/loomery/session/session-1/diff-summary${query}`;
       try {
         const first = proxy.handleRequest(makePayload(84, 'GET', path));
         await vi.waitFor(() => expect(readLocalSessionSummary).toHaveBeenCalledTimes(1));
@@ -3575,7 +3575,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy({
       server: { ...createCallbacks().server, request: serverRequest } as never,
     });
-    const path = '/varro/session/session-1/diff-summary';
+    const path = '/loomery/session/session-1/diff-summary';
 
     await proxy.handleRequest(makePayload(84, 'GET', path));
     await proxy.handleRequest(makePayload(85, 'GET', path));
@@ -3623,8 +3623,8 @@ describe('RestProxy handleRequest', () => {
     });
 
     const requests = [
-      proxy.handleRequest(makePayload(86, 'GET', '/varro/session/session-1/diff-summary')),
-      proxy.handleRequest(makePayload(87, 'GET', '/varro/session/session-2/diff-summary')),
+      proxy.handleRequest(makePayload(86, 'GET', '/loomery/session/session-1/diff-summary')),
+      proxy.handleRequest(makePayload(87, 'GET', '/loomery/session/session-2/diff-summary')),
     ];
     await vi.waitFor(() => expect(activeDescendantRequests).toBe(4));
     expect(
@@ -3866,7 +3866,7 @@ describe('RestProxy handleRequest', () => {
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, { id: 115, data: true });
   });
 
-  it('routes varro permanent delete directly to the server without recycle bin', async () => {
+  it('routes loomery permanent delete directly to the server without recycle bin', async () => {
     const serverRequest = vi
       .fn()
       .mockResolvedValueOnce({ id: 'some-id', directory: '/repo' })
@@ -3878,8 +3878,8 @@ describe('RestProxy handleRequest', () => {
       } as never,
     });
 
-    await proxy.handleRequest(makePayload(111, 'DELETE', '/varro/session/some-id/delete'));
-    await proxy.handleRequest(makePayload(112, 'DELETE', '/varro/session/some-id/delete'));
+    await proxy.handleRequest(makePayload(111, 'DELETE', '/loomery/session/some-id/delete'));
+    await proxy.handleRequest(makePayload(112, 'DELETE', '/loomery/session/some-id/delete'));
 
     expect(serverRequest.mock.calls).toEqual([
       ['GET', '/session/some-id'],
@@ -3903,7 +3903,7 @@ describe('RestProxy handleRequest', () => {
       } as never,
     });
 
-    await proxy.handleRequest(makePayload(113, 'DELETE', '/varro/session/some-id/delete'));
+    await proxy.handleRequest(makePayload(113, 'DELETE', '/loomery/session/some-id/delete'));
 
     expect(callbacks.removeSessionImages).not.toHaveBeenCalled();
     expect(callbacks.sessionState.removeSessions).not.toHaveBeenCalled();
@@ -3922,7 +3922,7 @@ describe('RestProxy handleRequest', () => {
       contextProvider: {
         ...createCallbacks().contextProvider,
         context: {
-          workspacePath: 'C:\\Users\\Andrew\\Projects\\Varro',
+          workspacePath: 'C:\\Users\\Andrew\\Projects\\Loomery',
           activeFile: null,
           selection: null,
           diagnostics: [],
@@ -3941,7 +3941,7 @@ describe('RestProxy handleRequest', () => {
     await proxy.handleRequest(makePayload(12, 'DELETE', '/session/some-id'));
 
     expect(serverRequest).toHaveBeenCalledWith('GET', '/session?limit=1000000', undefined, {
-      directory: 'C:\\Users\\Andrew\\Projects\\Varro',
+      directory: 'C:\\Users\\Andrew\\Projects\\Loomery',
     });
     expect(callbacks.sessionTrash.moveToTrash).toHaveBeenCalledWith('some-id', []);
   });
@@ -4284,14 +4284,14 @@ describe('RestProxy handleRequest', () => {
       {
         id: 'renamed-session',
         directory: '/repo',
-        title: 'Varro permission judge: ordinary-session',
+        title: 'Loomery permission judge: ordinary-session',
         permission: [{ permission: '*', pattern: '*', action: 'ask' }],
         time: { updated: Date.now() - 180_000 },
       },
       {
         id: 'legacy-judge',
         directory: '/repo',
-        title: 'Varro permission judge: per_legacy',
+        title: 'Loomery permission judge: per_legacy',
         permission: legacyJudgePermission,
         time: { updated: Date.now() - 180_000 },
       },
@@ -4299,7 +4299,7 @@ describe('RestProxy handleRequest', () => {
         id: 'marked-judge',
         directory: '/repo',
         title: 'Internal helper',
-        metadata: { varroInternal: 'permission-judge' },
+        metadata: { loomeryInternal: 'permission-judge' },
         time: { updated: Date.now() - 180_000 },
       },
     ];
@@ -4339,7 +4339,7 @@ describe('RestProxy handleRequest', () => {
       id: 'missing-helper',
       directory: '/repo',
       title: 'Internal helper',
-      metadata: { varroInternal: 'permission-judge' },
+      metadata: { loomeryInternal: 'permission-judge' },
       time: { updated: Date.now() - 180_000 },
     };
     const serverRequest = vi.fn((method: string) =>
@@ -4371,7 +4371,7 @@ describe('RestProxy handleRequest', () => {
       id: 'retry-helper',
       directory: '/repo',
       title: 'Internal helper',
-      metadata: { varroInternal: 'permission-judge' },
+      metadata: { loomeryInternal: 'permission-judge' },
       time: { updated: 800_000 },
     };
     let deleteAttempts = 0;
@@ -4521,7 +4521,7 @@ describe('RestProxy handleRequest', () => {
       id: 'sibling-judge',
       directory: '/repo-b',
       title: 'Internal helper',
-      metadata: { varroInternal: 'permission-judge' },
+      metadata: { loomeryInternal: 'permission-judge' },
       time: { updated: Date.now() - 180_000 },
     };
     const serverRequest = vi.fn(
@@ -4593,12 +4593,12 @@ describe('RestProxy handleRequest', () => {
   });
 
   it('filters UNC sessions using case-insensitive Windows identity', async () => {
-    const sessions = [{ id: 'same', directory: '//buildserver/PROJECTS/varro/' }];
+    const sessions = [{ id: 'same', directory: '//buildserver/PROJECTS/loomery/' }];
     const { proxy, callbacks } = createProxy({
       contextProvider: {
         ...createCallbacks().contextProvider,
         context: {
-          workspacePath: '\\\\BuildServer\\Projects\\Varro',
+          workspacePath: '\\\\BuildServer\\Projects\\Loomery',
           activeFile: null,
           selection: null,
           diagnostics: [],
@@ -4614,7 +4614,7 @@ describe('RestProxy handleRequest', () => {
 
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 117,
-      data: [{ id: 'same', directory: '//buildserver/PROJECTS/varro/' }],
+      data: [{ id: 'same', directory: '//buildserver/PROJECTS/loomery/' }],
     });
   });
 
@@ -4749,7 +4749,7 @@ describe('RestProxy handleRequest', () => {
     await proxy.handleRequest(makePayload(191, 'GET', '/session/s1/message?limit=200'));
     const response = vi.mocked(callbacks.postApiResponse).mock.calls.at(-1)?.[1];
     expect(JSON.stringify(response).length).toBeLessThan(1000);
-    expect(JSON.stringify(response)).toContain('varro-content:');
+    expect(JSON.stringify(response)).toContain('loomery-content:');
     expect(serverRequest).toHaveBeenCalledTimes(1);
 
     await proxy.handleRequest(makePayload(192, 'GET', '/session/s1/message/m1/part/image-1'));
@@ -4984,7 +4984,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy, callbacks } = createProxy({
       getRequestGeneration: vi.fn(() => 42),
     });
-    await proxy.handleRequest(makePayload(21, 'GET', '/varro/session-trash'));
+    await proxy.handleRequest(makePayload(21, 'GET', '/loomery/session-trash'));
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(42, expect.anything());
   });
 
@@ -5048,7 +5048,7 @@ describe('RestProxy handleRequest', () => {
             {
               id: 'workspace-session',
               directory: '/repo-a',
-              metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+              metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
             },
           ];
         }
@@ -5305,7 +5305,7 @@ describe('RestProxy handleRequest', () => {
             {
               id: 'parent-session',
               directory: '/repo-a',
-              metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+              metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
             },
             {
               id: 'child-session',
@@ -5342,7 +5342,7 @@ describe('RestProxy handleRequest', () => {
   );
 
   it('keeps workspace-scoped permission snapshots visible outside a dedicated folder', async () => {
-    const metadata = { varro: { workspaceScope: 'workspace', schemaVersion: 1 } };
+    const metadata = { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } };
     const permission = { id: 'permission-workspace', sessionID: 'session-workspace' };
     const serverRequest = vi.fn((_method: string, path: string) =>
       Promise.resolve(path === '/permission' ? [permission] : undefined)
@@ -5368,7 +5368,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy(callbacks);
 
     await proxy.handleRequest(
-      makePayload(220, 'POST', '/varro/session/session-workspace/activate', {
+      makePayload(220, 'POST', '/loomery/session/session-workspace/activate', {
         directory: '/workspaces',
       })
     );
@@ -5747,7 +5747,7 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy(callbacks);
 
     await proxy.handleRequest(
-      makePayload(2247, 'POST', '/varro/session-history-scope?directory=%2Frepo', {
+      makePayload(2247, 'POST', '/loomery/session-history-scope?directory=%2Frepo', {
         scope: 'project',
       })
     );
@@ -5769,10 +5769,10 @@ describe('RestProxy handleRequest', () => {
     const { proxy } = createProxy(callbacks);
 
     const first = proxy.handleRequest(
-      makePayload(22471, 'GET', '/varro/session-history-scope?directory=%2Frepo')
+      makePayload(22471, 'GET', '/loomery/session-history-scope?directory=%2Frepo')
     );
     const second = proxy.handleRequest(
-      makePayload(22472, 'GET', '/varro/session-history-scope?directory=%2Frepo%2F')
+      makePayload(22472, 'GET', '/loomery/session-history-scope?directory=%2Frepo%2F')
     );
     await vi.waitFor(() => expect(serverRequest).toHaveBeenCalledOnce());
     currentProject.resolve({ id: 'project-1', worktree: '/repo', vcs: 'git' });
@@ -5780,7 +5780,7 @@ describe('RestProxy handleRequest', () => {
 
     proxy.invalidateSessionCatalog();
     await proxy.handleRequest(
-      makePayload(22473, 'GET', '/varro/session-history-scope?directory=%2Frepo')
+      makePayload(22473, 'GET', '/loomery/session-history-scope?directory=%2Frepo')
     );
 
     expect(serverRequest).toHaveBeenCalledTimes(2);
@@ -6061,7 +6061,7 @@ describe('RestProxy handleRequest', () => {
     await proxy.handleRequest(makePayload(2242, 'GET', '/session'));
     await proxy.handleRequest(makePayload(2244, 'GET', '/session/status'));
     await proxy.handleRequest(
-      makePayload(2243, 'POST', '/varro/session/project-session/activate', {
+      makePayload(2243, 'POST', '/loomery/session/project-session/activate', {
         directory: '/repo/packages/other',
       })
     );
@@ -6103,12 +6103,12 @@ describe('RestProxy handleRequest', () => {
     catalog = [{ id: 'current', projectID: 'project-1', directory: '/worktrees/current' }];
     await proxy.refreshSessionCatalogEventAuthorization(['current']);
     await proxy.handleRequest(
-      makePayload(22432, 'POST', '/varro/session/stale/activate', {
+      makePayload(22432, 'POST', '/loomery/session/stale/activate', {
         directory: '/worktrees/stale',
       })
     );
     await proxy.handleRequest(
-      makePayload(22433, 'POST', '/varro/session/current/activate', {
+      makePayload(22433, 'POST', '/loomery/session/current/activate', {
         directory: '/worktrees/current',
       })
     );
@@ -6189,7 +6189,7 @@ describe('RestProxy handleRequest', () => {
       proxy.refreshSessionCatalogEventAuthorization(['moved-session'], '/repo/packages/new')
     ).resolves.toBe(true);
     await proxy.handleRequest(
-      makePayload(22438, 'POST', '/varro/session/moved-session/activate', {
+      makePayload(22438, 'POST', '/loomery/session/moved-session/activate', {
         directory: '/repo/packages/new',
       })
     );
@@ -6225,7 +6225,7 @@ describe('RestProxy handleRequest', () => {
       proxy.refreshSessionCatalogEventAuthorization(['moved-session'], '/outside')
     ).resolves.toBe(false);
     await proxy.handleRequest(
-      makePayload(22440, 'POST', '/varro/session/moved-session/activate', {
+      makePayload(22440, 'POST', '/loomery/session/moved-session/activate', {
         directory: '/outside',
       })
     );
@@ -6268,12 +6268,12 @@ describe('RestProxy handleRequest', () => {
     projectID = 'project-2';
     await proxy.loadPermissionModeRecoveryCatalog();
     await proxy.handleRequest(
-      makePayload(22435, 'POST', '/varro/session/old-project-session/activate', {
+      makePayload(22435, 'POST', '/loomery/session/old-project-session/activate', {
         directory: '/worktrees/old',
       })
     );
     await proxy.handleRequest(
-      makePayload(22436, 'POST', '/varro/session/new-project-session/activate', {
+      makePayload(22436, 'POST', '/loomery/session/new-project-session/activate', {
         directory: '/worktrees/new',
       })
     );
@@ -6659,7 +6659,7 @@ describe('RestProxy handleRequest', () => {
     );
     const { proxy, callbacks } = createProxy();
     await proxy.handleRequest(
-      makePayload(25, 'GET', '/varro/model-pricing?providerID=openai&modelID=gpt-6-astra')
+      makePayload(25, 'GET', '/loomery/model-pricing?providerID=openai&modelID=gpt-6-astra')
     );
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
       id: 25,
@@ -7363,7 +7363,7 @@ describe('RestProxy handleRequest', () => {
       }
     );
     const { proxy, callbacks } = createProxy();
-    await proxy.handleRequest(makePayload(403, 'GET', '/varro/opencode-config/permissions'));
+    await proxy.handleRequest(makePayload(403, 'GET', '/loomery/opencode-config/permissions'));
     expect(callbacks.postApiResponse).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
@@ -7374,7 +7374,7 @@ describe('RestProxy handleRequest', () => {
       })
     );
     await proxy.handleRequest(
-      makePayload(404, 'POST', '/varro/opencode-config/permissions', {
+      makePayload(404, 'POST', '/loomery/opencode-config/permissions', {
         rules: [
           { permission: '*', pattern: '*', action: 'ask' },
           { permission: 'bash', pattern: 'npm test', action: 'allow' },
@@ -7429,7 +7429,7 @@ describe('RestProxy handleRequest', () => {
       const { proxy, callbacks } = createProxy({
         server: { ...createCallbacks().server, apiVersion: 2 },
       });
-      await proxy.handleRequest(makePayload(403, 'GET', '/varro/opencode-config'));
+      await proxy.handleRequest(makePayload(403, 'GET', '/loomery/opencode-config'));
       expect(callbacks.postApiResponse).toHaveBeenLastCalledWith(
         1,
         expect.objectContaining({
@@ -7440,7 +7440,7 @@ describe('RestProxy handleRequest', () => {
         })
       );
       await proxy.handleRequest(
-        makePayload(404, 'POST', '/varro/opencode-config/model-routing', {
+        makePayload(404, 'POST', '/loomery/opencode-config/model-routing', {
           target: 'agent',
           agentName: 'review',
           providerID: 'openai',
@@ -7485,7 +7485,7 @@ describe('RestProxy handleRequest', () => {
     );
     const { proxy } = createProxy();
     await proxy.handleRequest(
-      makePayload(405, 'POST', '/varro/opencode-config/model-routing', {
+      makePayload(405, 'POST', '/loomery/opencode-config/model-routing', {
         target: 'agent',
         agentName: 'review',
         providerID: 'openai',
@@ -7493,7 +7493,7 @@ describe('RestProxy handleRequest', () => {
       })
     );
     await proxy.handleRequest(
-      makePayload(406, 'POST', '/varro/opencode-config/model-routing', {
+      makePayload(406, 'POST', '/loomery/opencode-config/model-routing', {
         target: 'small_model',
         providerID: 'openai',
         modelID: 'small',
@@ -7550,7 +7550,7 @@ describe('RestProxy handleRequest', () => {
         server: { ...createCallbacks().server, apiVersion: 2 },
       });
       await proxy.handleRequest(
-        makePayload(407, 'POST', '/varro/opencode-config/model-routing', {
+        makePayload(407, 'POST', '/loomery/opencode-config/model-routing', {
           target,
           agentName: 'review',
           providerID: 'openai',
@@ -7596,14 +7596,14 @@ describe('RestProxy handleRequest', () => {
 
     await Promise.all([
       first.proxy.handleRequest(
-        makePayload(401, 'POST', '/varro/opencode-config/model-routing', {
+        makePayload(401, 'POST', '/loomery/opencode-config/model-routing', {
           target: 'small_model',
           providerID: 'openai',
           modelID: 'gpt-5-mini',
         })
       ),
       second.proxy.handleRequest(
-        makePayload(402, 'POST', '/varro/opencode-config/model-routing', {
+        makePayload(402, 'POST', '/loomery/opencode-config/model-routing', {
           target: 'agent',
           agentName: 'review',
           providerID: 'anthropic',

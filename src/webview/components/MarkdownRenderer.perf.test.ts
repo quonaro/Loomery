@@ -50,7 +50,7 @@ describe('MarkdownRenderer performance regressions', () => {
   });
 
   it('chooses a streaming placeholder without repeated full-content scans', async () => {
-    const marker = 'VARROPENDINGMARKDOWNPLACEHOLDER';
+    const marker = 'LOOMERYPENDINGMARKDOWNPLACEHOLDER';
     const originalIncludes = String.prototype.includes;
     const markerChecks: string[] = [];
     vi.spyOn(String.prototype, 'includes').mockImplementation(function (
@@ -73,7 +73,7 @@ describe('MarkdownRenderer performance regressions', () => {
   });
 
   it('keeps adjacent placeholder-like source text intact while streaming', async () => {
-    const marker = 'VARROPENDINGMARKDOWNPLACEHOLDER';
+    const marker = 'LOOMERYPENDINGMARKDOWNPLACEHOLDER';
     const content = `${marker}${marker}X[unfinished`;
 
     cleanup = render(() => MarkdownRenderer({ content }), container);

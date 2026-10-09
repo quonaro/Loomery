@@ -12,7 +12,7 @@ const LOADING_STYLES = `
 html, body, #root { width: 100%; height: 100%; margin: 0; }
 html > body { padding: 0; }
 body { background: var(--vscode-sideBar-background, #181818); }
-.varro-startup-loading {
+.loomery-startup-loading {
   box-sizing: border-box;
   display: flex;
   min-height: 100%;
@@ -25,41 +25,41 @@ body { background: var(--vscode-sideBar-background, #181818); }
   font-family: var(--vscode-font-family, system-ui, sans-serif);
   color: var(--vscode-foreground, #cccccc);
 }
-.varro-startup-logo {
+.loomery-startup-logo {
   width: clamp(64px, 12vw, 88px);
   height: auto;
   filter: grayscale(1);
   user-select: none;
   -webkit-user-drag: none;
-  animation: varro-startup-logo-pulse 1.5s ease-in-out infinite;
+  animation: loomery-startup-logo-pulse 1.5s ease-in-out infinite;
 }
-@keyframes varro-startup-logo-pulse {
+@keyframes loomery-startup-logo-pulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .varro-startup-logo { animation: none; }
+  .loomery-startup-logo { animation: none; }
 }
-.varro-startup-dots { display: flex; gap: 8px; }
-.varro-startup-dot {
+.loomery-startup-dots { display: flex; gap: 8px; }
+.loomery-startup-dot {
   width: 8px;
   height: 8px;
   border-radius: 9999px;
   background: var(--vscode-focusBorder, #007fd4);
-  animation: varro-startup-pulse 1.5s ease-in-out infinite;
+  animation: loomery-startup-pulse 1.5s ease-in-out infinite;
 }
-.varro-startup-dot:nth-child(2) { animation-delay: 0.3s; }
-.varro-startup-dot:nth-child(3) { animation-delay: 0.6s; }
-@keyframes varro-startup-pulse {
+.loomery-startup-dot:nth-child(2) { animation-delay: 0.3s; }
+.loomery-startup-dot:nth-child(3) { animation-delay: 0.6s; }
+@keyframes loomery-startup-pulse {
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1); }
 }`;
 
-const LOADING_MARKUP = `<div class="varro-startup-loading" role="status" aria-label="Loading workspace">
-    <div class="varro-startup-dots" aria-hidden="true">
-      <span class="varro-startup-dot"></span>
-      <span class="varro-startup-dot"></span>
-      <span class="varro-startup-dot"></span>
+const LOADING_MARKUP = `<div class="loomery-startup-loading" role="status" aria-label="Loading workspace">
+    <div class="loomery-startup-dots" aria-hidden="true">
+      <span class="loomery-startup-dot"></span>
+      <span class="loomery-startup-dot"></span>
+      <span class="loomery-startup-dot"></span>
     </div>
   </div>`;
 
@@ -70,8 +70,8 @@ type StartupLogoOptions = {
 
 function renderStartupMarkup(logoUri: string) {
   if (!logoUri) return LOADING_MARKUP;
-  return `<div class="varro-startup-loading" role="status" aria-label="Loading workspace">
-    <img class="varro-startup-logo" src="${escapeHtmlAttribute(logoUri)}" width="256" height="256" alt="Varro" draggable="false" fetchpriority="high" />
+  return `<div class="loomery-startup-loading" role="status" aria-label="Loading workspace">
+    <img class="loomery-startup-logo" src="${escapeHtmlAttribute(logoUri)}" width="256" height="256" alt="Loomery" draggable="false" fetchpriority="high" />
   </div>`;
 }
 
@@ -82,7 +82,7 @@ export function renderWebviewLoadingHtml(options?: StartupLogoOptions) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${options?.cspSource ?? ''} data:; style-src 'unsafe-inline';" />
-  <title>Varro</title>
+  <title>Loomery</title>
   <style>${LOADING_STYLES}</style>
 </head>
 <body>
@@ -125,7 +125,7 @@ export function renderWebviewHtml(
   });
   const isEditorSurface = initialState.webviewContext?.surface === 'editor';
   const htmlClass = isEditorSurface
-    ? ' class="varro-editor-surface varro-editor-layout-pending"'
+    ? ' class="loomery-editor-surface loomery-editor-layout-pending"'
     : '';
   const editorLoadingStyles = isEditorSurface
     ? '\nbody { background: var(--vscode-editor-background, #1e1e1e); }'
@@ -138,7 +138,7 @@ export function renderWebviewHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'none'; img-src ${cspSource} data:; script-src 'nonce-${nonce}' ${cspSource}; worker-src blob:; connect-src ${cspSource}; style-src 'unsafe-inline' ${cspSource}; font-src data:;" />
-  <title>Varro</title>
+  <title>Loomery</title>
   <style>${LOADING_STYLES}${editorLoadingStyles}</style>${logoPreload}
   <link rel="stylesheet" href="${escapeHtmlAttribute(cssUri)}" />
 </head>
@@ -152,15 +152,15 @@ export function renderWebviewHtml(
         var failure = event;
         if (event && 'reason' in event) failure = event.reason;
         else if (event && 'error' in event && event.error !== undefined) failure = event.error;
-        console.error('Varro webview bootstrap failed', failure);
+        console.error('Loomery webview bootstrap failed', failure);
         event.preventDefault();
         clearHandlers();
         try {
-          if (typeof window.__cleanupVarroBridge === 'function') {
-            window.__cleanupVarroBridge();
+          if (typeof window.__cleanupLoomeryBridge === 'function') {
+            window.__cleanupLoomeryBridge();
           }
         } catch (error) {
-          console.error('Varro webview bridge cleanup failed', error);
+          console.error('Loomery webview bridge cleanup failed', error);
         }
         var root = document.getElementById('root');
         if (!root) return;
@@ -171,7 +171,7 @@ export function renderWebviewHtml(
         var title = document.createElement('strong');
         title.textContent = 'Something went wrong';
         var message = document.createElement('span');
-        message.textContent = 'Varro could not start. Reload the sidebar to try again.';
+        message.textContent = 'Loomery could not start. Reload the sidebar to try again.';
         fallback.append(title, message);
         root.append(fallback);
       };
@@ -180,13 +180,13 @@ export function renderWebviewHtml(
         active = false;
         window.removeEventListener('error', handleFailure);
         window.removeEventListener('unhandledrejection', handleFailure);
-        if (window.__clearVarroBootstrapFailureHandlers === clearHandlers) {
-          delete window.__clearVarroBootstrapFailureHandlers;
+        if (window.__clearLoomeryBootstrapFailureHandlers === clearHandlers) {
+          delete window.__clearLoomeryBootstrapFailureHandlers;
         }
       };
       window.addEventListener('error', handleFailure);
       window.addEventListener('unhandledrejection', handleFailure);
-      window.__clearVarroBootstrapFailureHandlers = clearHandlers;
+      window.__clearLoomeryBootstrapFailureHandlers = clearHandlers;
     })();
     const vscode = acquireVsCodeApi();
     window.__initialWebviewState = ${serializedInitialState};

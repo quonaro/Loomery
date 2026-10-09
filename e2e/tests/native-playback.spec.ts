@@ -37,7 +37,7 @@ function nativePlayback(): PlaybackFixture {
       agent: 'build',
       mode: 'build',
       ...model,
-      path: { cwd: '/workspace/varro', root: '/workspace/varro' },
+      path: { cwd: '/workspace/loomery', root: '/workspace/loomery' },
       cost: 0,
       tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
     },
@@ -81,7 +81,7 @@ function nativePlayback(): PlaybackFixture {
       session: {
         id: sessionID,
         projectID: 'playback-project',
-        directory: '/workspace/varro',
+        directory: '/workspace/loomery',
         title: 'Native v2 browser playback',
         version: '2',
         time: { created: 1, updated: 9 },
@@ -136,9 +136,9 @@ test('native browser playback exposes only delivered text and does not repair an
     // SAFETY: The controlled harness installs this read-only test API before playback.
     const harness = (
       window as typeof window & {
-        __varroE2E: { getSessionMessages: (id: string) => MessageEntry[] };
+        __loomeryE2E: { getSessionMessages: (id: string) => MessageEntry[] };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return harness.getSessionMessages('session-native-playback');
   });
   const assistant = messages.find((entry) => entry.info.role === 'assistant');

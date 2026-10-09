@@ -136,7 +136,7 @@ async function resolveDroppedFileReference(
   const normalizedReference = normalizePath(referencePath);
   if (!normalizedReference) return null;
 
-  const resolved = await client.varro.resolveWorkspacePath(normalizedReference);
+  const resolved = await client.loomery.resolveWorkspacePath(normalizedReference);
   if (!resolved) return null;
   if (isDirectory && resolved.type !== 'directory') return null;
 

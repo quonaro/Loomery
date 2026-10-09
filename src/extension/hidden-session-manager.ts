@@ -2,10 +2,10 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion -- SAFETY: Persisted arrays are element-validated before restoration. */
 import type { ServerEvent } from '../shared/protocol';
 
-export const PERMISSION_JUDGE_SESSION_TITLE_PREFIX = 'Varro permission judge: ';
-export const PERMISSION_JUDGE_SESSION_METADATA = { varroInternal: 'permission-judge' } as const;
-export const COMMIT_MESSAGE_SESSION_TITLE_PREFIX = 'Varro commit message: ';
-export const COMMIT_MESSAGE_SESSION_METADATA = { varroInternal: 'commit-message' } as const;
+export const PERMISSION_JUDGE_SESSION_TITLE_PREFIX = 'Loomery permission judge: ';
+export const PERMISSION_JUDGE_SESSION_METADATA = { loomeryInternal: 'permission-judge' } as const;
+export const COMMIT_MESSAGE_SESSION_TITLE_PREFIX = 'Loomery commit message: ';
+export const COMMIT_MESSAGE_SESSION_METADATA = { loomeryInternal: 'commit-message' } as const;
 
 // Cover queued helper events without retaining IDs forever when deletion events are missed.
 const DELETION_TOMBSTONE_TTL_MS = 30_000;
@@ -55,8 +55,8 @@ function isInternalHelperSession(session: SessionSnapshot) {
     ? title.slice(COMMIT_MESSAGE_SESSION_TITLE_PREFIX.length)
     : null;
   return (
-    metadata?.varroInternal === PERMISSION_JUDGE_SESSION_METADATA.varroInternal ||
-    metadata?.varroInternal === COMMIT_MESSAGE_SESSION_METADATA.varroInternal ||
+    metadata?.loomeryInternal === PERMISSION_JUDGE_SESSION_METADATA.loomeryInternal ||
+    metadata?.loomeryInternal === COMMIT_MESSAGE_SESSION_METADATA.loomeryInternal ||
     (title?.startsWith(PERMISSION_JUDGE_SESSION_TITLE_PREFIX) === true && hasHelperRules) ||
     (commitMessageSequence !== null && /^[1-9]\d*$/.test(commitMessageSequence) && hasHelperRules)
   );

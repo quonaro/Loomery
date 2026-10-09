@@ -85,9 +85,9 @@ async function updateDiffPreviewWithPatch(
         },
       };
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
-      harnessWindow.__varroE2E?.updateMessagePart?.(nextPart);
+      harnessWindow.__loomeryE2E?.updateMessagePart?.(nextPart);
       window.postMessage(
         {
           type: 'server/event',
@@ -116,7 +116,7 @@ test.describe('diff preview anchoring', () => {
     await page.evaluate(() => {
       const host = window as typeof window & {
         __sendToExtension: (message: WebviewMessage) => void;
-        __varroE2E: {
+        __loomeryE2E: {
           updateMessagePart: (part: unknown) => void;
           updateMessageInfo: (info: Record<string, unknown>) => void;
           getSessionMessages: (id: string) => Array<{ info: Record<string, unknown> }>;
@@ -124,7 +124,7 @@ test.describe('diff preview anchoring', () => {
       };
       const original = host.__sendToExtension;
       const details = new Map<string, unknown>();
-      const template = host.__varroE2E
+      const template = host.__loomeryE2E
         .getSessionMessages('session-diff-preview-large-transcript')
         .at(-1)!.info;
       host.__sendToExtension = (rawMessage: unknown) => {
@@ -148,7 +148,7 @@ test.describe('diff preview anchoring', () => {
           id: messageID,
           time: { created: Date.now() + index, completed: Date.now() + index + 1 },
         };
-        host.__varroE2E.updateMessageInfo(info);
+        host.__loomeryE2E.updateMessageInfo(info);
         window.postMessage(
           { type: 'server/event', payload: { type: 'message.updated', properties: { info } } },
           '*'
@@ -197,7 +197,7 @@ test.describe('diff preview anchoring', () => {
             metadata: {},
           },
         });
-        host.__varroE2E.updateMessagePart({ ...part, deferred });
+        host.__loomeryE2E.updateMessagePart({ ...part, deferred });
         window.postMessage(
           {
             type: 'server/event',
@@ -318,7 +318,7 @@ test.describe('diff preview anchoring', () => {
     await page.evaluate((messageId) => {
       const host = window as typeof window & {
         __sendToExtension: (message: WebviewMessage) => void;
-        __varroE2E: { updateMessagePart: (part: unknown) => void };
+        __loomeryE2E: { updateMessagePart: (part: unknown) => void };
         releaseDiffDetails?: () => void;
       };
       const original = host.__sendToExtension;
@@ -386,7 +386,7 @@ test.describe('diff preview anchoring', () => {
             '*'
           );
       };
-      host.__varroE2E.updateMessagePart(part);
+      host.__loomeryE2E.updateMessagePart(part);
     }, id);
     await expect(page.locator(`[data-msg-id="${id}"] .file-change-card`)).toHaveCount(12);
     await waitForAnimationFrames(page, 12);
@@ -610,14 +610,14 @@ test.describe('diff preview anchoring', () => {
             const sessionID = 'session-diff-preview-large-transcript';
             const harness = (
               window as typeof window & {
-                __varroE2E: {
+                __loomeryE2E: {
                   getSessionMessages: (id: string) => Array<{ info: Record<string, unknown> }>;
                   updateMessageInfo: (info: Record<string, unknown>) => void;
                   updateMessagePart: (part: unknown) => void;
                   updateSessionStatus: (id: string, status: { type: 'busy' }) => void;
                 };
               }
-            ).__varroE2E;
+            ).__loomeryE2E;
             const info = harness
               .getSessionMessages(sessionID)
               .find((entry) => entry.info.id === 'message-diff-preview-assistant-59')!.info;
@@ -834,19 +834,19 @@ test.describe('diff preview anchoring', () => {
       const sessionId = 'session-diff-preview-large-transcript';
       const finalMessageId = 'message-diff-preview-active-step-7';
       const harnessWindow = window as typeof window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages?: (id: string) => Array<{ info: Record<string, unknown> }>;
           updateMessageInfo?: (info: Record<string, unknown>) => void;
           updateSessionStatus?: (id: string, status: { type: 'idle' }) => void;
         };
       };
-      const info = harnessWindow.__varroE2E
+      const info = harnessWindow.__loomeryE2E
         ?.getSessionMessages?.(sessionId)
         .find((message) => message.info.id === finalMessageId)?.info;
       if (!info) throw new Error('Active turn final assistant is missing');
       info.time = { ...(info.time as Record<string, unknown>), completed: Date.now() };
-      harnessWindow.__varroE2E?.updateMessageInfo?.(info);
-      harnessWindow.__varroE2E?.updateSessionStatus?.(sessionId, { type: 'idle' });
+      harnessWindow.__loomeryE2E?.updateMessageInfo?.(info);
+      harnessWindow.__loomeryE2E?.updateSessionStatus?.(sessionId, { type: 'idle' });
       window.postMessage(
         {
           type: 'server/event',
@@ -1471,9 +1471,9 @@ test.describe('diff preview anchoring', () => {
       .poll(() =>
         page.evaluate(() => {
           const harness = window as Window & {
-            __varroE2E?: { pendingHistoryRequestCount?: () => number };
+            __loomeryE2E?: { pendingHistoryRequestCount?: () => number };
           };
-          return harness.__varroE2E?.pendingHistoryRequestCount?.() ?? 0;
+          return harness.__loomeryE2E?.pendingHistoryRequestCount?.() ?? 0;
         })
       )
       .toBe(1);
@@ -1501,9 +1501,9 @@ test.describe('diff preview anchoring', () => {
 
     const released = await page.evaluate(() => {
       const harness = window as Window & {
-        __varroE2E?: { releaseNextHistoryRequest?: () => boolean };
+        __loomeryE2E?: { releaseNextHistoryRequest?: () => boolean };
       };
-      return harness.__varroE2E?.releaseNextHistoryRequest?.() ?? false;
+      return harness.__loomeryE2E?.releaseNextHistoryRequest?.() ?? false;
     });
     expect(released).toBe(true);
 

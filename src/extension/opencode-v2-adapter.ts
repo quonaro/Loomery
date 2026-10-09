@@ -878,7 +878,7 @@ export class OpenCodeV2Adapter {
           if (isString(input.system)) {
             await raw(
               'PUT',
-              `/api/experimental/session/${encodeURIComponent(sessionID)}/instructions/entries/varro.system`,
+              `/api/experimental/session/${encodeURIComponent(sessionID)}/instructions/entries/loomery.system`,
               { value: input.system }
             );
           }
@@ -897,7 +897,7 @@ export class OpenCodeV2Adapter {
             delivery: input.delivery === 'queue' ? 'queue' : 'steer',
             metadata:
               input.delivery === 'steer' || input.delivery === 'queue'
-                ? { varroDelivery: input.delivery }
+                ? { loomeryDelivery: input.delivery }
                 : undefined,
             resume: input.noReply ? false : undefined,
           };
@@ -1113,7 +1113,7 @@ export class OpenCodeV2Adapter {
         directory,
         options
       );
-    throw new Error(`OpenCode v2 does not support this Varro operation: ${method} ${route}`);
+    throw new Error(`OpenCode v2 does not support this Loomery operation: ${method} ${route}`);
   }
 
   private async session(value: SessionInfo): Promise<UnknownRecord> {

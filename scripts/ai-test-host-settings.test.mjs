@@ -19,16 +19,16 @@ test('inherits the curated model list without bringing host sessions or drafts i
   const filename = path.join(source, 'User/globalStorage/state.vscdb');
   const host = new DatabaseSync(filename);
   const preferences = {
-    'varro.modelPreferences': { favorites: ['openai/test'] },
-    'varro.modelPreferences.hostMigration.v1': true,
+    'loomery.modelPreferences': { favorites: ['openai/test'] },
+    'loomery.modelPreferences.hostMigration.v1': true,
   };
   host.exec('CREATE TABLE ItemTable (key TEXT UNIQUE, value BLOB)');
   host.prepare('INSERT INTO ItemTable VALUES (?, ?)').run(
-    'koltyakov.varro',
+    'quonaro.loomery',
     JSON.stringify({
       ...preferences,
-      'varro.queuedMessages': ['private draft'],
-      'varro.sessionSelectedModels': { production: 'openai/test' },
+      'loomery.queuedMessages': ['private draft'],
+      'loomery.sessionSelectedModels': { production: 'openai/test' },
     })
   );
   host.close();
@@ -41,7 +41,7 @@ test('inherits the curated model list without bringing host sessions or drafts i
   try {
     assert.deepEqual(
       JSON.parse(
-        copy.prepare('SELECT value FROM ItemTable WHERE key = ?').get('koltyakov.varro').value
+        copy.prepare('SELECT value FROM ItemTable WHERE key = ?').get('quonaro.loomery').value
       ),
       preferences
     );

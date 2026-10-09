@@ -7,7 +7,7 @@ import { waitForAnimationFrames } from './helpers';
 test.use({ trace: 'retain-on-failure', screenshot: 'only-on-failure' });
 
 type RetryHarness = Window & {
-  __varroE2E?: {
+  __loomeryE2E?: {
     getSessionMessages(sessionId: string): MessageEntry[];
     replayServerEvent(event: ServerEvent): void;
   };
@@ -60,7 +60,7 @@ for (const width of [441, 494]) {
     });
     await page.evaluate(() => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as RetryHarness).__varroE2E!;
+      const harness = (window as RetryHarness).__loomeryE2E!;
       const sessionID = 'session-rapid-streaming-jitter';
       const info = harness.getSessionMessages(sessionID).at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');
@@ -98,7 +98,7 @@ for (const width of [441, 494]) {
     await expect(page.locator('.interactive-loading-row .loading-indicator')).toBeVisible();
     await page.evaluate(() => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as RetryHarness).__varroE2E!;
+      const harness = (window as RetryHarness).__loomeryE2E!;
       const sessionID = 'session-rapid-streaming-jitter';
       const info = harness.getSessionMessages(sessionID).at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');
@@ -124,7 +124,7 @@ for (const width of [441, 494]) {
     const retryHeight = await notice.evaluate((element) => element.getBoundingClientRect().height);
     await page.evaluate(() => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as RetryHarness).__varroE2E!;
+      const harness = (window as RetryHarness).__loomeryE2E!;
       const info = harness.getSessionMessages('session-rapid-streaming-jitter').at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');
       harness.replayServerEvent({
@@ -174,7 +174,7 @@ for (const outcome of ['recovered', 'failed'] as const) {
 
     await page.evaluate(() => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as RetryHarness).__varroE2E!;
+      const harness = (window as RetryHarness).__loomeryE2E!;
       const sessionID = 'session-large-transcript';
       const info = harness.getSessionMessages(sessionID).at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');
@@ -211,7 +211,7 @@ for (const outcome of ['recovered', 'failed'] as const) {
 
     await page.evaluate((result) => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as RetryHarness).__varroE2E!;
+      const harness = (window as RetryHarness).__loomeryE2E!;
       const sessionID = 'session-large-transcript';
       const info = harness.getSessionMessages(sessionID).at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');

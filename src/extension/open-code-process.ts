@@ -78,8 +78,8 @@ import {
 import { ManagedServerConnectionChangedError } from './process-inspection-error';
 import { buildServerEnv, getServerPathEntries } from './util/server-path';
 import { runWindowsCliUpdate } from './util/windows-cli-update';
-import { getVarroTestStateDirectory } from './varro-test-state';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryTestStateDirectory } from './loomery-test-state';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 
 const CLI_OUTPUT_MAX_CHARS = 1024 * 1024;
 const CLI_OUTPUT_TRUNCATED_MARKER = '[earlier output truncated]\n';
@@ -330,12 +330,12 @@ export type OpenCodeServerOwnership = 'current-host' | 'other-host' | 'unmanaged
 
 const WINDOWS_OWNERSHIP_CONFIRM_ATTEMPTS = 3;
 const WINDOWS_OWNERSHIP_CONFIRM_RETRY_MS = 250;
-const INJECTED_CONFIG_DIRECTORY_PREFIX = 'varro-opencode-config-';
+const INJECTED_CONFIG_DIRECTORY_PREFIX = 'loomery-opencode-config-';
 const INJECTED_CONFIG_OWNER_FILE = 'owner.json';
 const STALE_INJECTED_CONFIG_AGE_MS = 7 * 24 * 60 * 60_000;
 const STALE_INJECTED_CONFIG_SWEEP_INTERVAL_MS = 5 * 60_000;
 const LEGACY_OWNERSHIP_CLAIM_STALE_AGE_MS = 30_000;
-const SERVER_OWNER_ENV = 'VARRO_SERVER_OWNER';
+const SERVER_OWNER_ENV = 'LOOMERY_SERVER_OWNER';
 const MAX_SERVER_PORT = 65_535;
 let staleConfigSweep: Promise<void> | null = null;
 let lastStaleConfigSweepAt = 0;
@@ -348,7 +348,7 @@ export function validateServerPort(value: unknown): number {
     value > MAX_SERVER_PORT
   ) {
     throw new Error(
-      `Invalid varro.server.port value (${String(value)}). Set varro.server.port to an integer between 1 and ${MAX_SERVER_PORT}.`
+      `Invalid loomery.server.port value (${String(value)}). Set loomery.server.port to an integer between 1 and ${MAX_SERVER_PORT}.`
     );
   }
   return value;
@@ -431,13 +431,13 @@ async function readJsonFile<T>(
 }
 
 function getManagedServerOwnershipDirectory() {
-  return getVarroStateDirectory('servers');
+  return getLoomeryStateDirectory('servers');
 }
 
 function getManagedServerOwnershipLeasePath(port: number) {
-  const name = `varro-opencode-server-${port}.json`;
+  const name = `loomery-opencode-server-${port}.json`;
   const path = join(getManagedServerOwnershipDirectory(), name);
-  if (getVarroTestStateDirectory('servers')) return path;
+  if (getLoomeryTestStateDirectory('servers')) return path;
   // Keep coordinating at an existing legacy lease until that server is retired.
   // Moving a live lease would split ownership from windows running older builds.
   const legacyPath = join(tmpdir(), name);
@@ -548,7 +548,7 @@ export function sweepStaleInjectedConfigDirectories(now = Date.now()): Promise<v
 
 // Owns OpenCode spawn and termination mechanics; OpenCodeServer owns lifecycle and retry policy.
 export class OpenCodeProcess {
-  static readonly MISSING_CLI_MESSAGE = `OpenCode CLI not found. Install OpenCode v2 with: ${OPENCODE_INSTALL_COMMAND}. OpenCode v1 is also supported; see Varro's setup guide for installation options.`;
+  static readonly MISSING_CLI_MESSAGE = `OpenCode CLI not found. Install OpenCode v2 with: ${OPENCODE_INSTALL_COMMAND}. OpenCode v1 is also supported; see Loomery's setup guide for installation options.`;
 
   /** Unambiguous "the binary is not there": the spawn itself never got started. */
   static isMissingCliFailure(text: string): boolean {
@@ -1078,7 +1078,7 @@ export class OpenCodeProcess {
         if (anonymous.status === 404) continue;
         if (anonymous.status !== 401) return false;
         // Reject a listener which accepts arbitrary Authorization headers too.
-        const challenge = `varro-check-${randomBytes(16).toString('hex')}`;
+        const challenge = `loomery-check-${randomBytes(16).toString('hex')}`;
         const wrongPassword =
           challenge === credentials.password ? `${challenge}.invalid` : challenge;
         const rejected = await fetch(endpoint, {
@@ -1148,7 +1148,7 @@ export class OpenCodeProcess {
     if (!owner || !port || (!this.isAutomaticPort && port !== this._port)) return;
     const path = this.ownershipLeasePath;
     const encoded = await withStartupDeadline(
-      () => secrets.get(`varro.opencode.managedCredentials:${path}`),
+      () => secrets.get(`loomery.opencode.managedCredentials:${path}`),
       STARTUP_CREDENTIAL_TIMEOUT_MS,
       'Legacy managed credential lookup',
       signal
@@ -1327,7 +1327,7 @@ export class OpenCodeProcess {
     const directories = new Set([dirname(this.ownershipLeasePath)]);
     if (this.checkOwnershipFiles) {
       directories.add(getManagedServerOwnershipDirectory());
-      if (!getVarroTestStateDirectory('servers')) directories.add(tmpdir());
+      if (!getLoomeryTestStateDirectory('servers')) directories.add(tmpdir());
     }
     const candidates = new Set<string>();
     const credentialCandidates = new Map<string, ManagedServerOwnershipLease>();
@@ -1345,7 +1345,7 @@ export class OpenCodeProcess {
         throw error;
       }
       for (const entry of entries) {
-        if (/^varro-opencode-server-\d+\.json\.credentials$/.test(entry.name)) {
+        if (/^loomery-opencode-server-\d+\.json\.credentials$/.test(entry.name)) {
           const path = join(directory, entry.name);
           await this.validateOwnershipRecord(path);
           const record = await readJsonFile(path, parseManagedConnectionRecord);
@@ -1361,7 +1361,7 @@ export class OpenCodeProcess {
             });
           continue;
         }
-        if (!/^varro-opencode-server-\d+\.json(?:\.managed)?$/.test(entry.name)) continue;
+        if (!/^loomery-opencode-server-\d+\.json(?:\.managed)?$/.test(entry.name)) continue;
         const path = join(directory, entry.name);
         const leasePath = path.endsWith('.managed') ? path.slice(0, -'.managed'.length) : path;
         const record = await readJsonFile(path, (value) =>
@@ -1405,7 +1405,7 @@ export class OpenCodeProcess {
     }
     if (candidates.size > 1)
       throw new Error(
-        'Conflicting Varro registrations identify this OpenCode server; the records were left untouched'
+        'Conflicting Loomery registrations identify this OpenCode server; the records were left untouched'
       );
     const path = candidates.values().next().value;
     if (!path) {
@@ -1450,7 +1450,7 @@ export class OpenCodeProcess {
     return this.refreshStartupRegistration(signal);
   }
 
-  /** A CLI replacement can keep Varro's credentials while changing PID and port. */
+  /** A CLI replacement can keep Loomery's credentials while changing PID and port. */
   private async recoverCredentialBackedSharedServer(
     candidates: Map<string, ManagedServerOwnershipLease>,
     signal?: AbortSignal
@@ -1523,7 +1523,7 @@ export class OpenCodeProcess {
     if (!claim) {
       this.ownershipLeasePath = previousPath;
       throw new Error(
-        'Another Varro window is recovering the shared OpenCode service; retry shortly'
+        'Another Loomery window is recovering the shared OpenCode service; retry shortly'
       );
     }
     try {
@@ -1535,7 +1535,7 @@ export class OpenCodeProcess {
           (await this.matchesOwnershipLease(current))
         )
           return this.refreshStartupRegistration();
-        throw new Error('The Varro registration changed during shared-service recovery; retry');
+        throw new Error('The Loomery registration changed during shared-service recovery; retry');
       }
       const lease: ManagedServerOwnershipLease = {
         version: 1,
@@ -1566,10 +1566,10 @@ export class OpenCodeProcess {
         throw new Error(
           'The OpenCode listener changed during shared-service recovery; it was left untouched'
         );
-      // The replacement did not inherit Varro's injected config. Do not claim
+      // The replacement did not inherit Loomery's injected config. Do not claim
       // that config or retain the old token which late host cleanup could remove.
       // Unknown account evidence is not same-user proof. Provenance comes from
-      // the private retired Varro lease, enforced matching credentials, and the
+      // the private retired Loomery lease, enforced matching credentials, and the
       // reverified listener/executable/birth identity, not OpenCode discovery alone.
       signal?.throwIfAborted();
       await this.writeOwnershipMarker(lease);
@@ -1584,7 +1584,7 @@ export class OpenCodeProcess {
         this.clearLocalOwnership();
         signal.throwIfAborted();
       }
-      logger.info(`Recovered Varro-managed shared OpenCode service PID ${pid} on port ${port}`);
+      logger.info(`Recovered Loomery-managed shared OpenCode service PID ${pid} on port ${port}`);
       return true;
     } finally {
       if (claim !== this.startupOwnershipClaim) await this.releaseOwnershipClaim(claim);
@@ -1707,7 +1707,7 @@ export class OpenCodeProcess {
     const expected = this.ownershipLeaseCandidate ?? this.ownershipLease;
     const path = this.ownershipLeasePath;
     if (!expected) {
-      // A surviving private marker still proves Varro launch provenance. Do not
+      // A surviving private marker still proves Loomery launch provenance. Do not
       // claim lifecycle ownership here; normal ownership preparation does that.
       await this.validateOwnershipRecord(this.ownershipMarkerPath);
       const marker = await readJsonFile(this.ownershipMarkerPath, parseInjectedConfigOwner);
@@ -1807,7 +1807,7 @@ export class OpenCodeProcess {
     const lease = this.ownershipLease;
     if (!lease?.password || lease.port !== this._port) return;
     await secrets.store(
-      `varro.opencode.managedCredentials:${this.ownershipLeasePath}`,
+      `loomery.opencode.managedCredentials:${this.ownershipLeasePath}`,
       JSON.stringify({
         owner: lease.owner,
         username: lease.username || 'opencode',
@@ -1829,7 +1829,7 @@ export class OpenCodeProcess {
     if (lease.password) return;
     const url = this.url;
     const encoded = await withStartupDeadline(
-      () => secrets.get(`varro.opencode.managedCredentials:${this.ownershipLeasePath}`),
+      () => secrets.get(`loomery.opencode.managedCredentials:${this.ownershipLeasePath}`),
       STARTUP_CREDENTIAL_TIMEOUT_MS,
       'Managed credential lookup',
       signal
@@ -1883,7 +1883,7 @@ export class OpenCodeProcess {
         };
       }
       if (Date.now() >= deadline)
-        throw new Error('Another Varro window is starting OpenCode; retry when startup finishes');
+        throw new Error('Another Loomery window is starting OpenCode; retry when startup finishes');
       await delay(100);
     }
   }
@@ -1919,7 +1919,7 @@ export class OpenCodeProcess {
   }
 
   get isAutoUpdateEnabled(): boolean {
-    return vscode.workspace.getConfiguration('varro').get<boolean>('server.autoUpdate', true);
+    return vscode.workspace.getConfiguration('loomery').get<boolean>('server.autoUpdate', true);
   }
 
   get isSimulatingMissingCli(): boolean {
@@ -2033,7 +2033,7 @@ export class OpenCodeProcess {
     this.portInUseDetected = false;
     await this.cleanupInjectedConfigFile();
     logger.info(
-      'Varro cannot inject its runtime-only Ask agent into an existing shared or externally managed OpenCode server. Only agents already configured on that server are available.'
+      'Loomery cannot inject its runtime-only Ask agent into an existing shared or externally managed OpenCode server. Only agents already configured on that server are available.'
     );
   }
 
@@ -2109,7 +2109,7 @@ export class OpenCodeProcess {
   private async runManagedServerRestartOwnershipAcquisition(): Promise<() => Promise<void>> {
     const claim = await this.acquireOwnershipClaim();
     if (!claim) {
-      throw new Error('Another Varro window is already restarting the OpenCode server');
+      throw new Error('Another Loomery window is already restarting the OpenCode server');
     }
 
     this.restartOwnershipClaim = claim;
@@ -2428,7 +2428,7 @@ export class OpenCodeProcess {
       (await this.acquireOwnershipClaim(ownershipHostIdentity));
     if (!claim) {
       this.markOwnershipConfirmationFailed(proc);
-      logger.warn('Another Varro window is changing OpenCode ownership during startup');
+      logger.warn('Another Loomery window is changing OpenCode ownership during startup');
       return false;
     }
     const releaseClaim =
@@ -2518,7 +2518,7 @@ export class OpenCodeProcess {
       if (getEnvironmentValue(process.env, 'OPENCODE_CONFIG')?.trim()) {
         await this.removeInjectedConfigFile(this.injectedConfigPath);
         logger.warn(
-          'Preserving caller-provided OPENCODE_CONFIG; Varro runtime settings are not injected for this managed server'
+          'Preserving caller-provided OPENCODE_CONFIG; Loomery runtime settings are not injected for this managed server'
         );
         return;
       }
@@ -2835,7 +2835,7 @@ export class OpenCodeProcess {
   private bindInjectedConfigOwner(configPath: string | null, proc: ChildProcess, owner: string) {
     if (!configPath) return;
     // A child without a PID never started, so there is no owner to record. Node still emits the
-    // real spawn failure - ENOENT for a bad varro.server.command - on the next tick. Throwing a
+    // real spawn failure - ENOENT for a bad loomery.server.command - on the next tick. Throwing a
     // generic bind error here would be delivered first and would mask that actionable message.
     if (!proc.pid) return;
     writeFileSync(
@@ -3661,7 +3661,7 @@ export class OpenCodeProcess {
     for (const port of ports) {
       if ((await findListeningPids(port, this.linuxProcRoot)).length > 0) {
         throw new Error(
-          `Port ${port} is occupied by a process Varro does not own; stop it explicitly before restarting`
+          `Port ${port} is occupied by a process Loomery does not own; stop it explicitly before restarting`
         );
       }
     }
@@ -3801,8 +3801,8 @@ export class OpenCodeProcess {
           this.lastLoggedUnmanagedRestartKey = key;
           logger.info(
             this.autoStart
-              ? `OpenCode CLI ${restartCliVersion} is newer than running server ${serverVersion}, but Varro does not own the server; continuing with the existing server`
-              : `OpenCode CLI ${restartCliVersion} is newer than running server ${serverVersion}, but Varro server auto-start is disabled; skipping automatic restart`
+              ? `OpenCode CLI ${restartCliVersion} is newer than running server ${serverVersion}, but Loomery does not own the server; continuing with the existing server`
+              : `OpenCode CLI ${restartCliVersion} is newer than running server ${serverVersion}, but Loomery server auto-start is disabled; skipping automatic restart`
           );
         }
         return;
@@ -3875,7 +3875,7 @@ export class OpenCodeProcess {
 
     if (backgroundFailure) {
       // The routine "update is available" phrasing would hide the fact that
-      // Varro already tried and failed, and the default action would re-run
+      // Loomery already tried and failed, and the default action would re-run
       // the command that just failed.
       this.reportFailedBackgroundUpgrade(latestCliVersion, backgroundFailure, callbacks);
       return null;
@@ -3930,7 +3930,7 @@ export class OpenCodeProcess {
     failure: UpgradeFailureReport,
     callbacks: MaybeSuggestCliUpdateCallbacks
   ) {
-    const message = `Varro could not update the OpenCode CLI to ${latestCliVersion} automatically. ${failure.guidance}`;
+    const message = `Loomery could not update the OpenCode CLI to ${latestCliVersion} automatically. ${failure.guidance}`;
     logger.warn(message);
 
     const actions: string[] = [];
@@ -4075,7 +4075,7 @@ export class OpenCodeProcess {
     // on purpose, so the recovery guidance is exercised by injecting the stderr
     // instead of breaking a real install.
     const simulatedFailure = vscode.workspace
-      .getConfiguration('varro')
+      .getConfiguration('loomery')
       .get<string>('debug.simulateUpgradeFailure', '')
       .trim();
     if (simulatedFailure) {
@@ -4178,7 +4178,7 @@ export class OpenCodeProcess {
   /**
    * Resolves the CLI path and reports whether it was actually found on disk.
    * `found` is what separates "OpenCode is not installed" from "the path you
-   * configured does not exist" and from "it is installed but not where Varro
+   * configured does not exist" and from "it is installed but not where Loomery
    * looked" - three failures that need three different instructions.
    */
   resolveCommandInfo(): { command: string; found: boolean } {
@@ -4444,7 +4444,7 @@ export class OpenCodeProcess {
     const folders = vscode.workspace.workspaceFolders;
     return folders && folders.length > 0
       ? folders[0]!.uri.fsPath
-      : getVarroStateDirectory('scratch');
+      : getLoomeryStateDirectory('scratch');
   }
 
   private serverPathEntries(): string[] {

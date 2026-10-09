@@ -4,12 +4,12 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { asRecord, type UnknownRecord } from '../shared/type-utils';
 import {
-  getLegacyVarroStateDirectory,
-  getVarroStateDirectory,
-  prepareVarroStateDirectory,
-} from './varro-state-paths';
+  getLegacyLoomeryStateDirectory,
+  getLoomeryStateDirectory,
+  prepareLoomeryStateDirectory,
+} from './loomery-state-paths';
 
-/** V2 cannot patch metadata or archive timestamps. These are Varro-owned annotations. */
+/** V2 cannot patch metadata or archive timestamps. These are Loomery-owned annotations. */
 export class OpenCodeV2SessionState {
   private readonly operations = new Map<string, Promise<unknown>>();
   private readonly legacyDirectory: string | undefined;
@@ -18,13 +18,13 @@ export class OpenCodeV2SessionState {
   readonly directory: string;
 
   constructor(directory?: string) {
-    this.directory = directory ?? getVarroStateDirectory('opencode-v2');
+    this.directory = directory ?? getLoomeryStateDirectory('opencode-v2');
     this.legacyDirectory =
-      directory === undefined ? getLegacyVarroStateDirectory('opencode-v2') : undefined;
+      directory === undefined ? getLegacyLoomeryStateDirectory('opencode-v2') : undefined;
   }
 
   private async prepareDirectory(): Promise<string> {
-    this.prepared ??= prepareVarroStateDirectory(this.directory, this.legacyDirectory);
+    this.prepared ??= prepareLoomeryStateDirectory(this.directory, this.legacyDirectory);
     try {
       return await this.prepared;
     } catch (error) {
@@ -40,7 +40,7 @@ export class OpenCodeV2SessionState {
       return asRecord(JSON.parse(await readFile(path, 'utf8'))) ?? {};
     } catch (error) {
       if (asRecord(error)?.code === 'ENOENT') return {};
-      throw new Error('Could not read Varro OpenCode v2 session annotations', { cause: error });
+      throw new Error('Could not read Loomery OpenCode v2 session annotations', { cause: error });
     }
   }
 
@@ -159,7 +159,7 @@ export class OpenCodeV2SessionState {
         if (code === 'EPERM') contentionError = error;
       }
       if (Date.now() >= deadline)
-        throw new Error('Timed out waiting to update Varro session annotations', {
+        throw new Error('Timed out waiting to update Loomery session annotations', {
           cause: contentionError,
         });
       await delay(25, undefined, { signal });

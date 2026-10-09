@@ -42,7 +42,7 @@ function loadAdapter() {
   }).then(
     ({ outputFiles }) =>
       import(
-        `data:text/javascript;base64,${Buffer.from(`${outputFiles[0].text}\n//# sourceURL=varro-ai-v2-adapter.mjs`).toString('base64')}`
+        `data:text/javascript;base64,${Buffer.from(`${outputFiles[0].text}\n//# sourceURL=loomery-ai-v2-adapter.mjs`).toString('base64')}`
       )
   );
   return adapterModule;

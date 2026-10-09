@@ -10,19 +10,19 @@ test(
   'cross-spawn preserves Windows cmd paths and arguments with metacharacters',
   { skip: process.platform !== 'win32' },
   async (context) => {
-    const root = await mkdtemp(path.join(tmpdir(), 'varro-cross-spawn-'));
+    const root = await mkdtemp(path.join(tmpdir(), 'loomery-cross-spawn-'));
     context.after(() => rm(root, { recursive: true, force: true }));
-    const directory = path.join(root, 'OpenCode %VARRO_LITERAL% !^&()');
+    const directory = path.join(root, 'OpenCode %LOOMERY_LITERAL% !^&()');
     await mkdir(directory);
     const runner = path.join(directory, 'runner.cjs');
     const launcher = path.join(directory, 'opencode.cmd');
     await writeFile(runner, 'process.stdout.write(JSON.stringify(process.argv.slice(2)));\n');
     await writeFile(launcher, `@"${process.execPath}" "%~dp0runner.cjs" %*\r\n`);
 
-    const expected = ['serve', '--label', 'hello & %VARRO_LITERAL% !^()', 'trailing\\'];
+    const expected = ['serve', '--label', 'hello & %LOOMERY_LITERAL% !^()', 'trailing\\'];
     const output = await new Promise((resolve, reject) => {
       const child = crossSpawn(launcher, expected, {
-        env: { ...process.env, VARRO_LITERAL: 'expanded' },
+        env: { ...process.env, LOOMERY_LITERAL: 'expanded' },
         windowsHide: true,
       });
       let stdout = '';

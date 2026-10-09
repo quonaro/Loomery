@@ -161,7 +161,7 @@ const ALLOWED_HTML_ATTRIBUTES = [
   'data-lang',
   'data-highlight-lang',
   'data-mermaid-source',
-  'data-varro-generated',
+  'data-loomery-generated',
   'd',
   'fill',
   'height',
@@ -185,7 +185,7 @@ const ALLOWED_HTML_ATTRIBUTES = [
 const MAX_COPY_TEXT_LENGTH = 20_000;
 const MAX_MERMAID_SOURCE_LENGTH = 100_000;
 const MERMAID_SVG_CACHE_LIMIT = 20;
-const TRUSTED_RENDERER_ATTRIBUTE = 'data-varro-generated';
+const TRUSTED_RENDERER_ATTRIBUTE = 'data-loomery-generated';
 const PRIVATE_RENDERER_ATTRIBUTES = [
   'data-copy',
   'data-copy-text',
@@ -572,7 +572,7 @@ const TRAILING_BARE_PATH_CANDIDATE_RE = new RegExp(`(?:^|[\\s(])(${TRAILING_PATH
 const TRAILING_BARE_FILE_CANDIDATE_RE = /(?:^|[\s(])((?:[\w@+-]+\.)+[A-Za-z0-9]+)$/;
 const TRAILING_BARE_URL_CANDIDATE_RE = /(?:^|[\s(])((?:https?:\/\/|www\.)[^\s<]*)$/i;
 const TRAILING_ANGLE_URL_CANDIDATE_RE = /(?:^|\s)(<https?:\/\/[^>\s]*)$/i;
-const STREAMING_MARKDOWN_PENDING_MARKER = 'VARROPENDINGMARKDOWNPLACEHOLDER';
+const STREAMING_MARKDOWN_PENDING_MARKER = 'LOOMERYPENDINGMARKDOWNPLACEHOLDER';
 const SPECIAL_FILE_NAMES = new Set([
   '.gitignore',
   '.npmrc',
@@ -1724,7 +1724,7 @@ export async function renderMermaidWithColdRetryForTests(
   await waitForMermaidLayoutReady();
   mermaid.initialize(config);
   try {
-    return await mermaid.render(`varro-mermaid-${++mermaidRenderSequence}`, source);
+    return await mermaid.render(`loomery-mermaid-${++mermaidRenderSequence}`, source);
   } catch (firstError) {
     mermaid.initialize(config);
     try {
@@ -1734,7 +1734,7 @@ export async function renderMermaidWithColdRetryForTests(
     }
     await waitForMermaidLayoutReady();
     mermaid.initialize(config);
-    return mermaid.render(`varro-mermaid-${++mermaidRenderSequence}`, source);
+    return mermaid.render(`loomery-mermaid-${++mermaidRenderSequence}`, source);
   }
 }
 

@@ -50,8 +50,8 @@ for (const version of versions) {
       maxBuffer: 10 * 1024 * 1024,
       env: {
         ...process.env,
-        VARRO_OPENCODE_TEST_BINARY: binary,
-        VARRO_OPENCODE_TEST_VERSION: version,
+        LOOMERY_OPENCODE_TEST_BINARY: binary,
+        LOOMERY_OPENCODE_TEST_VERSION: version,
       },
     }
   );

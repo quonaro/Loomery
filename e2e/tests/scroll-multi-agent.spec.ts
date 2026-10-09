@@ -37,9 +37,9 @@ async function appendRunningToolPart(page: Page, index: number) {
       },
     };
     const harnessWindow = window as typeof window & {
-      __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+      __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
     };
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     window.postMessage(
       {
         type: 'server/event',
@@ -72,9 +72,9 @@ async function completeRunningToolPart(page: Page, index: number) {
       },
     };
     const harnessWindow = window as typeof window & {
-      __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+      __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
     };
-    harnessWindow.__varroE2E?.updateMessagePart?.(part);
+    harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
     window.postMessage(
       {
         type: 'server/event',
@@ -268,7 +268,7 @@ test.describe('multi-agent large virtualized scroll stability', () => {
 
     await page.evaluate(() => {
       const harnessWindow = window as typeof window & {
-        __varroE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
+        __loomeryE2E?: { updateMessagePart?: (updatedPart: unknown) => void };
       };
       for (let index = 0; index < 40; index += 1) {
         const part = {
@@ -286,7 +286,7 @@ test.describe('multi-agent large virtualized scroll stability', () => {
             time: { start: Date.now() },
           },
         };
-        harnessWindow.__varroE2E?.updateMessagePart?.(part);
+        harnessWindow.__loomeryE2E?.updateMessagePart?.(part);
         window.postMessage(
           {
             type: 'server/event',
@@ -306,7 +306,7 @@ test.describe('multi-agent large virtualized scroll stability', () => {
     await page.evaluate(() => {
       const harness = (
         window as Window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages: (id: string) => MessageEntry[];
             replayServerEvent: (event: {
               type: 'message.part.updated';
@@ -314,7 +314,7 @@ test.describe('multi-agent large virtualized scroll stability', () => {
             }) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       if (!harness) throw new Error('Missing E2E harness');
       const parts = harness
         .getSessionMessages('session-multi-agent-large-streaming')

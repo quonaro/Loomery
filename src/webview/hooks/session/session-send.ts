@@ -418,13 +418,10 @@ export function buildSessionSendBody(
             ? formatSelectionReference(activeFilePath, explicitSelectionRanges)
             : `[Attached file: ${activeFilePath}]`,
       });
-    } else {
+    } else if (uniqueActiveSelectionRanges.length > 0) {
       parts.push({
         type: 'text',
-        text:
-          uniqueActiveSelectionRanges.length > 0
-            ? formatSelectionReference(activeFilePath, uniqueActiveSelectionRanges)
-            : `[Active file: ${activeFilePath}]`,
+        text: formatSelectionReference(activeFilePath, uniqueActiveSelectionRanges),
       });
     }
   }

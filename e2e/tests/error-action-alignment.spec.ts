@@ -3,7 +3,7 @@ import type { ServerEvent } from '../../src/shared/protocol';
 import type { MessageEntry } from '../../src/webview/types';
 
 type ErrorActionHarness = Window & {
-  __varroE2E?: {
+  __loomeryE2E?: {
     getSessionMessages(sessionId: string): MessageEntry[];
     replayServerEvent(event: ServerEvent): void;
   };
@@ -16,7 +16,7 @@ for (const action of ['Re-authenticate', 'Retry']) {
     await expect(page.locator('[data-msg-id="message-rapid-assistant-streaming"]')).toBeVisible();
     await page.evaluate((label) => {
       // SAFETY: These fixture-only methods are installed by the local E2E harness.
-      const harness = (window as ErrorActionHarness).__varroE2E!;
+      const harness = (window as ErrorActionHarness).__loomeryE2E!;
       const sessionID = 'session-rapid-streaming-jitter';
       const info = harness.getSessionMessages(sessionID).at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');

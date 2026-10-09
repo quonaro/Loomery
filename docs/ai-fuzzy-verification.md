@@ -12,7 +12,7 @@ checkpointed replay, and independent scenario execution.
 > Markdown table, at the top of the ledger and in the final response. Automated preflight results cannot
 > establish a real-editor pass or fill missing visual coverage.
 
-This playbook verifies Varro in a real VS Code Extension Development Host using AI-generated
+This playbook verifies Loomery in a real VS Code Extension Development Host using AI-generated
 transcripts and replayable, seed-driven interaction sequences. It targets timing, layout, and visual
 failures that deterministic browser fixtures or Extension Host API tests can miss.
 
@@ -30,7 +30,7 @@ Playwright regression.
 
 ## Test Boundaries
 
-Varro has three relevant verification environments:
+Loomery has three relevant verification environments:
 
 | Environment | What it proves | What it does not prove |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ For an unqualified **Run AI tests** or **Run fuzzy tests** request:
 
 ### Controller Session Safety
 
-The Varro session handling the **Run AI tests** request is the controller session, not a disposable
+The Loomery session handling the **Run AI tests** request is the controller session, not a disposable
 test fixture. Never call OpenCode's session abort or delete endpoints for the controller session,
 including through `curl`, scripts, or another tool. Do not abort the controller to recover an
 unresponsive test host or to stop a command launched by the controller; doing so immediately aborts
@@ -116,12 +116,12 @@ not change scenario evidence, but it must be reported prominently with the remai
 
 ### Repository Fixture Safety
 
-Realistic tool and edit scenarios run against the OpenCode fixture at `<varro-root>/tmp/opencode`,
-never against the Varro source worktree. The model may inspect, edit, and test OpenCode so Varro renders
+Realistic tool and edit scenarios run against the OpenCode fixture at `<loomery-root>/tmp/opencode`,
+never against the Loomery source worktree. The model may inspect, edit, and test OpenCode so Loomery renders
 real reasoning, tools, patches, changed-file summaries, and command output without risking the code
 under test.
 
-1. From the Varro root, prepare the fixture before launching the host:
+1. From the Loomery root, prepare the fixture before launching the host:
 
    ```sh
    test -d tmp/opencode/.git || git clone https://github.com/anomalyco/opencode.git tmp/opencode
@@ -140,14 +140,14 @@ under test.
    fixture commit, short status, and exact changed-path list before every exit. This includes CDP,
    webview, server, action, and result-oracle failures. Evidence capture never resets, restores, cleans,
    or otherwise changes the fixture.
-4. Launch the Extension Development Host with the fixture as its workspace while loading Varro from
-   the Varro source tree:
+4. Launch the Extension Development Host with the fixture as its workspace while loading Loomery from
+   the Loomery source tree:
 
    ```sh
-   VARRO_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode
+   LOOMERY_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode
    ```
 
-   The printed launch metadata must show `tmp/opencode` as `workspace`. Opening Varro itself as the
+   The printed launch metadata must show `tmp/opencode` as `workspace`. Opening Loomery itself as the
    editable workspace does not satisfy realistic edit scenarios.
 5. After the last scenario and before final session/host cleanup, roll back only paths recorded as
    changed by the run. Restore tracked paths from the recorded baseline and remove only run-created
@@ -157,8 +157,8 @@ under test.
    for tracked paths, followed by individual removal of exact run-created untracked paths.
 6. Verify `HEAD` still equals the recorded baseline and `git status --short` is empty. A model commit,
    an unknown changed path, or any residual change is a cleanup failure and must be reported prominently;
-   do not guess at recovery. Also verify that the AI run created no changes in the Varro source worktree;
-   never revert unrelated Varro changes made by the user or another agent.
+   do not guess at recovery. Also verify that the AI run created no changes in the Loomery source worktree;
+   never revert unrelated Loomery changes made by the user or another agent.
 
 If credentials, a GUI, or Luna Fast/Sol are unavailable, continue with every feasible automated check and
 mark the affected real-editor scenarios `BLOCKED` with incomplete coverage. Unavailable prerequisites
@@ -191,7 +191,7 @@ what was omitted.
 ### Database isolation
 
 A separate VS Code profile does not isolate OpenCode storage. Live tests must use a dedicated
-OpenCode server with its database under `<varro-root>/artifacts/ai-test-data/`. The preparation,
+OpenCode server with its database under `<loomery-root>/artifacts/ai-test-data/`. The preparation,
 verification, live, cleanup, and editor-launch commands verify `/path` and inspect native ownership to confirm
 that the listener owns that database. They reject production storage and symlink/hard-link aliases.
 Port 4096 is no longer a default. Missing isolation is a blocked test, never permission to use the
@@ -199,18 +199,18 @@ production server. Verification uses `lsof` on macOS/Linux. On Windows it uses P
 `Get-NetTCPConnection` for listener ownership and the read-only Restart Manager resource query for
 database ownership; it never invokes shutdown or restart APIs.
 
-`npm run ai:vscode` now starts a dedicated server automatically when `VARRO_AI_SERVER_URL` is
-unset. It uses `VARRO_OPENCODE_TEST_BINARY`, or discovers `opencode2` then `opencode`, and copies
+`npm run ai:vscode` now starts a dedicated server automatically when `LOOMERY_AI_SERVER_URL` is
+unset. It uses `LOOMERY_OPENCODE_TEST_BINARY`, or discovers `opencode2` then `opencode`, and copies
 the host's global provider/model configuration and provider credentials into a fresh directory under
 `artifacts/ai-test-data/`. V1 credentials come from `auth.json`; v2 credentials come from a read-only
 query of the host database's credential table. No session rows are copied. The v2 server initializes
 its own schema before credentials are inserted while it is stopped, then restarts with those accounts.
 The copied files have owner-only permissions. The launcher prints the server URL and data directory;
-use those as `VARRO_AI_SERVER_URL` and `VARRO_AI_DATA_DIR` for subsequent controller commands.
+use those as `LOOMERY_AI_SERVER_URL` and `LOOMERY_AI_DATA_DIR` for subsequent controller commands.
 Load `OPENCODE_SERVER_USERNAME` and `OPENCODE_SERVER_PASSWORD` from the printed owner-only
 `controller-env.json` into those commands' environment without printing their values.
-The editor also inherits Varro's saved model-list preferences from the standard VS Code profile.
-Set `VARRO_AI_HOST_USER_DATA` to use a different VS Code user-data directory.
+The editor also inherits Loomery's saved model-list preferences from the standard VS Code profile.
+Set `LOOMERY_AI_HOST_USER_DATA` to use a different VS Code user-data directory.
 Stop the server PID recorded in launch metadata during cleanup and remove its test credential copies.
 An explicit server URL and replay servers retain their supplied configuration.
 
@@ -235,7 +235,7 @@ Select the required model in the isolated editor and verify it with a small mark
 provider in `/provider`'s `connected` list alone does not establish an authentication failure. If selection
 or the request fails, inspect the isolated setup and exact error before asking the user for a missing
 prerequisite. Preserve database isolation throughout.
-Use `VARRO_AI_SERVER_URL=http://127.0.0.1:49001` for both
+Use `LOOMERY_AI_SERVER_URL=http://127.0.0.1:49001` for both
 `ai:preconditions` and `ai:vscode`, or pass `--server` to preparation. The launcher pins the host's
 transport to that verified origin, isolates CLI storage, and disables automatic server startup and
 updates. Record the dedicated server PID and stop it during cleanup along with the test editor.
@@ -248,7 +248,7 @@ For an authenticated dedicated server, set `OPENCODE_SERVER_PASSWORD` and, if ne
 the isolated editor without storing them in launch metadata.
 
 For OpenCode v2, and v1 versions whose `/path` response omits `data`, also set
-`VARRO_AI_DATA_DIR="$PWD/artifacts/ai-test-data/data/opencode"` on preparation, verification,
+`LOOMERY_AI_DATA_DIR="$PWD/artifacts/ai-test-data/data/opencode"` on preparation, verification,
 live-controller, cleanup, and editor-launch commands. This explicit directory is subject to the same
 test-root, symlink/hard-link, and listener-owned database checks. When the server reports a data
 directory, it must agree with the configured directory. V2's native location endpoint does not
@@ -260,26 +260,26 @@ identifying the intended production changes. Existing production golden historie
 as copies or regenerated in isolated storage before use. Old production-backed manifests are rejected.
 
 1. Prepare the clean `tmp/opencode` fixture under Repository Fixture Safety, then run
-   `VARRO_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode` to build Varro and launch a persistent,
+   `LOOMERY_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode` to build Loomery and launch a persistent,
    isolated Extension Development Host. Use the printed profile and workspace paths in the ledger. This
    avoids reusing a normal VS Code singleton and uses a short temporary profile path that stays below
    the macOS IPC socket-path limit. On macOS the host starts hidden in the background so launch and setup
    do not steal focus; reveal it only when the real-editor interactions are ready to begin. A manually
    launched **VS Code Extension Development** window is acceptable only when its editable workspace is
-   the clean `tmp/opencode` fixture and the current environment can reliably control it. Opening Varro
+   the clean `tmp/opencode` fixture and the current environment can reliably control it. Opening Loomery
    itself in the test host does not satisfy AI-07 or AI-08.
-   Reuse this host for the complete run. After rebuilding Varro, reload the same Extension Development
+   Reuse this host for the complete run. After rebuilding Loomery, reload the same Extension Development
    Host instead of running `npm run ai:vscode` again. Launch another isolated host only when a scenario
    explicitly requires a fresh cold profile. Close the previous test host first unless simultaneous
    hosts are strictly required by the scenario.
-2. Use a dedicated Extension Development Host window. Do not use a production Varro window that has
+2. Use a dedicated Extension Development Host window. Do not use a production Loomery window that has
    unrelated sessions or settings.
-3. Open the Varro view and explicitly select GPT-6 Luna Fast or GPT-6 Sol. Use Luna Fast for controlled text-height
+3. Open the Loomery view and explicitly select GPT-6 Luna Fast or GPT-6 Sol. Use Luna Fast for controlled text-height
    streams and Luna Fast or Sol for realistic repository work; record the exact provider/model per scenario.
    Apply and verify this selection before every live scenario, not only duplicate-delivery checks.
 4. Start with the secondary sidebar between 430 and 500 CSS pixels wide and the window at least 800
    CSS pixels high. Record window size, zoom, sidebar side, panel visibility, theme, and font scaling.
-5. Use a new Varro session titled `VFZ <seed>` unless the scenario requires reopening a prepared long
+5. Use a new Loomery session titled `VFZ <seed>` unless the scenario requires reopening a prepared long
    session.
 6. Observe the complete run directly in the tracked Extension Development Host. Record the scenario,
    step, marker, and preceding actions immediately when a suspected failure occurs and again after
@@ -287,7 +287,7 @@ as copies or regenerated in isolated storage before use. Old production-backed m
    A marker is an exact painted DOM element whose bounding rectangle, after intersection with every
    clipping ancestor and the transcript scrollport, intersects the viewport. A raw descendant rectangle
    outside an `overflow: clip` entrance wrapper is not painted evidence. Capture and reuse that element's
-   stable message ID plus render key or a uniquely identifying descendant. If Varro preserves a
+   stable message ID plus render key or a uniquely identifying descendant. If Loomery preserves a
    different visible render item during reflow, record both identities and do not infer a jump from movement of the
    containing row or an adjacent card.
 7. Keep DevTools closed for the first pass because docking changes webview dimensions. Use it only for
@@ -297,7 +297,7 @@ as copies or regenerated in isolated storage before use. Old production-backed m
    final report, terminate every Extension Development Host launched by the run and verify that its
    process and debugging endpoint have stopped. Delete run-created temporary sessions before terminating
    the final host. Never leave persistent test hosts open.
-9. When more than one Varro iframe exists, enumerate all matching CDP targets and inspect
+9. When more than one Loomery iframe exists, enumerate all matching CDP targets and inspect
    `__initialWebviewState.webviewContext`. Select the requested `surface`, stable `viewId`, and session
    route. An absent or ambiguous match is a failure. Never choose the first matching iframe. After an
    editor hides, reveals, or reloads, bind its recreated iframe by the same `viewId`.
@@ -312,14 +312,14 @@ is not the interactive geometry environment.
 Do not stop after noticing that no Extension Development Host is already running. Attempt recovery in
 this order:
 
-1. Run `VARRO_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode` and verify that a window titled
+1. Run `LOOMERY_AI_WORKSPACE="$PWD/tmp/opencode" npm run ai:vscode` and verify that a window titled
    `[Extension Development Host]` appears.
 2. If launch fails, inspect the command output and running processes. On macOS, an IPC socket error such
    as `longer than 103 chars` means the user-data path is too long; use the launcher rather than a long
    hand-written `--user-data-dir`. A regular VS Code window without the development-host title usually
    means the existing VS Code singleton consumed the request; use the launcher's isolated profile.
 3. Verify that the available automation mechanism identifies the exact isolated VS Code process and
-   Varro webview, then can issue desktop mouse clicks, wheel events, keyboard events, scrollbar drags,
+   Loomery webview, then can issue desktop mouse clicks, wheel events, keyboard events, scrollbar drags,
    and resize events to that target. These are desktop input events, not touch gestures. They may be
    delivered through OS desktop automation or Chromium/Electron input dispatch bound to the exact
    tracked VS Code webview. Browser access to an unrelated preview page is not VS Code access.
@@ -361,7 +361,7 @@ Throughout this playbook, `native` means an actual desktop-style browser/Electro
 to the exact tracked VS Code webview: mouse click, mouse wheel, key event, pointer drag, or workbench
 resize. It does **not** mean literal hardware input, trackpad-only input, touch input, or a requirement to
 move the visible macOS/Windows cursor. CDP `Input.dispatchMouseEvent` and `Input.dispatchKeyEvent` are
-valid when they target the isolated Extension Development Host or its Varro iframe and produce the same
+valid when they target the isolated Extension Development Host or its Loomery iframe and produce the same
 event path as desktop mouse/keyboard control.
 
 Do not replace a wheel, keyboard, click, resize, or scrollbar input event with a DevTools evaluation
@@ -372,7 +372,7 @@ valid for inspection and geometry sampling.
 ### Frame-Level Flicker Observation
 
 Flicker is a regression, not cosmetic tolerance. Observe the complete streaming lifecycle, with special
-attention to boundaries where Varro changes the projection of the same underlying content:
+attention to boundaries where Loomery changes the projection of the same underlying content:
 
 - Thinking starts, receives deltas, collapses, expands, moves into Explored, or becomes hidden
 - parallel tools enter, complete out of order, become retained/exiting, group into Explored, or yield
@@ -405,7 +405,7 @@ npm run ai:live -- run --manifest <manifest-path> --launch <launch.json> --scena
 ```
 
 The controller stores the session metadata, canonical transcript before and after the turn, and timed
-webview events in `<varro-root>/varro-playback.db`. Use `--playback-db <path>` to select another database.
+webview events in `<loomery-root>/loomery-playback.db`. Use `--playback-db <path>` to select another database.
 The default database and its SQLite sidecar files are ignored by Git. A capture can contain prompts,
 model output, command output, and source snippets. Inspect it before retaining or sharing it. Do not
 capture credentials or private repository content.
@@ -438,7 +438,7 @@ npm run ai:playback -- replay --id <capture-id>
 
 Normal E2E runs use deterministic mocked sessions and never load the local playback database or recorded
 capture files. The local replay CLI reads the database and runs `e2e/local/session-playback.spec.ts` through
-`playwright.config.ts` with `VARRO_E2E_MODE=playback`. Both paths share the same frame assertions and
+`playwright.config.ts` with `LOOMERY_E2E_MODE=playback`. Both paths share the same frame assertions and
 canonical transcript check; recorded captures are only used by this explicit local AI test invocation.
 
 Playback reuses one harness server. E2E mode disables Vite's development WebSocket as well as HMR;
@@ -538,7 +538,7 @@ The controller allows three prompts by default and at most four when explicitly 
 is a new turn and must request the complete minimum gate set: a virtualized active stream, sticky marked
 prompt, file edit and expandable diff when required, and retained disclosure. Retry prompts emphasize
 gates that the previous turn missed, but never assume a gate from an
-earlier turn carries into the new turn. It polls the real Varro DOM while the model is busy, begins native interaction as soon as
+earlier turn carries into the new turn. It polls the real Loomery DOM while the model is busy, begins native interaction as soon as
 the gate is simultaneously true, verifies the nested-to-outer wheel handoff if a scrollable activity tray
 occurs naturally, and executes AI-08's
 recorded 50-action plan. It waits for bounded stream settlement and records the resulting fixture status
@@ -553,7 +553,7 @@ After the retry budget, report the per-attempt missing gates and the first unava
 Do not use the generic explanation that actions "were not executed." `BLOCKED` is valid only when the
 recorded recovery attempts exhausted their budget, the tracked host or session disappeared, a required
 control truly was unavailable, or continuing would violate fixture safety. Never replace the realistic
-task with injected DOM state or edits to Varro.
+task with injected DOM state or edits to Loomery.
 
 ### Long Session Preparation
 
@@ -587,7 +587,7 @@ virtualized state. Treat a failed static gate as setup work to repair or
 regenerate before launching the timed scenario, not as a late scenario surprise.
 
 After launching or restarting the dedicated host, verify that the fork survived into the exact server
-instance before opening it in Varro:
+instance before opening it in Loomery:
 
 ```sh
 npm run ai:preconditions -- verify-run --manifest <manifest-path>
@@ -736,7 +736,7 @@ has just started, and this session has not been opened in that host run.
 
 1. Open the session and wait at the latest message without scrolling upward.
 2. Begin direct observation, then use only desktop pixel-wheel events between 32 and 96 pixels upward.
-   OS mouse automation or CDP mouse-wheel dispatch to the exact Varro webview is valid; touch events and
+   OS mouse automation or CDP mouse-wheel dispatch to the exact Loomery webview is valid; touch events and
    direct scroll-position mutation are not.
 3. At each history boundary, keep one marked row under observation through loading and insertion.
 4. Continue through every boundary until the real first prompt and history-start state are visible.
@@ -907,8 +907,8 @@ npm run ai:live -- run --manifest <manifest-path> --launch <launch.json> --scena
 ```
 
 The controller reloads the Extension Development Host through the native command palette, reconnects
-to the recreated Varro iframe, sends one marked prompt through native composer input, requests 21
-unique tokens, and samples the real Varro DOM on every animation frame until the stream settles.
+to the recreated Loomery iframe, sends one marked prompt through native composer input, requests 21
+unique tokens, and samples the real Loomery DOM on every animation frame until the stream settles.
 Use `--restart-count <1-10>` to perform consecutive workbench reloads before the single observed send
 when investigating listener or state accumulation across restarts.
 
@@ -1043,7 +1043,7 @@ when the active anchor may be a visible assistant render item inside that row.
 Create `artifacts/ai-fuzzy/<timestamp>-<seed>.md` from this template:
 
 ```md
-# Varro AI Fuzzy Run
+# Loomery AI Fuzzy Run
 
 - Overall result: PASS | FAIL | BLOCKED
 - Overall result reason:
@@ -1059,7 +1059,7 @@ Create `artifacts/ai-fuzzy/<timestamp>-<seed>.md` from this template:
 - Commit:
 - Existing worktree changes:
 - OS and VS Code version:
-- Varro version:
+- Loomery version:
 - OpenCode version:
 - Model/provider per scenario:
 - Target surface, stable viewId, and session route per live scenario:

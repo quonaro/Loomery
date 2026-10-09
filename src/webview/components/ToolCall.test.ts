@@ -185,8 +185,11 @@ describe('formatToolTitle', () => {
 
   it('uses the description as the task title', () => {
     expect(
-      formatToolTitle('task', completedState({ description: 'Trace Varro diff logic' }, 'Working'))
-    ).toBe('Trace Varro diff logic');
+      formatToolTitle(
+        'task',
+        completedState({ description: 'Trace Loomery diff logic' }, 'Working')
+      )
+    ).toBe('Trace Loomery diff logic');
   });
 
   it('uses the URL as the webfetch title', () => {
@@ -1980,10 +1983,10 @@ describe('ToolCall', () => {
       state: {
         status: 'running',
         input: {
-          description: 'Research Varro SDK usage',
+          description: 'Research Loomery SDK usage',
           prompt: 'Do something',
         },
-        title: 'Research Varro SDK usage',
+        title: 'Research Loomery SDK usage',
         metadata: {},
         time: { start: 0 },
       },
@@ -2003,7 +2006,7 @@ describe('ToolCall', () => {
     setState('sessions', [
       session('child-1', {
         parentID: 'session-1',
-        title: 'Research Varro SDK usage (@explore subagent)',
+        title: 'Research Loomery SDK usage (@explore subagent)',
         tokens: { input: 321, output: 45, reasoning: 0, cache: { read: 0, write: 0 } },
         time: { created: 11, updated: 12 },
       }),

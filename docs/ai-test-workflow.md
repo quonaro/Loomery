@@ -14,7 +14,7 @@ To verify the runner itself in one command:
 npm run test:ai-runner
 ```
 
-This builds Varro, launches an isolated VS Code instance with generated input, verifies checkpointed
+This builds Loomery, launches an isolated VS Code instance with generated input, verifies checkpointed
 delivery against the real webview, saves snapshots, and verifies host shutdown. It needs no provider
 credentials or production database. Evidence stays in `artifacts/ai-streaming/runner-smoke-<timestamp>/`.
 Use it to diagnose runner setup; it is not a visual or live-model suite verdict.
@@ -22,24 +22,24 @@ Use it to diagnose runner setup; it is not a visual or live-model suite verdict.
 Verify the controller against each installed v1/v2 executable with:
 
 ```sh
-VARRO_OPENCODE_TEST_BINARY=/absolute/path/to/opencode node --test scripts/ai-opencode-client.integration.test.mjs
+LOOMERY_OPENCODE_TEST_BINARY=/absolute/path/to/opencode node --test scripts/ai-opencode-client.integration.test.mjs
 ```
 
-Build first and add `VARRO_AI_TEST_EDITOR=1` to also verify the authenticated editor launcher and a
+Build first and add `LOOMERY_AI_TEST_EDITOR=1` to also verify the authenticated editor launcher and a
 native composer follow-up. This test uses a local fixture provider and separate database; it verifies
 runner compatibility without consuming provider credentials. It does not replace GPT-6 Luna Fast/Sol scenarios
 run through the OpenAI subscription. Use the OpenAI subscription for all AI test model calls.
 
 ## Isolate editor state as well as the backend
 
-Use the existing launchers. They set `VARRO_TEST_STATE_ROOT` to a disposable profile
+Use the existing launchers. They set `LOOMERY_TEST_STATE_ROOT` to a disposable profile
 directory, separating server claims and v2 annotation locks from production editors.
 They also isolate home, local app-data, state, and temporary directories used by
 older builds. Each independent test profile gets a separate root. Launch metadata
-records `varroTestStateRoot` for the AI launcher.
+records `loomeryTestStateRoot` for the AI launcher.
 
-A custom test host must supply an absolute `VARRO_TEST_STATE_ROOT` alongside
-`VARRO_TEST_SERVER_URL`; otherwise default state access fails closed. Do not copy,
+A custom test host must supply an absolute `LOOMERY_TEST_STATE_ROOT` alongside
+`LOOMERY_TEST_SERVER_URL`; otherwise default state access fails closed. Do not copy,
 delete, or repair production lock files to unblock a test. Database isolation and
 verified endpoint checks are still required. See [server ownership](server-ownership.md#editor-distributions-and-test-isolation)
 for mixed-version limitations.
@@ -67,7 +67,7 @@ recreate a rendering boundary already available in a capture.
    Verify the isolated server, fixture, host identity, and actual model request for live work. Check the
    backend version explicitly. The live and precondition clients detect v1/v2 and use the extension's
    v2 adapter for native v2 requests. Isolation records the exact backend version. V2 requires
-   `VARRO_AI_DATA_DIR` because its location endpoint does not expose the database path; native listener
+   `LOOMERY_AI_DATA_DIR` because its location endpoint does not expose the database path; native listener
    and database ownership checks still apply. Never substitute a different backend for requested coverage.
 3. Start the isolated host using the existing launcher. Use its CDP target for native mouse and keyboard
    events. The controller can use this without asking the user to manipulate the editor. Bind by surface,
@@ -242,7 +242,7 @@ canonical-only outcome, or an unrelated automated check as completion of a requi
 For each issue, include severity, affected behavior, expected versus observed result, evidence or minimal
 reproduction, and a concrete recommendation for what needs fixing and how to verify the fix. Identify
 product/backend issues, test-controller problems, automated-check failures, and cleanup issues separately;
-do not label a run-infrastructure issue as a Varro regression. If the cause is unknown, recommend the next
+do not label a run-infrastructure issue as a Loomery regression. If the cause is unknown, recommend the next
 diagnostic or regression test instead of inventing a fix. Recommendations for blocked coverage belong
 under follow-up verification, not product fixes. When no issues were found, say that no product fixes are
 indicated by the tested cases and note any remaining verification. Link the detailed ledger.
@@ -257,6 +257,6 @@ npm run artifacts:prune
 ```
 
 This is a dry run. It keeps the newest 10 directories in each location and anything changed in the last
-24 hours, and it never selects the directory named by `VARRO_AI_DATA_DIR`. Add `--apply` to delete, and
+24 hours, and it never selects the directory named by `LOOMERY_AI_DATA_DIR`. Add `--apply` to delete, and
 `--keep <n>` or `--min-age-hours <n>` to adjust. It does not touch `artifacts/ai-fuzzy/` ledgers,
 `opencode-adapters/verified.json`, or any `tmp/` fixture.

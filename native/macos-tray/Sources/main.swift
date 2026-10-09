@@ -14,14 +14,14 @@ final class TrayApp: NSObject, NSApplicationDelegate {
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Launch Services normally enforces this; also handle directly executing a second binary.
-    if NSRunningApplication.runningApplications(withBundleIdentifier: "com.koltyakov.varro.tray")
+    if NSRunningApplication.runningApplications(withBundleIdentifier: "com.quonaro.loomery.tray")
       .contains(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
       NSApp.terminate(nil)
       return
     }
     // A dedicated directory doubles as the extension's install marker. Without it, editors stay inert.
     let directory = FileManager.default.homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/Application Support/Varro/tray", isDirectory: true)
+      .appendingPathComponent("Library/Application Support/Loomery/tray", isDirectory: true)
     do {
       try TrayServer.prepareDirectory(directory)
       let model = TrayModel(historyURL: directory.appendingPathComponent("tray-history.json"))
@@ -48,7 +48,7 @@ final class TrayApp: NSObject, NSApplicationDelegate {
       }
     } catch {
       let alert = NSAlert()
-      alert.messageText = "Varro could not start"
+      alert.messageText = "Loomery could not start"
       alert.informativeText = error.localizedDescription
       alert.runModal()
       NSApp.terminate(nil)

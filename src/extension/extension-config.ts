@@ -9,7 +9,7 @@ const DEFAULT_CHAT_EDITOR_FONT_SIZE = 12;
 const DEFAULT_CHAT_FONT_FAMILY = 'default';
 
 export function readExtensionConfigState(
-  config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('varro'),
+  config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('loomery'),
   chatConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('chat')
 ): ExtensionConfigState {
   return {

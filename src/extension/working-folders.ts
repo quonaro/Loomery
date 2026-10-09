@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import { getRelativePathWithinWorkspace } from '../shared/workspace-path';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 
 /** Internal path/authorization roots. Never publish the scratch folder as an open project. */
 export function getWorkingFolders(): readonly vscode.WorkspaceFolder[] {
   const folders = vscode.workspace.workspaceFolders;
   if (folders?.length) return folders;
-  return [{ name: 'scratch', uri: vscode.Uri.file(getVarroStateDirectory('scratch')), index: 0 }];
+  return [{ name: 'scratch', uri: vscode.Uri.file(getLoomeryStateDirectory('scratch')), index: 0 }];
 }
 
 export function getWorkingFolder(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {

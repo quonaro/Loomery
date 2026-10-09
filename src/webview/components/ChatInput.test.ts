@@ -157,7 +157,7 @@ vi.mock('../lib/client', () => ({
       status: vi.fn(async () => ({})),
       resumeSteering: vi.fn(async () => true),
     },
-    varro: {
+    loomery: {
       workspaceProblems: vi.fn(async () => ({ total: 0, diagnostics: [] })),
       session: {
         diffSummary: vi.fn(async () => ({
@@ -341,8 +341,8 @@ afterEach(() => {
   redoSessionMock.mockReset();
   showSessionActionFeedbackMock.mockReset();
   undoSessionMock.mockReset();
-  vi.mocked(client.varro.session.diffSummary).mockReset();
-  vi.mocked(client.varro.session.diffSummary).mockResolvedValue({
+  vi.mocked(client.loomery.session.diffSummary).mockReset();
+  vi.mocked(client.loomery.session.diffSummary).mockResolvedValue({
     files: 0,
     additions: 0,
     deletions: 0,
@@ -350,9 +350,9 @@ afterEach(() => {
     durationMs: 0,
     activeStartedAt: null,
   });
-  vi.mocked(client.varro.resolveWorkspacePath).mockClear();
-  vi.mocked(client.varro.workspaceProblems).mockReset();
-  vi.mocked(client.varro.workspaceProblems).mockResolvedValue({ total: 0, diagnostics: [] });
+  vi.mocked(client.loomery.resolveWorkspacePath).mockClear();
+  vi.mocked(client.loomery.workspaceProblems).mockReset();
+  vi.mocked(client.loomery.workspaceProblems).mockResolvedValue({ total: 0, diagnostics: [] });
   vi.mocked(client.session.list).mockReset();
   vi.mocked(client.session.list).mockResolvedValue({ items: [], hasMore: false });
   vi.mocked(client.session.get).mockReset();
@@ -1603,7 +1603,7 @@ describe('ChatInput', () => {
     );
   });
 
-  it('links to the Varro repository when no status metadata is available', () => {
+  it('links to the Loomery repository when no status metadata is available', () => {
     setState('activeSessionId', null);
     setState('mcpStatus', {});
     setState('lspStatus', []);
@@ -1614,7 +1614,7 @@ describe('ChatInput', () => {
     expect(repositoryLink?.href).toBe(packageJson.repository);
     expect(repositoryLink?.textContent).toBe(`v${packageJson.version}`);
     expect(repositoryLink?.getAttribute('aria-label')).toBe(
-      `Varro v${packageJson.version} on GitHub`
+      `Loomery v${packageJson.version} on GitHub`
     );
   });
 
@@ -2832,7 +2832,7 @@ describe('ChatInput', () => {
       session('child-1', 2_000, { parentID: 'session-1' }),
     ]);
     setState('messages', [assistantMessageEntry({ input: 400, output: 100 })]);
-    vi.mocked(client.varro.session.diffSummary).mockResolvedValue({
+    vi.mocked(client.loomery.session.diffSummary).mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2876,7 +2876,7 @@ describe('ChatInput', () => {
         'Agents (1)850'
       );
     });
-    expect(client.varro.session.diffSummary).toHaveBeenCalledWith('session-1', undefined, {
+    expect(client.loomery.session.diffSummary).toHaveBeenCalledWith('session-1', undefined, {
       directory: '/repo',
     });
     expect(container?.querySelector('.context-popup-cost-row')?.textContent).toBe('Cost$0.07');
@@ -3524,7 +3524,7 @@ describe('ChatInput', () => {
   it.each([
     { trigger: '@', initial: '@hel', shortened: '@he' },
     { trigger: '&', initial: '&aut', shortened: '&au' },
-    { trigger: '/', initial: '/zzv', shortened: '/zz' },
+    { trigger: '/', initial: '/zzl', shortened: '/zz' },
   ])(
     'keeps the $trigger completion menu mounted on backspace',
     async ({ trigger, initial, shortened }) => {
@@ -3540,7 +3540,7 @@ describe('ChatInput', () => {
       setState('sessions', [session('session-auth', 2_000, { title: 'Authentication' })]);
       setState('commands', [
         {
-          name: 'zzvarrotest',
+          name: 'zzloomerytest',
           description: 'Run tests',
           template: 'Run tests',
         },
@@ -3673,19 +3673,19 @@ describe('ChatInput', () => {
   it('runs a parameterless slash completion on the first Enter', async () => {
     setState('commands', [
       {
-        name: 'zzvarrotest',
+        name: 'zzloomerytest',
         description: 'Run tests',
         template: 'Run tests',
       },
     ]);
-    setInputText('/zzv');
+    setInputText('/zzl');
 
     cleanup = render(() => ChatInput(), container!);
 
     const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
     if (!editor?.firstChild) throw new Error('Expected populated composer editor');
     editor.focus();
-    setCollapsedSelection(editor.firstChild, '/zzv'.length);
+    setCollapsedSelection(editor.firstChild, '/zzl'.length);
     editor.dispatchEvent(new KeyboardEvent('keyup', { key: 'v', bubbles: true }));
     await flushAsyncWork();
 
@@ -3698,7 +3698,7 @@ describe('ChatInput', () => {
 
     expect(inputText()).toBe('');
     expect(container?.querySelector('.composer-completion-menu')).toBeNull();
-    expect(runSlashCommandByNameMock).toHaveBeenCalledWith('zzvarrotest', '');
+    expect(runSlashCommandByNameMock).toHaveBeenCalledWith('zzloomerytest', '');
     expect(sendMessageMock).not.toHaveBeenCalled();
   });
 
@@ -3744,20 +3744,20 @@ describe('ChatInput', () => {
   it('selects a parameterized slash completion without running it', async () => {
     setState('commands', [
       {
-        name: 'zzvarrotest',
+        name: 'zzloomerytest',
         description: 'Run matching tests',
         template: 'Run matching tests',
         hints: ['pattern'],
       },
     ]);
-    setInputText('/zzv');
+    setInputText('/zzl');
 
     cleanup = render(() => ChatInput(), container!);
 
     const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
     if (!editor?.firstChild) throw new Error('Expected populated composer editor');
     editor.focus();
-    setCollapsedSelection(editor.firstChild, '/zzv'.length);
+    setCollapsedSelection(editor.firstChild, '/zzl'.length);
     editor.dispatchEvent(new KeyboardEvent('keyup', { key: 'v', bubbles: true }));
     await flushAsyncWork();
 
@@ -3766,7 +3766,7 @@ describe('ChatInput', () => {
     );
     await flushAsyncWork();
 
-    expect(inputText()).toBe('/zzvarrotest');
+    expect(inputText()).toBe('/zzloomerytest');
     expect(runSlashCommandByNameMock).not.toHaveBeenCalled();
     expect(sendMessageMock).not.toHaveBeenCalled();
   });
@@ -5469,7 +5469,7 @@ describe('ChatInput', () => {
     ).toBe(true);
   });
 
-  it.each(['application/x-varro-provider', 'application/x-varro-model'])(
+  it.each(['application/x-loomery-provider', 'application/x-loomery-model'])(
     'does not treat %s reordering as a file drop',
     (dragType) => {
       cleanup = render(() => ChatInput(), container!);
@@ -5625,7 +5625,7 @@ describe('ChatInput', () => {
     expect(state.queuedMessages[2]?.id).toBe('q3');
   });
 
-  it('can disable an automatically attached document while editing a queued message', async () => {
+  it('can disable an automatically attached selection while editing a queued message', async () => {
     setIsLoading(true);
     setState('activeSessionId', 'session-1');
     setState('editorContext', {
@@ -5635,7 +5635,7 @@ describe('ChatInput', () => {
         relativePath: 'CHANGELOG.md',
         language: 'markdown',
       },
-      selection: null,
+      selection: { startLine: 3, endLine: 5 },
       diagnostics: [],
     });
     setInputText('Also run performance tests');
@@ -5666,6 +5666,32 @@ describe('ChatInput', () => {
     await flushAsyncWork();
     expect(state.queuedMessages[0]?.droppedFiles).toEqual([]);
     expect(state.queuedMessages[0]?.queuedContext?.currentDocumentEnabled).toBe(false);
+  });
+
+  it('does not auto-attach or chip a bare open file', async () => {
+    setIsLoading(true);
+    setState('activeSessionId', 'session-1');
+    setState('editorContext', {
+      workspacePath: '/repo',
+      activeFile: {
+        path: '/repo/lota.yml',
+        relativePath: 'lota.yml',
+        language: 'yaml',
+      },
+      selection: null,
+      diagnostics: [],
+    });
+    setInputText('Deploy it');
+    cleanup = render(() => ChatInput(), container!);
+    await flushAsyncWork();
+
+    expect(container?.querySelector('.chat-attachments-container')).toBeNull();
+
+    container
+      ?.querySelector<HTMLButtonElement>('[aria-label="Add to queue (Enter)"]')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncWork();
+    expect(state.queuedMessages[0]?.droppedFiles).toEqual([]);
   });
 
   it('keeps an explicitly attached active file when editing a queued message', () => {
@@ -6924,7 +6950,7 @@ describe('ChatInput', () => {
     expect(state.terminalSelection).toEqual({ text: 'pwd', terminalName: 'draft-terminal' });
   });
 
-  it('merges an edited whole-file attachment into the active document context', async () => {
+  it('keeps an edited whole-file attachment instead of merging it into the active document context', async () => {
     setState('activeSessionId', 'session-1');
     setState('editorContext', {
       workspacePath: '/repo',
@@ -6946,11 +6972,13 @@ describe('ChatInput', () => {
     });
     await Promise.resolve();
 
-    expect(state.droppedFiles).toEqual([]);
+    expect(state.droppedFiles).toEqual([
+      { path: '/repo/src/app.ts', relativePath: 'src/app.ts', type: 'file' },
+    ]);
     const chips = container?.querySelectorAll('.chat-attachments-container .chat-attachment-chip');
     expect(chips).toHaveLength(1);
     expect(chips?.[0]?.textContent).toContain('app.ts');
-    expect(chips?.[0]?.querySelector('.chip-remove')).toBeNull();
+    expect(chips?.[0]?.querySelector('.chip-remove')).not.toBeNull();
   });
 
   it('does not duplicate the active document when editing its ranged attachment', async () => {
@@ -7162,8 +7190,8 @@ describe('ChatInput', () => {
   it('sends a new no-project chat in scratch without presenting it as an open folder', async () => {
     setState('activeSessionId', null);
     setState('editorContext', {
-      workspacePath: '/varro/scratch',
-      workspaceDirectory: '/varro/scratch',
+      workspacePath: '/loomery/scratch',
+      workspaceDirectory: '/loomery/scratch',
       workspaceFolders: [],
       activeFile: null,
       selection: null,
@@ -7181,7 +7209,7 @@ describe('ChatInput', () => {
     expect(sendMessageMock).toHaveBeenCalledWith('Help me write notes', {
       noReply: false,
       queuedAttachments: undefined,
-      newSessionWorkspace: { scope: 'folder', directory: '/varro/scratch' },
+      newSessionWorkspace: { scope: 'folder', directory: '/loomery/scratch' },
     });
   });
 
@@ -7480,9 +7508,9 @@ describe('ChatInput', () => {
       message
     ) => messages.push(message);
     setState('editorContext', {
-      workspacePath: '\\\\BuildServer\\Projects\\Varro',
-      workspaceFolders: [{ name: 'Varro', path: '\\\\BuildServer\\Projects\\Varro' }],
-      activeWorkspacePath: '//buildserver/PROJECTS/varro/',
+      workspacePath: '\\\\BuildServer\\Projects\\Loomery',
+      workspaceFolders: [{ name: 'Loomery', path: '\\\\BuildServer\\Projects\\Loomery' }],
+      activeWorkspacePath: '//buildserver/PROJECTS/loomery/',
       activeFile: null,
       selection: null,
       diagnostics: [],
@@ -8028,7 +8056,7 @@ describe('ChatInput', () => {
     });
     const pausedSession = session('session-1', 1_000);
     const pausedMetadata = {
-      varro: { pauses: [{ messageId: 'paused-message', pausedAt: 2_000 }] },
+      loomery: { pauses: [{ messageId: 'paused-message', pausedAt: 2_000 }] },
     };
     vi.mocked(client.session.get).mockResolvedValueOnce(pausedSession);
     vi.mocked(client.session.messages).mockResolvedValueOnce([
@@ -8064,7 +8092,7 @@ describe('ChatInput', () => {
       'session-1',
       {
         metadata: {
-          varro: { pauses: [{ messageId: 'paused-message', pausedAt: expect.any(Number) }] },
+          loomery: { pauses: [{ messageId: 'paused-message', pausedAt: expect.any(Number) }] },
         },
       },
       { directory: pausedSession.directory }
@@ -8561,7 +8589,7 @@ describe('ChatInput', () => {
     expect(inputText()).toBe('');
   });
 
-  it('opens the Varro provider connection UI with the connect slash command', async () => {
+  it('opens the Loomery provider connection UI with the connect slash command', async () => {
     setInputText('/connect');
 
     cleanup = render(() => ChatInput(), container!);
@@ -8603,9 +8631,11 @@ describe('ChatInput', () => {
     expect(state.currentDocumentEnabled).toBe(currentDocumentEnabled);
     expect(problemChip().getAttribute('aria-pressed')).toBe('false');
     expect(problemChip().classList.contains('disabled')).toBe(true);
-    expect(JSON.parse(window.localStorage.getItem('varro.projectIssuesEnabled') || '{}')).toEqual({
-      '/repo': false,
-    });
+    expect(JSON.parse(window.localStorage.getItem('loomery.projectIssuesEnabled') || '{}')).toEqual(
+      {
+        '/repo': false,
+      }
+    );
     problemChip().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     await flushAsyncWork();
     expect(state.issuesEnabled).toBe(true);
@@ -8674,7 +8704,7 @@ describe('ChatInput', () => {
         { path: '/repo/b.ts', line: 2, severity: 'warning' as const, message: 'B warning' },
       ],
     };
-    vi.mocked(client.varro.workspaceProblems).mockResolvedValue(snapshot);
+    vi.mocked(client.loomery.workspaceProblems).mockResolvedValue(snapshot);
     setState('editorContext', {
       workspacePath: '/repo',
       activeFile: { path: '/repo/a.ts', relativePath: 'a.ts', language: 'typescript' },
@@ -8695,7 +8725,7 @@ describe('ChatInput', () => {
     expect(container!.querySelectorAll('.completion-problems')).toHaveLength(3);
     completion!.click();
     await flushAsyncWork();
-    expect(client.varro.workspaceProblems).toHaveBeenCalledOnce();
+    expect(client.loomery.workspaceProblems).toHaveBeenCalledOnce();
     expect(state.attachedDiagnostics).toBeNull();
     expect(state.inlineProblems).toHaveLength(1);
     expect(state.inlineProblems[0]?.group).toEqual(snapshot.diagnostics);
@@ -8711,8 +8741,8 @@ describe('ChatInput', () => {
   });
 
   it('ignores a workspace problem response after switching sessions', async () => {
-    let resolve!: (value: Awaited<ReturnType<typeof client.varro.workspaceProblems>>) => void;
-    vi.mocked(client.varro.workspaceProblems).mockImplementationOnce(
+    let resolve!: (value: Awaited<ReturnType<typeof client.loomery.workspaceProblems>>) => void;
+    vi.mocked(client.loomery.workspaceProblems).mockImplementationOnce(
       () =>
         new Promise((done) => {
           resolve = done;
@@ -8737,7 +8767,7 @@ describe('ChatInput', () => {
       { path: '/repo/a.ts', line: 1, severity: 'error' as const, message: 'First error' },
       { path: '/repo/b.ts', line: 2, severity: 'warning' as const, message: 'Second warning' },
     ];
-    vi.mocked(client.varro.workspaceProblems).mockResolvedValue({ total: 2, diagnostics });
+    vi.mocked(client.loomery.workspaceProblems).mockResolvedValue({ total: 2, diagnostics });
     setInputText('Explain /problems ');
     cleanup = render(() => ChatInput(), container!);
     container!.querySelector<HTMLElement>('.rich-composer')!.focus();
@@ -8984,7 +9014,7 @@ describe('ChatInput', () => {
 
   it('keeps a pending paste before subsequently typed text', async () => {
     let resolveMatch!: (value: null) => void;
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveMatch = resolve;
@@ -9081,7 +9111,7 @@ describe('ChatInput', () => {
 
   it('does not convert a pending paste after the destination session changes', async () => {
     let resolveMatch!: (value: null) => void;
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveMatch = resolve;
@@ -9105,9 +9135,9 @@ describe('ChatInput', () => {
 
   it('includes a pending paste in Send without inserting it into the next draft', async () => {
     let resolveMatch!: (
-      value: Awaited<ReturnType<typeof client.varro.matchCopiedSelection>>
+      value: Awaited<ReturnType<typeof client.loomery.matchCopiedSelection>>
     ) => void;
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveMatch = resolve;
@@ -9142,7 +9172,7 @@ describe('ChatInput', () => {
       type: 'file' as const,
       lineRanges: [{ startLine: 3, endLine: 3 }],
     };
-    vi.mocked(client.varro.matchCopiedSelection)
+    vi.mocked(client.loomery.matchCopiedSelection)
       .mockResolvedValueOnce({ type: 'file', file })
       .mockResolvedValueOnce({ type: 'file', file });
     cleanup = render(() => ChatInput(), container!);
@@ -9201,7 +9231,7 @@ describe('ChatInput', () => {
   });
 
   it('turns a matching copied editor selection into a file-range chip', async () => {
-    vi.mocked(client.varro.matchCopiedSelection).mockResolvedValueOnce({
+    vi.mocked(client.loomery.matchCopiedSelection).mockResolvedValueOnce({
       type: 'file',
       file: {
         path: '/repo/src/app.ts',
@@ -9222,7 +9252,7 @@ describe('ChatInput', () => {
     expect(inputText()).toBe(copiedText);
     await flushAsyncWork();
 
-    expect(client.varro.matchCopiedSelection).toHaveBeenCalledWith(copiedText, false);
+    expect(client.loomery.matchCopiedSelection).toHaveBeenCalledWith(copiedText, false);
     expect(inputText()).toBe('@src/app.ts');
     expect(editor?.querySelector('.inline-chip')?.textContent).toContain('L3-5');
     const chip = editor?.querySelector<HTMLElement>('[data-chip-type="mention-file"]');
@@ -9254,7 +9284,7 @@ describe('ChatInput', () => {
   });
 
   it('turns a matching terminal paste into a terminal chip', async () => {
-    vi.mocked(client.varro.matchCopiedSelection).mockResolvedValueOnce({
+    vi.mocked(client.loomery.matchCopiedSelection).mockResolvedValueOnce({
       type: 'terminal',
       selection: { text: copiedText, terminalName: 'zsh' },
     });
@@ -9293,7 +9323,7 @@ describe('ChatInput', () => {
 
   it('does not insert the same copied terminal selection twice', async () => {
     const selection = { text: copiedText, terminalName: 'zsh' };
-    vi.mocked(client.varro.matchCopiedSelection)
+    vi.mocked(client.loomery.matchCopiedSelection)
       .mockResolvedValueOnce({ type: 'terminal', selection })
       .mockResolvedValueOnce({ type: 'terminal', selection });
     cleanup = render(() => ChatInput(), container!);
@@ -9329,7 +9359,7 @@ describe('ChatInput', () => {
   it('keeps a different terminal paste as text instead of replacing the attached selection', async () => {
     setState('terminalSelection', { text: 'npm test', terminalName: 'zsh' });
     setInputText('Check [Terminal selection] ');
-    vi.mocked(client.varro.matchCopiedSelection).mockResolvedValueOnce({
+    vi.mocked(client.loomery.matchCopiedSelection).mockResolvedValueOnce({
       type: 'terminal',
       selection: { text: otherCopiedText, terminalName: 'zsh' },
     });
@@ -9372,7 +9402,7 @@ describe('ChatInput', () => {
   }
 
   it('expands a pasted file chip back to the exact pasted text', async () => {
-    vi.mocked(client.varro.matchCopiedSelection).mockResolvedValueOnce({
+    vi.mocked(client.loomery.matchCopiedSelection).mockResolvedValueOnce({
       type: 'file',
       file: {
         path: '/repo/src/app.ts',
@@ -9401,7 +9431,7 @@ describe('ChatInput', () => {
 
     expect(inputText()).toBe(`Fix ${copiedText}`);
     expect(state.droppedFiles).toEqual([]);
-    expect(client.varro.readWorkspaceFile).not.toHaveBeenCalled();
+    expect(client.loomery.readWorkspaceFile).not.toHaveBeenCalled();
 
     editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }));
     await flushAsyncWork();
@@ -9417,7 +9447,7 @@ describe('ChatInput', () => {
     clickExpandToText();
     await flushAsyncWork();
     expect(inputText()).toBe(`Fix ${copiedText}`);
-    expect(client.varro.readWorkspaceFile).not.toHaveBeenCalled();
+    expect(client.loomery.readWorkspaceFile).not.toHaveBeenCalled();
   });
 
   it('expands a terminal chip back to the terminal text', async () => {
@@ -9460,7 +9490,7 @@ describe('ChatInput', () => {
   });
 
   it('expands other file range chips to the lines they reference', async () => {
-    vi.mocked(client.varro.readWorkspaceFile).mockResolvedValueOnce('one\ntwo\nthree\nfour');
+    vi.mocked(client.loomery.readWorkspaceFile).mockResolvedValueOnce('one\ntwo\nthree\nfour');
     addContextFile({
       path: '/repo/src/app.ts',
       relativePath: 'src/app.ts',
@@ -9476,7 +9506,7 @@ describe('ChatInput', () => {
     clickExpandToText();
     await flushAsyncWork();
 
-    expect(client.varro.readWorkspaceFile).toHaveBeenCalledWith('/repo/src/app.ts');
+    expect(client.loomery.readWorkspaceFile).toHaveBeenCalledWith('/repo/src/app.ts');
     expect(inputText()).toBe('See two\nthree');
     expect(state.droppedFiles).toEqual([]);
   });
@@ -9499,7 +9529,7 @@ describe('ChatInput', () => {
       type: 'file' as const,
       lineRanges: [{ startLine: 3, endLine: 5 }],
     };
-    vi.mocked(client.varro.matchCopiedSelection)
+    vi.mocked(client.loomery.matchCopiedSelection)
       .mockResolvedValueOnce({ type: 'file', file })
       .mockResolvedValueOnce({ type: 'file', file });
     cleanup = render(() => ChatInput(), container!);
@@ -9540,7 +9570,7 @@ describe('ChatInput', () => {
       lineRanges: [{ startLine: 3, endLine: 5 }],
     });
     setInputText('@src/app.ts ');
-    vi.mocked(client.varro.matchCopiedSelection).mockResolvedValueOnce({
+    vi.mocked(client.loomery.matchCopiedSelection).mockResolvedValueOnce({
       type: 'file',
       file: {
         path: '/repo/src/app.ts',
@@ -9577,9 +9607,9 @@ describe('ChatInput', () => {
 
   it('inserts copied text immediately and upgrades it to a chip at the same position', async () => {
     let resolveMatch:
-      | ((value: Awaited<ReturnType<typeof client.varro.matchCopiedSelection>>) => void)
+      | ((value: Awaited<ReturnType<typeof client.loomery.matchCopiedSelection>>) => void)
       | undefined;
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveMatch = resolve;
@@ -9614,9 +9644,9 @@ describe('ChatInput', () => {
 
   it('does not restore pasted text after the user replaces it before the lookup resolves', async () => {
     let resolveMatch:
-      | ((value: Awaited<ReturnType<typeof client.varro.matchCopiedSelection>>) => void)
+      | ((value: Awaited<ReturnType<typeof client.loomery.matchCopiedSelection>>) => void)
       | undefined;
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveMatch = resolve;
@@ -9648,7 +9678,7 @@ describe('ChatInput', () => {
   });
 
   it('keeps pasted text when the selection lookup does not answer in time', async () => {
-    vi.mocked(client.varro.matchCopiedSelection).mockImplementationOnce(
+    vi.mocked(client.loomery.matchCopiedSelection).mockImplementationOnce(
       () => new Promise(() => undefined)
     );
     cleanup = render(() => ChatInput(), container!);
@@ -9688,14 +9718,14 @@ describe('ChatInput', () => {
     paste(['text/plain', 'text/html']);
     await flushAsyncWork();
 
-    expect(vi.mocked(client.varro.matchCopiedSelection).mock.calls).toEqual([
+    expect(vi.mocked(client.loomery.matchCopiedSelection).mock.calls).toEqual([
       [copiedText, true],
       [copiedText, false],
     ]);
   });
 
   it('keeps pasted text when the selection lookup fails', async () => {
-    vi.mocked(client.varro.matchCopiedSelection).mockRejectedValueOnce(new Error('host gone'));
+    vi.mocked(client.loomery.matchCopiedSelection).mockRejectedValueOnce(new Error('host gone'));
     cleanup = render(() => ChatInput(), container!);
     const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
     editor?.focus();
@@ -9768,8 +9798,8 @@ describe('ChatInput', () => {
       },
     ]);
     expect(inputText()).toBe('Review @README.md and @docs/');
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledWith('docs');
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledWith('docs');
   });
 
   it('withdraws a mention-only paste from the composer once it becomes an attachment', async () => {
@@ -9850,8 +9880,8 @@ describe('ChatInput', () => {
         attachmentSequence: expect.any(Number),
       },
     ]);
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledTimes(1);
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledTimes(1);
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
   });
 
   it('does not attach or withdraw when the session changes while the lookup is pending', async () => {
@@ -9889,9 +9919,9 @@ describe('ChatInput', () => {
   it('does not attach a pasted mention after the composer is cleared in the same session', async () => {
     setState('activeSessionId', 'session-a');
     let resolveLookup:
-      | ((value: Awaited<ReturnType<typeof client.varro.resolveWorkspacePath>>) => void)
+      | ((value: Awaited<ReturnType<typeof client.loomery.resolveWorkspacePath>>) => void)
       | undefined;
-    vi.mocked(client.varro.resolveWorkspacePath).mockImplementationOnce(
+    vi.mocked(client.loomery.resolveWorkspacePath).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveLookup = resolve;
@@ -9925,9 +9955,9 @@ describe('ChatInput', () => {
     setState('activeSessionId', 'session-a');
     sendMessageMock.mockResolvedValueOnce(true);
     let resolveLookup:
-      | ((value: Awaited<ReturnType<typeof client.varro.resolveWorkspacePath>>) => void)
+      | ((value: Awaited<ReturnType<typeof client.loomery.resolveWorkspacePath>>) => void)
       | undefined;
-    vi.mocked(client.varro.resolveWorkspacePath).mockImplementationOnce(
+    vi.mocked(client.loomery.resolveWorkspacePath).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveLookup = resolve;
@@ -10008,7 +10038,7 @@ describe('ChatInput', () => {
     await flushAsyncWork();
 
     expect(event.defaultPrevented).toBe(true);
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledWith('README.md');
     expect(inputText()).toBe('@README.md');
     expect(state.droppedFiles).toEqual([
       {
@@ -10323,7 +10353,7 @@ describe('ChatInput', () => {
         filename: 'Stored image',
         size: 5,
         contextFile: {
-          path: '/tmp/varro/stored-image.png',
+          path: '/tmp/loomery/stored-image.png',
           relativePath: 'stored-image.png',
           type: 'file',
         },
@@ -10340,7 +10370,7 @@ describe('ChatInput', () => {
       expect(state.clipboardImages).toEqual([]);
       expect(sent).toContainEqual({
         type: 'images/release',
-        payload: { paths: ['/tmp/varro/stored-image.png'], deferred: false },
+        payload: { paths: ['/tmp/loomery/stored-image.png'], deferred: false },
       });
     } finally {
       if (originalSend) bridgeWindow.__sendToExtension = originalSend;
@@ -10447,9 +10477,9 @@ describe('ChatInput', () => {
     async (completionOrder) => {
       const fileReader = installControllableFileReader();
       let resolveLookup:
-        | ((value: Awaited<ReturnType<typeof client.varro.resolveWorkspacePath>>) => void)
+        | ((value: Awaited<ReturnType<typeof client.loomery.resolveWorkspacePath>>) => void)
         | undefined;
-      vi.mocked(client.varro.resolveWorkspacePath).mockImplementationOnce(
+      vi.mocked(client.loomery.resolveWorkspacePath).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             resolveLookup = resolve;
@@ -11277,7 +11307,7 @@ describe('ChatInput', () => {
 
     expect(state.droppedFiles).toEqual([]);
     expect(inputText()).toBe('Use npx @scope/package init');
-    expect(client.varro.resolveWorkspacePath).toHaveBeenCalledWith('scope/package');
+    expect(client.loomery.resolveWorkspacePath).toHaveBeenCalledWith('scope/package');
   });
 
   it('strips pasted context reference lines while restoring them as attachments', async () => {
@@ -12486,7 +12516,7 @@ describe('ChatInput composer history hotkeys', () => {
     setState('activeSessionId', 'session-1');
     const entry = historyEntry(
       'user-1',
-      'Sync with latest Varro\n\n[Active file: src/main/resources/META-INF/plugin.xml]'
+      'Sync with latest Loomery\n\n[Active file: src/main/resources/META-INF/plugin.xml]'
     );
     if (source === 'loaded history') setSessionHistoryPrompts('session-1', [entry]);
     else setState('messages', [entry]);
@@ -12494,7 +12524,7 @@ describe('ChatInput composer history hotkeys', () => {
 
     const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
     pressKey(editor, { key: 'ArrowUp' });
-    expect(inputText()).toBe('Sync with latest Varro');
+    expect(inputText()).toBe('Sync with latest Loomery');
     expect(editor?.textContent).not.toContain('[Active file:');
     expect(entry.parts[0]?.text).toContain('[Active file:');
 

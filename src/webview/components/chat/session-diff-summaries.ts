@@ -166,7 +166,7 @@ function pumpDiffSummaryQueue() {
 
     activeDiffSummaryRequests += 1;
     activeDiffSummaryKeys.add(requestKey);
-    void client.varro.session
+    void client.loomery.session
       .diffSummary(request.sessionId, request.updated, { directory: request.directory })
       .then((summary) => {
         if (!isCurrentDiffSummaryRequest(request)) return;

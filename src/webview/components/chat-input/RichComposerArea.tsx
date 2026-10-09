@@ -26,7 +26,7 @@ import { getProblemsIconSource } from '../ProblemsIcon';
 import { ProblemsTooltip } from '../ProblemsTooltip';
 
 type ComposerClipboardEvent = ClipboardEvent & {
-  __varroPasteText?: string;
+  __loomeryPasteText?: string;
 };
 
 const CARET_SPACER = '\u200B';
@@ -978,7 +978,7 @@ export function RichComposerArea(props: {
     }
 
     // SAFETY: The surrounding shape or discriminator check establishes the ComposerClipboardEvent contract used below.
-    const overrideText = (e as ComposerClipboardEvent).__varroPasteText;
+    const overrideText = (e as ComposerClipboardEvent).__loomeryPasteText;
     const text = overrideText ?? e.clipboardData?.getData('text/plain') ?? '';
     if (overrideText !== undefined) {
       e.preventDefault();

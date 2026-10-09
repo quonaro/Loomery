@@ -277,8 +277,8 @@ describe('client', () => {
     await client.permission.list();
     await client.question.reply('question-1', [['Yes'], ['No']]);
     await client.question.reject('question-1');
-    await client.varro.resolveWorkspacePath('package.json');
-    await client.varro.pickWorkspaceFile();
+    await client.loomery.resolveWorkspacePath('package.json');
+    await client.loomery.pickWorkspaceFile();
 
     expect(bridgeMocks.apiCall.mock.calls).toEqual([
       ['GET', '/global/health'],
@@ -330,12 +330,12 @@ describe('client', () => {
       ['POST', '/permission/perm-1/reply', { reply: 'always' }],
       [
         'POST',
-        '/varro/permission/project-allow?directory=%2Frepo',
+        '/loomery/permission/project-allow?directory=%2Frepo',
         { sessionId: 'session-1', permissionId: 'perm-1' },
       ],
       [
         'POST',
-        '/varro/permission/session-allow?directory=%2Frepo',
+        '/loomery/permission/session-allow?directory=%2Frepo',
         { sessionId: 'session-1', permissionId: 'perm-1' },
       ],
       ['POST', '/session/session-1/revert', { messageID: 'message-1' }],
@@ -375,8 +375,8 @@ describe('client', () => {
       ['GET', '/permission'],
       ['POST', '/question/question-1/reply', { answers: [['Yes'], ['No']] }],
       ['POST', '/question/question-1/reject'],
-      ['GET', '/varro/workspace-path/resolve?path=package.json'],
-      ['GET', '/varro/workspace-file/pick'],
+      ['GET', '/loomery/workspace-path/resolve?path=package.json'],
+      ['GET', '/loomery/workspace-file/pick'],
     ]);
   });
 
@@ -795,12 +795,12 @@ describe('client', () => {
     expect(bridgeMocks.apiCall).toHaveBeenNthCalledWith(
       1,
       'GET',
-      '/varro/provider-limit?providerID=openai'
+      '/loomery/provider-limit?providerID=openai'
     );
     expect(bridgeMocks.apiCall).toHaveBeenNthCalledWith(
       2,
       'GET',
-      '/varro/provider-limit?providerID=openai&modelID=gpt-4.1'
+      '/loomery/provider-limit?providerID=openai&modelID=gpt-4.1'
     );
   });
 
@@ -829,8 +829,8 @@ describe('client', () => {
     const { client } = await loadClient();
     bridgeMocks.apiCall.mockResolvedValue('<!doctype html><html></html>');
 
-    await expect(client.varro.recycleBin.list()).resolves.toEqual([]);
-    expect(bridgeMocks.apiCall).toHaveBeenCalledWith('GET', '/varro/session-trash');
+    await expect(client.loomery.recycleBin.list()).resolves.toEqual([]);
+    expect(bridgeMocks.apiCall).toHaveBeenCalledWith('GET', '/loomery/session-trash');
   });
 
   it('dedupes concurrent session status requests', async () => {
@@ -1213,7 +1213,7 @@ describe('client', () => {
       },
     ]);
 
-    const result = await client.varro.recycleBin.list();
+    const result = await client.loomery.recycleBin.list();
 
     expect(result).toHaveLength(1);
     const entry = result[0];
@@ -1243,7 +1243,7 @@ describe('client', () => {
       },
     ]);
 
-    const result = await client.varro.recycleBin.list();
+    const result = await client.loomery.recycleBin.list();
 
     expect(result).toHaveLength(1);
     const entry = result[0];
@@ -1263,7 +1263,7 @@ describe('client', () => {
       null,
     ]);
 
-    const result = await client.varro.recycleBin.list();
+    const result = await client.loomery.recycleBin.list();
     expect(result).toEqual([]);
   });
 
@@ -1293,7 +1293,7 @@ describe('client', () => {
       },
     ]);
 
-    const result = await client.varro.recycleBin.list();
+    const result = await client.loomery.recycleBin.list();
     expect(result).toEqual([]);
   });
 
@@ -1432,7 +1432,7 @@ describe('client', () => {
 
     expect(bridgeMocks.apiCall).toHaveBeenCalledWith(
       'GET',
-      '/varro/provider-limit?providerID=openai'
+      '/loomery/provider-limit?providerID=openai'
     );
   });
 
@@ -1440,14 +1440,14 @@ describe('client', () => {
     const { client } = await loadClient();
     bridgeMocks.apiCall.mockResolvedValue(true);
 
-    await client.varro.recycleBin.restore('root-1');
-    await client.varro.recycleBin.delete('root-2');
-    await client.varro.recycleBin.empty();
+    await client.loomery.recycleBin.restore('root-1');
+    await client.loomery.recycleBin.delete('root-2');
+    await client.loomery.recycleBin.empty();
 
     expect(bridgeMocks.apiCall.mock.calls).toEqual([
-      ['POST', '/varro/session-trash/root-1/restore'],
-      ['DELETE', '/varro/session-trash/root-2/delete'],
-      ['DELETE', '/varro/session-trash'],
+      ['POST', '/loomery/session-trash/root-1/restore'],
+      ['DELETE', '/loomery/session-trash/root-2/delete'],
+      ['DELETE', '/loomery/session-trash'],
     ]);
   });
 
@@ -1455,44 +1455,44 @@ describe('client', () => {
     const { client } = await loadClient();
     bridgeMocks.apiCall.mockResolvedValue({});
 
-    await client.varro.readWorkspaceFile('src/app.ts');
-    await client.varro.saveModelRouting({
+    await client.loomery.readWorkspaceFile('src/app.ts');
+    await client.loomery.saveModelRouting({
       target: 'small_model',
       providerID: 'openai',
       modelID: 'gpt-4.1',
     });
-    await client.varro.openCodeConfig();
-    await client.varro.judgePermission({
+    await client.loomery.openCodeConfig();
+    await client.loomery.judgePermission({
       permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
       model: { providerID: 'openai', modelID: 'gpt-4.1' },
     });
-    await client.varro.resolveJudgeModel({
+    await client.loomery.resolveJudgeModel({
       providerID: 'openai',
       modelID: 'gpt-4.1',
       variant: 'low',
     });
 
     expect(bridgeMocks.apiCall.mock.calls).toEqual([
-      ['GET', '/varro/workspace-file?path=src%2Fapp.ts'],
+      ['GET', '/loomery/workspace-file?path=src%2Fapp.ts'],
       [
         'POST',
-        '/varro/opencode-config/model-routing',
+        '/loomery/opencode-config/model-routing',
         {
           target: 'small_model',
           providerID: 'openai',
           modelID: 'gpt-4.1',
         },
       ],
-      ['GET', '/varro/opencode-config'],
+      ['GET', '/loomery/opencode-config'],
       [
         'POST',
-        '/varro/permission/judge',
+        '/loomery/permission/judge',
         {
           permission: { id: 'perm-1', type: 'bash', sessionID: 'session-1' },
           model: { providerID: 'openai', modelID: 'gpt-4.1' },
         },
       ],
-      ['GET', '/varro/permission/judge/model?providerID=openai&modelID=gpt-4.1&variant=low'],
+      ['GET', '/loomery/permission/judge/model?providerID=openai&modelID=gpt-4.1&variant=low'],
     ]);
   });
 
@@ -1509,13 +1509,13 @@ describe('client', () => {
     ]);
   });
 
-  it('forwards varro.session.deleteImmediately call', async () => {
+  it('forwards loomery.session.deleteImmediately call', async () => {
     const { client } = await loadClient();
     bridgeMocks.apiCall.mockResolvedValue(true);
 
-    await client.varro.session.deleteImmediately('sess-1');
+    await client.loomery.session.deleteImmediately('sess-1');
 
-    expect(bridgeMocks.apiCall).toHaveBeenCalledWith('DELETE', '/varro/session/sess-1/delete');
+    expect(bridgeMocks.apiCall).toHaveBeenCalledWith('DELETE', '/loomery/session/sess-1/delete');
   });
 
   it('requests the aggregate session diff summary through the canonical encoded route', async () => {
@@ -1529,7 +1529,7 @@ describe('client', () => {
       activeStartedAt: null,
     });
 
-    await expect(client.varro.session.diffSummary('session with space')).resolves.toEqual({
+    await expect(client.loomery.session.diffSummary('session with space')).resolves.toEqual({
       files: 2,
       additions: 6,
       deletions: 4,
@@ -1539,7 +1539,7 @@ describe('client', () => {
     });
     expect(bridgeMocks.apiCall).toHaveBeenCalledWith(
       'GET',
-      '/varro/session/session%20with%20space/diff-summary'
+      '/loomery/session/session%20with%20space/diff-summary'
     );
   });
 
@@ -1547,12 +1547,12 @@ describe('client', () => {
     const { client } = await loadClient();
     bridgeMocks.apiCall.mockResolvedValue(['session with space']);
 
-    await expect(client.varro.session.setPinned('session with space', true)).resolves.toEqual([
+    await expect(client.loomery.session.setPinned('session with space', true)).resolves.toEqual([
       'session with space',
     ]);
     expect(bridgeMocks.apiCall).toHaveBeenCalledWith(
       'POST',
-      '/varro/session/session%20with%20space/pin',
+      '/loomery/session/session%20with%20space/pin',
       { pinned: true }
     );
   });
@@ -1562,14 +1562,14 @@ describe('client', () => {
     bridgeMocks.apiCall.mockResolvedValue(['target', 'session with space']);
 
     await expect(
-      client.varro.session.reorderPinned('session with space', 'target', {
+      client.loomery.session.reorderPinned('session with space', 'target', {
         directory: '/repo',
         targetDirectory: '/other-repo',
       })
     ).resolves.toEqual(['target', 'session with space']);
     expect(bridgeMocks.apiCall).toHaveBeenCalledWith(
       'POST',
-      '/varro/session/session%20with%20space/reorder-pin?directory=%2Frepo',
+      '/loomery/session/session%20with%20space/reorder-pin?directory=%2Frepo',
       { targetSessionID: 'target', targetDirectory: '/other-repo' }
     );
   });
@@ -1595,7 +1595,7 @@ describe('client', () => {
       },
     ]);
 
-    const result = await client.varro.recycleBin.list();
+    const result = await client.loomery.recycleBin.list();
 
     expect(result).toEqual([]);
   });

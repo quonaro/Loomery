@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium, expect } from '@playwright/test';
 import { DatabaseSync } from 'node:sqlite';
-import { isolateVarroTestState } from '../varro-test-state.mjs';
+import { isolateLoomeryTestState } from '../loomery-test-state.mjs';
 import {
   executeVscodeCommand,
   reserveLoopbackPort,
@@ -15,10 +15,10 @@ import {
 } from '../vscode-launch-process.mjs';
 
 const project = resolve(import.meta.dirname, '../..');
-const binary = process.env.VARRO_OPENCODE_TEST_BINARY;
-if (!binary) throw new Error('Set VARRO_OPENCODE_TEST_BINARY to the released CLI being tested');
+const binary = process.env.LOOMERY_OPENCODE_TEST_BINARY;
+if (!binary) throw new Error('Set LOOMERY_OPENCODE_TEST_BINARY to the released CLI being tested');
 const executable =
-  process.env.VARRO_VSCODE_EXECUTABLE || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
+  process.env.LOOMERY_VSCODE_EXECUTABLE || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
 const parent = join(project, 'artifacts/ai-test-data');
 await mkdir(parent, { recursive: true });
 const root = await mkdtemp(join(parent, 'v2-ui-'));
@@ -141,9 +141,9 @@ await writeFile(
 await writeFile(
   join(workspace, '.vscode/settings.json'),
   JSON.stringify({
-    'varro.server.command': resolve(binary),
-    'varro.server.port': port,
-    'varro.server.autoUpdate': false,
+    'loomery.server.command': resolve(binary),
+    'loomery.server.port': port,
+    'loomery.server.autoUpdate': false,
     'security.workspace.trust.enabled': false,
     'workbench.startupEditor': 'none',
     'telemetry.telemetryLevel': 'off',
@@ -159,10 +159,10 @@ const env = {
   XDG_CACHE_HOME: join(root, 'cache'),
   OPENCODE_DB: database,
   OPENCODE_TEST_HOME: join(root, 'home'),
-  VARRO_TEST_SERVER_URL: serverUrl,
+  LOOMERY_TEST_SERVER_URL: serverUrl,
 };
-const testStateRoot = await isolateVarroTestState(env, profile);
-const ownershipLeasePath = join(testStateRoot, 'servers', `varro-opencode-server-${port}.json`);
+const testStateRoot = await isolateLoomeryTestState(env, profile);
+const ownershipLeasePath = join(testStateRoot, 'servers', `loomery-opencode-server-${port}.json`);
 const code = spawn(
   executable,
   [
@@ -179,6 +179,7 @@ const code = spawn(
     `--user-data-dir=${join(profile, 'user')}`,
     `--extensions-dir=${join(profile, 'extensions')}`,
     `--extensionDevelopmentPath=${project}`,
+    '--enable-proposed-api=quonaro.loomery',
     workspace,
   ],
   { cwd: project, env, stdio: ['ignore', 'pipe', 'pipe'] }
@@ -241,7 +242,7 @@ const findFrame = async () => {
     }
     await delay(200);
   }
-  throw new Error('The isolated Varro composer did not appear');
+  throw new Error('The isolated Loomery composer did not appear');
 };
 let outcome;
 try {
@@ -265,7 +266,7 @@ try {
   assert.ok(browser, `Could not connect to the isolated editor: ${codeLog}`);
   for (let attempt = 0; ; attempt++) {
     try {
-      await executeVscodeCommand(debugPort, 'Varro: Focus on Varro View');
+      await executeVscodeCommand(debugPort, 'Loomery: Focus on Loomery View');
       break;
     } catch (error) {
       if (attempt >= 100) throw error;
@@ -581,7 +582,7 @@ try {
     );
   const beforeImport = legacySnapshot();
   const beforeProviderRequests = requests.length;
-  await executeVscodeCommand(debugPort, 'Varro: Import OpenCode v1 Session into v2');
+  await executeVscodeCommand(debugPort, 'Loomery: Import OpenCode v1 Session into v2');
   await frame
     .page()
     .locator('.quick-input-widget')
@@ -695,7 +696,7 @@ try {
     for (const session of inventory.data) {
       if (
         ['ses_legacy_fixture', 'ses_legacy_child'].includes(
-          session.metadata?.varroLegacyImport?.sourceSessionID
+          session.metadata?.loomeryLegacyImport?.sourceSessionID
         )
       )
         sessions.add(session.id);

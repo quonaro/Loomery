@@ -12,7 +12,7 @@ import type { PlaybackFixture } from '../session-playback';
 // reload the document during evaluation.
 test('recorded playback reuses the running harness without starting another server', async () => {
   test.setTimeout(60_000);
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'varro-playback-e2e-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'loomery-playback-e2e-'));
   const fixture: PlaybackFixture = {
     capture: {
       id: 1,
@@ -21,7 +21,7 @@ test('recorded playback reuses the running harness without starting another serv
       session: {
         id: 'session-runner-regression',
         projectID: 'project-regression',
-        directory: '/workspace/varro',
+        directory: '/workspace/loomery',
         title: 'Playback runner regression',
         version: '1.0.0',
         time: { created: 1_780_000_000_000, updated: 1_780_000_000_000 },
@@ -46,9 +46,9 @@ test('recorded playback reuses the running harness without starting another serv
         timeout: 50_000,
         env: {
           ...process.env,
-          VARRO_E2E_MODE: 'playback',
-          VARRO_PLAYBACK_ID: '1',
-          VARRO_PLAYBACK_FILE: captureFile,
+          LOOMERY_E2E_MODE: 'playback',
+          LOOMERY_PLAYBACK_ID: '1',
+          LOOMERY_PLAYBACK_FILE: captureFile,
         },
       }
     );

@@ -7,7 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
-const DEFAULT_DATABASE = 'varro-playback.db';
+const DEFAULT_DATABASE = 'loomery-playback.db';
 export const DEFAULT_SHORT_GAP_MS = 250;
 // Long recorded waits are compressed, but must still outlast the transcript's 600 ms Thinking
 // reappearance delay. A shorter cap makes replay skip the Thinking row that a live wait shows.
@@ -459,7 +459,7 @@ export async function replay(filePath, id, options) {
   if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647) {
     throw new Error('Replay duration exceeds the supported subprocess deadline');
   }
-  const replayDirectory = await mkdtemp(path.join(os.tmpdir(), 'varro-playback-run-'));
+  const replayDirectory = await mkdtemp(path.join(os.tmpdir(), 'loomery-playback-run-'));
   let timer;
   let onInterrupt;
   try {
@@ -472,9 +472,9 @@ export async function replay(filePath, id, options) {
       stdio: 'inherit',
       env: {
         ...process.env,
-        VARRO_E2E_MODE: 'playback',
-        VARRO_PLAYBACK_ID: String(id),
-        VARRO_PLAYBACK_FILE: replayFile,
+        LOOMERY_E2E_MODE: 'playback',
+        LOOMERY_PLAYBACK_ID: String(id),
+        LOOMERY_PLAYBACK_FILE: replayFile,
       },
     });
     const code = await new Promise((resolve, reject) => {

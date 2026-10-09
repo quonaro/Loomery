@@ -72,7 +72,7 @@ describe('DroppedFilesService', () => {
     expect(files[0]?.relativePath).toBe('secret.txt');
 
     const droppedPath = files[0]!.path;
-    expect(droppedPath).toMatch(/[\\/]varro-drops[\\/]drop-[^\\/]+[\\/].+-secret\.txt$/);
+    expect(droppedPath).toMatch(/[\\/]loomery-drops[\\/]drop-[^\\/]+[\\/].+-secret\.txt$/);
 
     const droppedStat = await stat(droppedPath);
     expect(droppedStat.isFile()).toBe(true);
@@ -128,7 +128,7 @@ describe('DroppedFilesService', () => {
 
     expect(files).toHaveLength(1);
     expect(files[0]?.relativePath).toBe('Релиз начинается с улыбки.mp3');
-    expect(files[0]?.path).toMatch(/[\\/]varro-drops[\\/]drop-[^\\/]+[\\/].+-\.mp3$/);
+    expect(files[0]?.path).toMatch(/[\\/]loomery-drops[\\/]drop-[^\\/]+[\\/].+-\.mp3$/);
   });
 
   it('writes the actual host owner marker and removes its directory on dispose', async () => {
@@ -141,7 +141,7 @@ describe('DroppedFilesService', () => {
     ]);
     const dropsDir = dirname(files[0]!.path);
     const marker = JSON.parse(
-      await readFile(join(dropsDir, '.varro-owner.json'), 'utf8')
+      await readFile(join(dropsDir, '.loomery-owner.json'), 'utf8')
     ) as Record<string, unknown>;
 
     expect(marker).toEqual({
@@ -161,7 +161,7 @@ describe('DroppedFilesService', () => {
   it('keeps absolute dropped files outside the workspace', async () => {
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never);
     services.push(service);
-    const externalPath = '/tmp/varro-drop.txt';
+    const externalPath = '/tmp/loomery-drop.txt';
     const externalUri = { fsPath: externalPath };
 
     vscodeMock.workspace.fs.stat.mockResolvedValue({ type: 0 });
@@ -173,7 +173,7 @@ describe('DroppedFilesService', () => {
     expect(files).toEqual([
       {
         path: externalPath,
-        relativePath: 'varro-drop.txt',
+        relativePath: 'loomery-drop.txt',
         type: 'file',
       },
     ]);
@@ -354,7 +354,7 @@ describe('DroppedFilesService', () => {
     const first = service.fromContent([{ name: 'first.txt', content: 'YQ==', size: 1 }]);
     const second = service.fromContent([{ name: 'second.txt', content: 'Yg==', size: 1 }]);
     await vi.waitFor(() => expect(create).toHaveBeenCalledOnce());
-    creation.resolve('/tmp/varro-drops/drop-single-flight');
+    creation.resolve('/tmp/loomery-drops/drop-single-flight');
     await Promise.all([first, second]);
 
     expect(create).toHaveBeenCalledOnce();
@@ -362,7 +362,7 @@ describe('DroppedFilesService', () => {
 
   it('removes a temp directory if dispose races its creation', async () => {
     const creation = createDeferred<string>();
-    const dropsDir = '/tmp/varro-drops/drop-dispose-race';
+    const dropsDir = '/tmp/loomery-drops/drop-dispose-race';
     const create = vi.fn(() => creation.promise);
     const remove = vi.fn(async () => {});
     const write = vi.fn(async () => {});
@@ -384,12 +384,12 @@ describe('DroppedFilesService', () => {
   });
 
   it('waits for active content writes before removing the temp directory', async () => {
-    const dropsDir = '/tmp/varro-drops/drop-active-write';
+    const dropsDir = '/tmp/loomery-drops/drop-active-write';
     const contentWrite = createDeferred<void>();
     const create = vi.fn(async () => dropsDir);
     const remove = vi.fn(async () => {});
     const write = vi.fn((path: string) =>
-      path.endsWith('.varro-owner.json') ? Promise.resolve() : contentWrite.promise
+      path.endsWith('.loomery-owner.json') ? Promise.resolve() : contentWrite.promise
     );
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never, {
       create,
@@ -412,7 +412,7 @@ describe('DroppedFilesService', () => {
   });
 
   it('enforces the live owned-content cap and releases bytes after removal', async () => {
-    const dropsDir = join(tmpdir(), 'varro-drops', 'drop-owned-cap');
+    const dropsDir = join(tmpdir(), 'loomery-drops', 'drop-owned-cap');
     const create = vi.fn(async () => dropsDir);
     const remove = vi.fn(async () => {});
     const write = vi.fn(async () => {});
@@ -455,7 +455,7 @@ describe('DroppedFilesService', () => {
       activeRemovals -= 1;
     });
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never, {
-      create: vi.fn(async () => '/tmp/varro-drops/drop-removal-cap'),
+      create: vi.fn(async () => '/tmp/loomery-drops/drop-removal-cap'),
       remove,
       write: vi.fn(async () => {}),
     });
@@ -479,7 +479,7 @@ describe('DroppedFilesService', () => {
 
   it('tracks queued PDF ownership without a separate path backlog', async () => {
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never, {
-      create: vi.fn(async () => '/tmp/varro-drops/drop-pdf-tracking'),
+      create: vi.fn(async () => '/tmp/loomery-drops/drop-pdf-tracking'),
       remove: vi.fn(async () => {}),
       write: vi.fn(async () => {}),
     });
@@ -496,7 +496,7 @@ describe('DroppedFilesService', () => {
 
   it('retains a sent image until the deferred removal window expires', async () => {
     vi.useFakeTimers();
-    const dropsDir = '/tmp/varro-drops/drop-deferred-image';
+    const dropsDir = '/tmp/loomery-drops/drop-deferred-image';
     const remove = vi.fn(async () => {});
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never, {
       create: vi.fn(async () => dropsDir),
@@ -520,7 +520,7 @@ describe('DroppedFilesService', () => {
     vi.useFakeTimers();
     const remove = vi.fn(async () => {});
     const service = new DroppedFilesService({ context: { workspacePath: '/repo' } } as never, {
-      create: vi.fn(async () => '/tmp/varro-drops/drop-session-images'),
+      create: vi.fn(async () => '/tmp/loomery-drops/drop-session-images'),
       remove,
       write: vi.fn(async () => {}),
     });
@@ -543,7 +543,7 @@ describe('DroppedFilesService', () => {
   });
 
   it('sweeps stale matching drop directories with absent owner markers on first use', async () => {
-    const dropsRoot = join(tmpdir(), 'varro-drops');
+    const dropsRoot = join(tmpdir(), 'loomery-drops');
     const dropsDir = join(dropsRoot, 'drop-current');
     const staleDir = join(dropsRoot, 'drop-stale123');
     const freshDir = join(dropsRoot, 'drop-fresh123');
@@ -583,7 +583,7 @@ describe('DroppedFilesService', () => {
   });
 
   it('preserves a stale drop directory owned by a live extension host', async () => {
-    const dropsRoot = join(tmpdir(), 'varro-drops');
+    const dropsRoot = join(tmpdir(), 'loomery-drops');
     const liveDir = join(dropsRoot, 'drop-live123');
     const createdAt = Date.now() - 2 * 24 * 60 * 60 * 1000;
     const create = vi.fn(async () => join(dropsRoot, 'drop-current'));
@@ -609,7 +609,7 @@ describe('DroppedFilesService', () => {
   });
 
   it('removes a stale drop directory owned by a dead extension host', async () => {
-    const dropsRoot = join(tmpdir(), 'varro-drops');
+    const dropsRoot = join(tmpdir(), 'loomery-drops');
     const deadDir = join(dropsRoot, 'drop-dead123');
     const createdAt = Date.now() - 2 * 24 * 60 * 60 * 1000;
     const create = vi.fn(async () => join(dropsRoot, 'drop-current'));
@@ -635,7 +635,7 @@ describe('DroppedFilesService', () => {
   });
 
   it('preserves stale drop directories with malformed owner markers', async () => {
-    const dropsRoot = join(tmpdir(), 'varro-drops');
+    const dropsRoot = join(tmpdir(), 'loomery-drops');
     const malformedDir = join(dropsRoot, 'drop-malformed123');
     const oldTimestamp = Date.now() - 2 * 24 * 60 * 60 * 1000;
     const create = vi.fn(async () => join(dropsRoot, 'drop-current'));

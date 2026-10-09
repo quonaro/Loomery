@@ -715,6 +715,7 @@ describe('mount bridge helpers', () => {
     const focusComposer = vi.fn();
     const openAttentionSessions = vi.fn();
     const openCompletedSessions = vi.fn();
+    const openAllSessions = vi.fn();
     const searchSessions = vi.fn();
     const abortSession = vi.fn();
     const refreshMcps = vi.fn();
@@ -751,6 +752,7 @@ describe('mount bridge helpers', () => {
       requestComposerFocus: focusComposer,
       requestOpenAttentionSessions: openAttentionSessions,
       requestOpenCompletedSessions: openCompletedSessions,
+      requestOpenAllSessions: openAllSessions,
       requestSessionSearchFocus: searchSessions,
       abortSession,
       refreshMcps,
@@ -807,6 +809,7 @@ describe('mount bridge helpers', () => {
     handleExtensionMessageWithDependencies(deps, { type: 'command/focus-input' });
     handleExtensionMessageWithDependencies(deps, { type: 'command/open-attention-sessions' });
     handleExtensionMessageWithDependencies(deps, { type: 'command/open-completed-sessions' });
+    handleExtensionMessageWithDependencies(deps, { type: 'command/open-sessions' });
     handleExtensionMessageWithDependencies(deps, { type: 'command/search-sessions' });
     handleExtensionMessageWithDependencies(deps, { type: 'command/abort' });
     handleExtensionMessageWithDependencies(deps, {
@@ -860,6 +863,7 @@ describe('mount bridge helpers', () => {
     expect(focusComposer).toHaveBeenCalledTimes(1);
     expect(openAttentionSessions).toHaveBeenCalledTimes(1);
     expect(openCompletedSessions).toHaveBeenCalledTimes(1);
+    expect(openAllSessions).toHaveBeenCalledTimes(1);
     expect(searchSessions).toHaveBeenCalledTimes(1);
     expect(abortSession).toHaveBeenCalledTimes(1);
     expect(addDroppedContextFiles).toHaveBeenCalledTimes(1);
@@ -931,11 +935,13 @@ describe('mount bridge helpers', () => {
     expect(setShowTurnTimer).toHaveBeenCalledWith(true);
     expect(setState).toHaveBeenCalledWith('debugShowQuotaWarning', true);
     expect(setState).toHaveBeenCalledWith('enableProblemsContext', false);
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-size')).toBe('16px');
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-editor-font-size')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-size')).toBe(
+      '16px'
+    );
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-editor-font-size')).toBe(
       '15px'
     );
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-family')).toBe(
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-family')).toBe(
       'Iosevka, monospace'
     );
 
@@ -949,9 +955,9 @@ describe('mount bridge helpers', () => {
         chatFontFamily: 'default',
       },
     });
-    expect(document.documentElement.style.getPropertyValue('--varro-chat-font-family')).toBe('');
-    document.documentElement.style.removeProperty('--varro-chat-font-size');
-    document.documentElement.style.removeProperty('--varro-chat-editor-font-size');
+    expect(document.documentElement.style.getPropertyValue('--loomery-chat-font-family')).toBe('');
+    document.documentElement.style.removeProperty('--loomery-chat-font-size');
+    document.documentElement.style.removeProperty('--loomery-chat-editor-font-size');
   });
 
   it('marks visible editor session trees seen as visibility changes', () => {

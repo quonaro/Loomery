@@ -33,7 +33,7 @@ final class TrayStatusIndicator {
       if !statuses.contains(status) { statuses.append(status) }
     }
     updateRotation(statuses)
-    let summary = "Varro: \(attention.count) need attention, \(running) running"
+    let summary = "Loomery: \(attention.count) need attention, \(running) running"
     let description = latest.map { "\(summary). Latest event: \($0.label)" } ?? summary
     button.toolTip = description
     button.setAccessibilityLabel(description)
@@ -64,7 +64,7 @@ final class TrayStatusIndicator {
 
   private static func menuBarIcon() -> NSImage {
     let markSize: CGFloat = 18
-    // Match OpenJet's icons/varro.svg: 83% inset mark, 38-unit nodes, 24-unit bars.
+    // Match OpenJet's icons/loomery.svg: 83% inset mark, 38-unit nodes, 24-unit bars.
     let icon = NSImage(size: NSSize(width: markSize, height: 20), flipped: true) { rect in
       guard let context = NSGraphicsContext.current?.cgContext else { return false }
       context.saveGState()
@@ -87,7 +87,7 @@ final class TrayStatusIndicator {
       return true
     }
     icon.isTemplate = true
-    icon.accessibilityDescription = "Varro"
+    icon.accessibilityDescription = "Loomery"
     return icon
   }
 }

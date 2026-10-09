@@ -15,7 +15,7 @@ const gif = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 let directory: string;
 let servicePath: string;
 beforeAll(async () => {
-  directory = await mkdtemp(join(tmpdir(), 'varro-shared-thumbnail-'));
+  directory = await mkdtemp(join(tmpdir(), 'loomery-shared-thumbnail-'));
   await build(thumbnailWorkerBuildOptions(directory));
   servicePath = join(directory, 'thumbnail-service.js');
 });

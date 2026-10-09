@@ -78,6 +78,10 @@ export async function createSession(title?: string, initialPermissionMode?: Perm
   return getCurrentOpenCodeRuntime().createSession(title, initialPermissionMode);
 }
 
+export function startNewSession(prefill?: string) {
+  getCurrentOpenCodeRuntime().startNewSession(prefill);
+}
+
 export async function renameSession(id: string, title: string) {
   return getCurrentOpenCodeRuntime().renameSession(id, title);
 }

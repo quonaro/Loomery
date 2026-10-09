@@ -1,6 +1,6 @@
 # Permission Lifecycle And Safety
 
-This document defines the engineering contract for OpenCode permission handling in Varro. Read it
+This document defines the engineering contract for OpenCode permission handling in Loomery. Read it
 before changing permission modes, permission rules, automatic judging, session ancestry, pending
 request snapshots, attention indicators, prompt grouping, or permission responses.
 
@@ -17,22 +17,22 @@ proof that the command started, and hiding a prompt is not the same as resolving
 The protocol values are `default`, `auto`, and `full`. The UI labels them `Default`, `Auto`, and
 `Full access`.
 
-| Mode | OpenCode session rules | Varro behavior for an ask |
+| Mode | OpenCode session rules | Loomery behavior for an ask |
 | --- | --- | --- |
-| `default` | No Varro session override; use OpenCode configuration and agent rules | Reply once to `todowrite` and `question` asks; show other asks as actionable prompts |
-| `auto` | Ask by default with known read-only and subagent-launch allowances | Hide briefly while Varro judges; reply or fall back to a prompt |
+| `default` | No Loomery session override; use OpenCode configuration and agent rules | Reply once to `todowrite` and `question` asks; show other asks as actionable prompts |
+| `auto` | Ask by default with known read-only and subagent-launch allowances | Hide briefly while Loomery judges; reply or fall back to a prompt |
 | `full` | Allow every permission, including unknown permission names | Reply `once` to any already-pending request and resync |
 
 `Default` is the OpenCode-managed mode. New sessions omit a session-level permission override, and
-switching an existing session to default clears Varro's prior mode rules. OpenCode's global, project,
+switching an existing session to default clears Loomery's prior mode rules. OpenCode's global, project,
 and agent configuration determines whether an action is allowed, denied, or asked. If OpenCode asks
-about `todowrite` or `question`, Varro replies once without installing a broader session rule.
+about `todowrite` or `question`, Loomery replies once without installing a broader session rule.
 
 Ordinary sends in Default mode preserve existing session rules, including session-scoped `Always`
 approvals. Only an explicit mode change resets those rules. Sending an empty rule set is a no-op on
 v1's append-style API but clears saved approvals on v2's replacement API.
 
-`Auto` is not a broader OpenCode rule set. OpenCode must still emit an ask so Varro has a
+`Auto` is not a broader OpenCode rule set. OpenCode must still emit an ask so Loomery has a
 specific request ID and complete action context to judge. Giving `auto` allow-all rules would bypass
 the judge and silently turn it into `full`.
 
@@ -44,8 +44,8 @@ workflow choice.
 
 OpenCode uses the last matching permission rule.
 
-- Default contributes no Varro session rules; OpenCode configuration and selected-agent rules remain
-  in control. Varro handles `todowrite` and `question` asks directly without replacing that policy.
+- Default contributes no Loomery session rules; OpenCode configuration and selected-agent rules remain
+  in control. Loomery handles `todowrite` and `question` asks directly without replacing that policy.
 - Auto rules start with `* -> ask`, then place known read-only allowances after it.
 - Current direct allowances are read-only permissions (`read`, `glob`, `grep`, `list`, `codesearch`,
   and `lsp`), `todowrite`, which only updates the session task list, `question`, which asks the user
@@ -72,14 +72,14 @@ ownership still controls mode inheritance, grouping, decision history, and UI pl
 
 Effective mode resolution follows these rules:
 
-- A session with a valid `metadata.varro.permissionMode` uses that explicit mode. Session reads and
+- A session with a valid `metadata.loomery.permissionMode` uses that explicit mode. Session reads and
   updates restore it in every extension instance, overriding local selections without inferring a mode
   from permission rules. Reading metadata does not patch the session or advance its timestamp.
 - Sessions without valid mode metadata retain their legacy local selection, if present.
 - Otherwise, a child recursively inherits its parent's effective mode.
 - A root without a stored mode falls back to `default`.
 - A new-chat draft uses the workspace-specific saved draft mode, then the configured default.
-- A fork is a new root, so Varro saves the source session's effective non-default mode in the fork's metadata
+- A fork is a new root, so Loomery saves the source session's effective non-default mode in the fork's metadata
   and local session-mode storage. This metadata update does not append permission rules.
 - Prompts and attention are scoped to the complete session tree, not just the active root ID.
 
@@ -106,7 +106,7 @@ The normal lifecycle is:
 3. The webview resolves the effective mode for the request's session tree.
 4. Default reveals it, auto starts a bounded judge attempt, and full starts an automatic `once`
    response.
-5. Varro sends `once`, `always`, or `reject` to OpenCode's permission reply route.
+5. Loomery sends `once`, `always`, or `reject` to OpenCode's permission reply route.
 6. Local UI is removed only after the reply is acknowledged, an authoritative reply event arrives,
    or a race-safe pending snapshot proves that the request no longer exists.
 7. `permission.replied` or `permission.v2.replied` clears host attention and any remaining webview
@@ -199,15 +199,15 @@ summarize the eventual final response normally. For idle rejection-only historie
 `Permission rejected` terminal summary. Generic command-level `permission denied` errors must not
 be classified as user rejection.
 
-Varro-managed servers default `experimental.continue_loop_on_deny` to `true` in their temporary
+Loomery-managed servers default `experimental.continue_loop_on_deny` to `true` in their temporary
 runtime config. OpenCode returns the denied tool result to the model and continues its existing loop;
-Varro must not approve the tool, abort/restart the turn, or submit a synthetic user message to resume
+Loomery must not approve the tool, abort/restart the turn, or submit a synthetic user message to resume
 it. Session prompt guidance tells the agent to continue independent permitted work, never retry or
 bypass the denied action, and explain the blocker when the task requires it. OpenCode also rejects
 other pending permissions in the same owning session when one is rejected.
 
 Project and inline OpenCode config can override this default. Caller-provided `OPENCODE_CONFIG`
-remains untouched and skips Varro's injection; externally managed servers require their own setting.
+remains untouched and skips Loomery's injection; externally managed servers require their own setting.
 Existing servers must reload runtime config before the default takes effect. Never restart a server
 inside a permission-response transaction.
 
@@ -252,10 +252,10 @@ ID and owning session against the server before changing rules.
   `todowrite`, `question`, `webfetch`, `websearch`, and `doom_loop` accept only scalar actions inside
   the permission object; never serialize pattern maps for those names or broaden a non-wildcard
   standing scope to make it fit.
-- Varro shows only server-memory entries that match a successful `always` reply it observed. OpenCode's
+- Loomery shows only server-memory entries that match a successful `always` reply it observed. OpenCode's
   saved-permission endpoint can also return internal allowances that the user did not add; those do not
   belong in the user-managed layer. Legacy OpenCode permission replies keep `always` rules in an
-  internal instance-local array with no list or removal endpoint. Varro mirrors those replies from
+  internal instance-local array with no list or removal endpoint. Loomery mirrors those replies from
   their authoritative request scopes so the layer remains visible; those entries require an OpenCode
   restart to clear.
 - In auto mode, a successful `Always` response rechecks other visible requests in the same
@@ -323,10 +323,10 @@ prior approvals from being generalized to unrelated or sensitive directories.
 
 ### Jev Decision Provider
 
-When `varro.decisions.jev.autoApprove` is on and a TypeSafe API key is available (VS Code secret
+When `loomery.decisions.jev.autoApprove` is on and a TypeSafe API key is available (VS Code secret
 storage via **Add decision model** in the Models view menu, or `TYPESAFE_API_KEY`), requests not
 decided locally go to TypeSafe's Jev before any model judge session is created. Jev returns calibrated probabilities,
-not text, so Varro applies the gate in code:
+not text, so Loomery applies the gate in code:
 
 - `allow` requires the `allow` option at probability 0.8 or higher, confidence 0.75 or higher, and
   both the side-effect and approval-steering yes/no probabilities below 0.2.
@@ -360,16 +360,16 @@ parameters, unclear destinations, and possible private-data disclosure must fall
 
 The judge model is resolved in this order:
 
-1. `varro.chat.autoApproveModel`
+1. `loomery.chat.autoApproveModel`
 2. Repository-scoped OpenCode `small_model`
 3. OpenAI GPT Luna Fast when the account is confirmed as eligible
 4. OpenAI GPT Luna
 5. GitHub Copilot GPT Luna
-6. The selected Varro session model, preferring a low or no-reasoning variant
+6. The selected Loomery session model, preferring a low or no-reasoning variant
 7. No explicit model, allowing OpenCode to use its default
 
 The runtime first looks for a model stored for the permission-owning session, then falls back to the
-globally selected Varro model. That value is only the final fallback after the configured judge,
+globally selected Loomery model. That value is only the final fallback after the configured judge,
 `small_model`, and Luna routes. Do not replace the owning-session lookup with the active UI session.
 
 Judge outcomes map as follows:
@@ -403,7 +403,7 @@ Hidden judge sessions must remain filtered from normal session, status, permissi
 views. Their cleanup is best effort and can finish after the caller's timeout.
 
 Model-judge sessions are children of the permission-owning session and carry
-`metadata.varroInternal = 'permission-judge'`; the `Varro permission judge: ` title prefix remains a
+`metadata.loomeryInternal = 'permission-judge'`; the `Loomery permission judge: ` title prefix remains a
 legacy fallback. Identification must survive extension-host restart and must not depend only on
 in-memory hidden IDs or pending titles. Identified judges remain hidden from session, status,
 permission, and question results. A session-list observation may delete a judge only when it is not
@@ -459,8 +459,8 @@ permission and question reconciliation independent.
 
 ## Mode Changes
 
-Mode updates use the host-owned `/varro/session/{id}/permission-mode` endpoint. The host serializes
-updates for each session, patches OpenCode rules and `metadata.varro.permissionMode` together, persists
+Mode updates use the host-owned `/loomery/session/{id}/permission-mode` endpoint. The host serializes
+updates for each session, patches OpenCode rules and `metadata.loomery.permissionMode` together, persists
 the confirmed mode locally, and broadcasts the complete confirmed mode snapshot. Stale successes or
 failures must not overwrite the latest user
 selection. A webview may present the selected mode while its request is pending, but failure rolls
@@ -473,9 +473,9 @@ Metadata writes preserve unrelated session metadata. Preconfigured sessions save
 without appending rules again. Local fallback recovery still suppresses automation until confirmed;
 incoming metadata cannot bypass an active local mode update or recovery.
 
-- Switching to auto installs Varro's ask-based auto rules, invalidates the authority of older mode
+- Switching to auto installs Loomery's ask-based auto rules, invalidates the authority of older mode
   work, and syncs pending requests into the judge flow.
-- Switching to default appends the selected agent's resolved OpenCode rules after Varro's prior
+- Switching to default appends the selected agent's resolved OpenCode rules after Loomery's prior
   session rules so the configured policy applies under OpenCode's append-only session update API.
   Recovery without agent context appends a conservative ask-by-default fallback. Any unfinished auto
   verdict must not approve after the switch.

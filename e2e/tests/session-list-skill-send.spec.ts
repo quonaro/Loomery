@@ -11,7 +11,7 @@ for (const sendMethod of ['Enter', 'button']) {
     if (sendMethod === 'Enter') await composer.press('Enter');
     else await page.getByLabel('Send (Enter)').click();
 
-    await expect(page.locator('.chat-header-title-text').first()).toHaveText('Mock Session 4');
+    await expect(page.locator('.chat-header-title-text').first()).toHaveText('New Chat');
     await expect(page.locator('.chat-turn-user').last()).toContainText('check machines');
     await expect(page.getByLabel('Search sessions')).not.toBeVisible();
     await expect(page.locator('.rich-composer').first()).toBeEmpty();

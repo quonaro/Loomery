@@ -1,0 +1,145 @@
+/* Open-session tab strip (OmniACP-style) rendered above the chat column. */
+.session-tabs {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  height: 34px;
+  background: var(--color-vscode-sidebar);
+  border-bottom: 1px solid var(--color-vscode-border-soft);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.session-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.session-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 260px;
+  padding: 0 8px 0 12px;
+  border-right: 1px solid var(--color-vscode-border-soft);
+  background: transparent;
+  color: var(--color-vscode-fg-muted);
+  font-size: 12.5px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.session-tab:hover {
+  background: var(--color-vscode-hover);
+  color: var(--color-vscode-fg);
+}
+
+.session-tab.is-active {
+  background: var(--color-vscode-surface-subtle-alt);
+  color: var(--color-vscode-fg);
+}
+
+.session-tab.is-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-vscode-accent);
+}
+
+.session-tab-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The unsaved New chat draft reads as a placeholder, not a real session. */
+.session-tab.is-draft .session-tab-title {
+  font-style: italic;
+}
+
+.session-tab-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-vscode-fg) 35%, transparent);
+}
+
+.session-tab-dot.is-running {
+  background: var(--color-vscode-accent);
+  animation: pulse-soft 1.5s ease-in-out infinite;
+}
+
+.session-tab-dot.is-unread {
+  background: var(--color-vscode-accent);
+}
+
+.session-tab-dot.is-failed {
+  background: var(--color-vscode-error);
+}
+
+.session-tab-dot.is-idle {
+  background: color-mix(in srgb, var(--color-vscode-fg) 35%, transparent);
+}
+
+.session-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--color-vscode-fg-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.session-tab:hover .session-tab-close,
+.session-tab.is-active .session-tab-close {
+  opacity: 1;
+}
+
+.session-tab-close:hover {
+  background: var(--color-vscode-toolbar-hover);
+  color: var(--color-vscode-fg);
+}
+
+.session-tab-close:focus-visible {
+  opacity: 1;
+  background: var(--color-vscode-toolbar-hover);
+}
+
+/* New-session button pinned at the end of the tab strip. */
+.session-tabs-new {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 6px;
+  border-right: 1px solid var(--color-vscode-border-soft);
+}
+
+.session-tabs-new .chat-header-btn {
+  width: 24px;
+  height: 24px;
+}

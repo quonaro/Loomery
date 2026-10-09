@@ -5,9 +5,9 @@ describe('stripContextForHistory', () => {
   it('removes active-file context joined to the prompt', () => {
     expect(
       stripContextForHistory(
-        'Sync with latest Varro\n\n[Active file: src/main/resources/META-INF/plugin.xml]'
+        'Sync with latest Loomery\n\n[Active file: src/main/resources/META-INF/plugin.xml]'
       ).trim()
-    ).toBe('Sync with latest Varro');
+    ).toBe('Sync with latest Loomery');
   });
 
   it('removes file references and working-directory context without discarding prompt lines', () => {

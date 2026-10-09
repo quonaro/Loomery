@@ -1,4 +1,4 @@
-# Agent Notes for Varro
+# Agent Notes for Loomery
 
 - Package manager: `npm`; install with `npm install`; use Node 22.22.2+ or 24.15+.
 - Build: `npm run build` (`build:extension` + `build:webview`).

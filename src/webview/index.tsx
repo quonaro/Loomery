@@ -9,14 +9,14 @@ import { isFunction } from './lib/runtime-values';
 import { readInitialWebviewState } from './lib/state-stored-values';
 import { startSteppedAnimationClock } from './lib/stepped-animation-clock';
 
-const STARTUP_HANDLERS_KEY = '__clearVarroBootstrapFailureHandlers';
-const APP_CLEANUP_KEY = '__cleanupVarroApp';
-const EDITOR_SURFACE_CLASS = 'varro-editor-surface';
-const EDITOR_LAYOUT_PENDING_CLASS = 'varro-editor-layout-pending';
+const STARTUP_HANDLERS_KEY = '__clearLoomeryBootstrapFailureHandlers';
+const APP_CLEANUP_KEY = '__cleanupLoomeryApp';
+const EDITOR_SURFACE_CLASS = 'loomery-editor-surface';
+const EDITOR_LAYOUT_PENDING_CLASS = 'loomery-editor-layout-pending';
 const EDITOR_LAYOUT_SETTLE_MS = 50;
 type BootstrapWindow = Window & {
-  __clearVarroBootstrapFailureHandlers?: () => void;
-  __cleanupVarroApp?: () => void;
+  __clearLoomeryBootstrapFailureHandlers?: () => void;
+  __cleanupLoomeryApp?: () => void;
 };
 // SAFETY: The bootstrap script may install this optional cleanup callback on window.
 const bootstrapWindow = window as BootstrapWindow;
@@ -38,7 +38,7 @@ function cleanupBridgeSafe() {
   try {
     cleanupBridge();
   } catch (error) {
-    logWebviewError('Varro webview bridge cleanup failed', error);
+    logWebviewError('Loomery webview bridge cleanup failed', error);
   }
 }
 
@@ -181,7 +181,7 @@ export function showBootstrapFailure(root: HTMLElement) {
   const title = document.createElement('strong');
   title.textContent = 'Something went wrong';
   const message = document.createElement('span');
-  message.textContent = 'Varro could not start. Reload the sidebar to try again.';
+  message.textContent = 'Loomery could not start. Reload the sidebar to try again.';
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = 'Reload sidebar';
@@ -214,7 +214,7 @@ export function bootstrap(root: HTMLElement) {
     try {
       dispose?.();
     } catch (error) {
-      logWebviewError('Varro webview disposal failed', error);
+      logWebviewError('Loomery webview disposal failed', error);
     }
     dispose = undefined;
     cleanupBridgeSafe();
@@ -222,11 +222,11 @@ export function bootstrap(root: HTMLElement) {
   const fail = <T,>(error: T) => {
     if (failed) return;
     failed = true;
-    logWebviewError('Varro webview bootstrap failed', error);
+    logWebviewError('Loomery webview bootstrap failed', error);
     try {
       clearStartupHandlers();
     } catch (cleanupError) {
-      logWebviewError('Varro webview startup handler cleanup failed', cleanupError);
+      logWebviewError('Loomery webview startup handler cleanup failed', cleanupError);
     }
     disposeWebview();
     showBootstrapFailure(root);
@@ -244,7 +244,7 @@ export function bootstrap(root: HTMLElement) {
     try {
       clearStartupHandlers();
     } catch (error) {
-      logWebviewError('Varro webview startup handler cleanup failed', error);
+      logWebviewError('Loomery webview startup handler cleanup failed', error);
     }
     disposeWebview();
     stopTrackingEditorLayout?.();
@@ -257,11 +257,11 @@ export function bootstrap(root: HTMLElement) {
 export function bootstrapWebview(root: HTMLElement | null) {
   if (root) return bootstrap(root);
 
-  logWebviewError('Varro webview bootstrap failed', new Error('Webview root element not found'));
+  logWebviewError('Loomery webview bootstrap failed', new Error('Webview root element not found'));
   try {
     clearStartupHandlers();
   } catch (error) {
-    logWebviewError('Varro webview startup handler cleanup failed', error);
+    logWebviewError('Loomery webview startup handler cleanup failed', error);
   }
   cleanupBridgeSafe();
   return undefined;

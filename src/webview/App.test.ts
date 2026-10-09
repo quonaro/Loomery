@@ -190,7 +190,7 @@ describe('AppRoot', () => {
 
   it('shows the animated logo, then loading, then the restored chat', () => {
     setState('serverStatus', { state: 'stopped' });
-    setState('emptyStateLogoUri', 'https://example.test/varro.png');
+    setState('emptyStateLogoUri', 'https://example.test/loomery.png');
     mountAppRoot();
 
     expect(container?.querySelector('.server-status-detecting-logo')?.classList).toContain(
@@ -213,7 +213,7 @@ describe('AppRoot', () => {
     expect(appMocks.chatMountCount).toBe(1);
   });
 
-  it.each([null, '/varro/scratch'])(
+  it.each([null, '/loomery/scratch'])(
     'shows chat with no open folder and working directory %s',
     (workspacePath) => {
       setState('serverStatus', { state: 'running', url: 'http://127.0.0.1:4096' });
@@ -226,7 +226,7 @@ describe('AppRoot', () => {
       });
       mountAppRoot();
 
-      expect(container?.textContent).not.toContain('Open a folder to use Varro');
+      expect(container?.textContent).not.toContain('Open a folder to use Loomery');
       expect(container?.textContent).toContain('New Chat');
       expect(appMocks.chatMountCount).toBe(1);
       setState('editorContext', {
@@ -238,8 +238,8 @@ describe('AppRoot', () => {
       expect(appMocks.chatMountCount).toBe(1);
       setState('editorContext', {
         ...state.editorContext,
-        workspacePath: '/varro/scratch',
-        workspaceDirectory: '/varro/scratch',
+        workspacePath: '/loomery/scratch',
+        workspaceDirectory: '/loomery/scratch',
         workspaceFolders: [],
       });
       expect(container?.textContent).toContain('New Chat');
@@ -250,8 +250,8 @@ describe('AppRoot', () => {
   it('keeps normal startup and recovery screens available without an open folder', () => {
     setState('editorContext', {
       ...state.editorContext,
-      workspacePath: '/varro/scratch',
-      workspaceDirectory: '/varro/scratch',
+      workspacePath: '/loomery/scratch',
+      workspaceDirectory: '/loomery/scratch',
       workspaceFolders: [],
     });
     setState('serverStatus', { state: 'starting' });

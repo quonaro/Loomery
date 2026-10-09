@@ -7,10 +7,10 @@ import type { ProviderLimitStatus, ProviderLimitWindow } from '../shared/protoco
 import { asRecord } from '../shared/type-utils';
 import { ProviderQuotaIdentityChanged } from './provider-limits/types';
 import {
-  getLegacyVarroStateDirectory,
-  getVarroStateDirectory,
-  prepareVarroStateDirectory,
-} from './varro-state-paths';
+  getLegacyLoomeryStateDirectory,
+  getLoomeryStateDirectory,
+  prepareLoomeryStateDirectory,
+} from './loomery-state-paths';
 
 const STALE_MS = 15 * 60_000;
 const MAX_BACKOFF_MS = 60 * 60_000;
@@ -86,13 +86,13 @@ export class ProviderQuotaCoordinator {
   private prepared: Promise<string> | undefined;
 
   constructor(root?: string) {
-    this.root = root ?? getVarroStateDirectory('provider-quota-v2');
+    this.root = root ?? getLoomeryStateDirectory('provider-quota-v2');
     this.legacyDirectory =
-      root === undefined ? getLegacyVarroStateDirectory('provider-quota-v2') : undefined;
+      root === undefined ? getLegacyLoomeryStateDirectory('provider-quota-v2') : undefined;
   }
 
   private prepare(): Promise<string> {
-    this.prepared ??= prepareVarroStateDirectory(this.root, this.legacyDirectory).catch(
+    this.prepared ??= prepareLoomeryStateDirectory(this.root, this.legacyDirectory).catch(
       (error: unknown) => {
         this.prepared = undefined;
         throw error;

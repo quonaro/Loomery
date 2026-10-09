@@ -18,23 +18,23 @@ test('busy send menu supports stop-and-send for follow-up instructions', async (
   const requests = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests || [];
   });
 
   expect(
     requests.filter((request) => {
-      const url = new URL(request.path, 'http://varro.test');
+      const url = new URL(request.path, 'http://loomery.test');
       return (
-        url.pathname.endsWith('/abort') && url.searchParams.get('directory') === '/workspace/varro'
+        url.pathname.endsWith('/abort') && url.searchParams.get('directory') === '/workspace/loomery'
       );
     })
   ).toHaveLength(1);
   expect(
     requests.filter((request) =>
-      new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+      new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
     )
   ).toHaveLength(1);
 });
@@ -48,9 +48,7 @@ test('restores the active busy session after webview reload', async ({ page }) =
 
   await page.reload();
 
-  await expect(
-    page.getByLabel('Back to sessions').locator('..').getByText('Busy stop and send')
-  ).toBeVisible();
+  await expect(page.locator('.chat-header-title-text').first()).toHaveText('Busy stop and send');
   await expect(
     page.getByText('Still working through the requested refactor steps.', { exact: true })
   ).toBeVisible();
@@ -68,23 +66,23 @@ test('restores the active busy session after webview reload', async ({ page }) =
   const requests = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests || [];
   });
 
   expect(
     requests.filter((request) => {
-      const url = new URL(request.path, 'http://varro.test');
+      const url = new URL(request.path, 'http://loomery.test');
       return (
-        url.pathname.endsWith('/abort') && url.searchParams.get('directory') === '/workspace/varro'
+        url.pathname.endsWith('/abort') && url.searchParams.get('directory') === '/workspace/loomery'
       );
     })
   ).toHaveLength(1);
   expect(
     requests.filter((request) =>
-      new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+      new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
     )
   ).toHaveLength(1);
 });

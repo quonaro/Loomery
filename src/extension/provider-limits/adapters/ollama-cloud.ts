@@ -8,7 +8,7 @@ import {
   readBoundedResponseJson,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const OLLAMA_CLOUD_USAGE_ENDPOINT = 'https://ollama.com/api/usage';
@@ -38,7 +38,7 @@ export function createOllamaCloudAdapter(): ProviderLimitAdapter {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${apiKey}`,
-            'User-Agent': VARRO_USER_AGENT,
+            'User-Agent': LOOMERY_USER_AGENT,
           },
           signal: AbortSignal.timeout(10_000),
         });

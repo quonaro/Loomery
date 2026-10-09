@@ -14,13 +14,13 @@ export async function copyHostModelPreferences(sourceUserData, destinationUserDa
   const source = new DatabaseSync(filename, { readOnly: true });
   let preferences;
   try {
-    const row = source.prepare('SELECT value FROM ItemTable WHERE key = ?').get('koltyakov.varro');
+    const row = source.prepare('SELECT value FROM ItemTable WHERE key = ?').get('quonaro.loomery');
     if (!row) return;
     const state = JSON.parse(Buffer.from(row.value).toString('utf8'));
     preferences = Object.fromEntries(
       Object.entries(state).filter(
         ([key]) =>
-          key === 'varro.modelPreferences' || key.startsWith('varro.modelPreferences.hostMigration')
+          key === 'loomery.modelPreferences' || key.startsWith('loomery.modelPreferences.hostMigration')
       )
     );
   } finally {
@@ -36,7 +36,7 @@ export async function copyHostModelPreferences(sourceUserData, destinationUserDa
     );
     destination
       .prepare('INSERT INTO ItemTable (key, value) VALUES (?, ?)')
-      .run('koltyakov.varro', JSON.stringify(preferences));
+      .run('quonaro.loomery', JSON.stringify(preferences));
   } finally {
     destination.close();
   }

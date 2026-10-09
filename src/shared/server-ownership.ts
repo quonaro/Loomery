@@ -14,7 +14,7 @@ export interface ManagedServerOwnershipLease {
   /** Host-only credential, persisted in the private ownership file for window handoff. */
   password?: string;
   username?: string;
-  /** Optional so older Varro builds can still read and coordinate this lease. */
+  /** Optional so older Loomery builds can still read and coordinate this lease. */
   portMode?: 'auto' | 'fixed';
 }
 

@@ -3,8 +3,8 @@ import type { Persistence } from '../shared/persistence';
 import { isSafePersistedSessionId, type ChatModelSelection } from '../shared/protocol';
 import { asRecord } from '../shared/type-utils';
 
-const SESSION_SELECTED_MODELS_KEY = 'varro.sessionSelectedModels';
-const SESSION_SELECTED_MODELS_MIGRATION_KEY = 'varro.sessionSelectedModels.hostMigration.v1';
+const SESSION_SELECTED_MODELS_KEY = 'loomery.sessionSelectedModels';
+const SESSION_SELECTED_MODELS_MIGRATION_KEY = 'loomery.sessionSelectedModels.hostMigration.v1';
 
 export class SessionModelSelectionStore {
   private models: Record<string, ChatModelSelection>;

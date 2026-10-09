@@ -144,7 +144,7 @@ export interface SessionWorkspaceTarget {
   scope: SessionWorkspaceScope;
   directory: string | null;
 }
-export const VARRO_SESSION_METADATA_VERSION = 1;
+export const LOOMERY_SESSION_METADATA_VERSION = 1;
 
 export const MAX_PERSISTED_SESSION_ID_LENGTH = 512;
 
@@ -182,15 +182,15 @@ export function isSessionWorkspaceScope<T>(value: T): value is T & SessionWorksp
 }
 
 export function getSessionWorkspaceScopeFromMetadata<T>(metadata: T): SessionWorkspaceScope | null {
-  const scope = asRecord(asRecord(metadata)?.varro)?.workspaceScope;
+  const scope = asRecord(asRecord(metadata)?.loomery)?.workspaceScope;
   return isSessionWorkspaceScope(scope) ? scope : null;
 }
 
 export function createSessionWorkspaceMetadata(scope: SessionWorkspaceScope) {
   return {
-    varro: {
+    loomery: {
       workspaceScope: scope,
-      schemaVersion: VARRO_SESSION_METADATA_VERSION,
+      schemaVersion: LOOMERY_SESSION_METADATA_VERSION,
     },
   };
 }
@@ -379,7 +379,7 @@ export type ServerErrorDetail = {
   /** Command that repairs this specific install; never `opencode upgrade` after a failure. */
   suggestedCommand?: string;
   blockedBy?: ServerErrorBlockedBy;
-  /** Settings id to deep-link, e.g. `varro.server.autoUpdate`. */
+  /** Settings id to deep-link, e.g. `loomery.server.autoUpdate`. */
   settingId?: string;
   configuredCommand?: string;
   searchedPaths?: string[];
@@ -438,35 +438,35 @@ export type WorkspaceStatusEventSummary = {
 };
 
 /**
- * `/varro/*` is Varro's extension-host API namespace on the shared `api/request`
+ * `/loomery/*` is Loomery's extension-host API namespace on the shared `api/request`
  * transport. These paths are resolved locally by the extension and are never
  * forwarded to the OpenCode server.
  */
-export const VARRO_API_NAMESPACE = '/varro' as const;
+export const LOOMERY_API_NAMESPACE = '/loomery' as const;
 
-export const VARRO_API_ENDPOINTS = {
-  modelPricing: `${VARRO_API_NAMESPACE}/model-pricing`,
-  providerLimit: `${VARRO_API_NAMESPACE}/provider-limit`,
-  planOpen: `${VARRO_API_NAMESPACE}/plan/open`,
-  openCodeConfig: `${VARRO_API_NAMESPACE}/opencode-config`,
-  openCodeConfigModelRouting: `${VARRO_API_NAMESPACE}/opencode-config/model-routing`,
-  openCodeConfigDisableProvider: `${VARRO_API_NAMESPACE}/opencode-config/disable-provider`,
-  openCodeConfigPermissions: `${VARRO_API_NAMESPACE}/opencode-config/permissions`,
-  session: `${VARRO_API_NAMESPACE}/session`,
-  sessionTrash: `${VARRO_API_NAMESPACE}/session-trash`,
-  sessionHistoryScope: `${VARRO_API_NAMESPACE}/session-history-scope`,
-  workspaceFile: `${VARRO_API_NAMESPACE}/workspace-file`,
-  workspaceFilePick: `${VARRO_API_NAMESPACE}/workspace-file/pick`,
-  workspaceProblems: `${VARRO_API_NAMESPACE}/workspace-problems`,
-  workspacePathResolve: `${VARRO_API_NAMESPACE}/workspace-path/resolve`,
-  copiedSelectionMatch: `${VARRO_API_NAMESPACE}/copied-selection/match`,
-  permissionJudge: `${VARRO_API_NAMESPACE}/permission/judge`,
-  permissionJudgeModel: `${VARRO_API_NAMESPACE}/permission/judge/model`,
-  permissionSessionAllow: `${VARRO_API_NAMESPACE}/permission/session-allow`,
-  permissionSessionRules: `${VARRO_API_NAMESPACE}/permission/session-rules`,
-  permissionServerMemory: `${VARRO_API_NAMESPACE}/permission/server-memory`,
-  permissionProjectAllow: `${VARRO_API_NAMESPACE}/permission/project-allow`,
-  decisionProviders: `${VARRO_API_NAMESPACE}/decision-providers`,
+export const LOOMERY_API_ENDPOINTS = {
+  modelPricing: `${LOOMERY_API_NAMESPACE}/model-pricing`,
+  providerLimit: `${LOOMERY_API_NAMESPACE}/provider-limit`,
+  planOpen: `${LOOMERY_API_NAMESPACE}/plan/open`,
+  openCodeConfig: `${LOOMERY_API_NAMESPACE}/opencode-config`,
+  openCodeConfigModelRouting: `${LOOMERY_API_NAMESPACE}/opencode-config/model-routing`,
+  openCodeConfigDisableProvider: `${LOOMERY_API_NAMESPACE}/opencode-config/disable-provider`,
+  openCodeConfigPermissions: `${LOOMERY_API_NAMESPACE}/opencode-config/permissions`,
+  session: `${LOOMERY_API_NAMESPACE}/session`,
+  sessionTrash: `${LOOMERY_API_NAMESPACE}/session-trash`,
+  sessionHistoryScope: `${LOOMERY_API_NAMESPACE}/session-history-scope`,
+  workspaceFile: `${LOOMERY_API_NAMESPACE}/workspace-file`,
+  workspaceFilePick: `${LOOMERY_API_NAMESPACE}/workspace-file/pick`,
+  workspaceProblems: `${LOOMERY_API_NAMESPACE}/workspace-problems`,
+  workspacePathResolve: `${LOOMERY_API_NAMESPACE}/workspace-path/resolve`,
+  copiedSelectionMatch: `${LOOMERY_API_NAMESPACE}/copied-selection/match`,
+  permissionJudge: `${LOOMERY_API_NAMESPACE}/permission/judge`,
+  permissionJudgeModel: `${LOOMERY_API_NAMESPACE}/permission/judge/model`,
+  permissionSessionAllow: `${LOOMERY_API_NAMESPACE}/permission/session-allow`,
+  permissionSessionRules: `${LOOMERY_API_NAMESPACE}/permission/session-rules`,
+  permissionServerMemory: `${LOOMERY_API_NAMESPACE}/permission/server-memory`,
+  permissionProjectAllow: `${LOOMERY_API_NAMESPACE}/permission/project-allow`,
+  decisionProviders: `${LOOMERY_API_NAMESPACE}/decision-providers`,
 } as const;
 
 export interface ModelPricing {
@@ -476,7 +476,7 @@ export interface ModelPricing {
   cache_write?: number;
 }
 
-export type VarroSessionEndpointAction =
+export type LoomerySessionEndpointAction =
   | 'activate'
   | 'delete'
   | 'diff-summary'
@@ -485,11 +485,11 @@ export type VarroSessionEndpointAction =
   | 'reorder-pin'
   | 'rename-if-untitled';
 
-export function buildVarroSessionEndpoint(
+export function buildLoomerySessionEndpoint(
   sessionID: string,
-  action: VarroSessionEndpointAction
+  action: LoomerySessionEndpointAction
 ): string {
-  return `${VARRO_API_ENDPOINTS.session}/${encodeURIComponent(sessionID)}/${action}`;
+  return `${LOOMERY_API_ENDPOINTS.session}/${encodeURIComponent(sessionID)}/${action}`;
 }
 
 export type {
@@ -604,7 +604,7 @@ export type ServerEvent = {
   [Name in ServerEventName]: {
     /** OpenCode event identity. Sync envelopes use the nested durable event ID. */
     id?: string;
-    /** Varro transport marker: advance sequence observers without reapplying the mutation. */
+    /** Loomery transport marker: advance sequence observers without reapplying the mutation. */
     sequenceOnly?: true;
     /** First contiguous durable cursor represented by a coalesced sequence-only marker. */
     sequenceStart?: number;
@@ -1033,6 +1033,7 @@ export type ExtensionMessage =
   | { type: 'command/focus-input' }
   | { type: 'command/attach-problems'; payload: { diagnostics: EditorDiagnostic[] } }
   | { type: 'command/search-sessions' }
+  | { type: 'command/open-sessions' }
   | { type: 'command/open-attention-sessions' }
   | { type: 'command/open-completed-sessions' }
   | { type: 'command/switch-session'; payload: { direction: 'previous' | 'next' } }

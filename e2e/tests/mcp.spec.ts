@@ -16,7 +16,7 @@ test('opens the MCP picker and syncs connection requests', async ({ page }) => {
   await mcpList.getByRole('button', { name: /github/i }).click();
 
   await expect
-    .poll(() => page.evaluate(() => localStorage.getItem('varro.sessionSelectedMcps')))
+    .poll(() => page.evaluate(() => localStorage.getItem('loomery.sessionSelectedMcps')))
     .toContain('github');
   await expect(mcpList.getByRole('button', { name: /github connected/i })).toBeVisible();
 
@@ -27,9 +27,9 @@ test('opens the MCP picker and syncs connection requests', async ({ page }) => {
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (
           value?.requests
             .filter((request) => request.path.startsWith('/mcp/github/'))
@@ -54,6 +54,6 @@ test('restores preselected MCPs after reload', async ({ page }) => {
 
   await expect(page.getByRole('button', { name: /chrome connected/i })).toBeVisible();
   await expect
-    .poll(() => page.evaluate(() => localStorage.getItem('varro.sessionSelectedMcps')))
+    .poll(() => page.evaluate(() => localStorage.getItem('loomery.sessionSelectedMcps')))
     .toContain('chrome');
 });

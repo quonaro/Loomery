@@ -114,7 +114,8 @@ describe('host extension contract', () => {
     const text = sent.body.parts.flatMap((item) => (item.text ? [item.text] : [])).join('\n\n');
     expect(text).toContain('Original');
     expect(text).not.toContain('Changed after queueing');
-    expect(text).toContain('[Active file: file.ts]');
+    // A bare open file is no longer auto-attached alongside extension context.
+    expect(text).not.toContain('[Active file:');
     const parts = [part(text)];
     expect(getUserMessageEditText(parts)).toBe('Fix it');
     const edited = getUserMessageEditContext(parts);

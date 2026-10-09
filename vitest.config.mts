@@ -17,7 +17,7 @@ const jsdomBackendTests = [
 ];
 
 export default defineConfig({
-  define: { __VARRO_VERSION__: JSON.stringify(version) },
+  define: { __LOOMERY_VERSION__: JSON.stringify(version) },
   // hot: false keeps vite-plugin-solid from injecting the /@solid-refresh virtual
   // module, which vite-node cannot resolve as a file URL on Windows.
   plugins: [solid({ hot: false })],

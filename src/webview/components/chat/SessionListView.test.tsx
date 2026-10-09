@@ -321,10 +321,10 @@ describe('SessionListView keyboard recovery', () => {
 describe('SessionListView model details', () => {
   it('persists project scope from the search-row picker and hides it while searching', async () => {
     const getScope = vi
-      .spyOn(client.varro.sessionHistoryScope, 'get')
+      .spyOn(client.loomery.sessionHistoryScope, 'get')
       .mockResolvedValue({ scope: 'project', git: true });
     const setScope = vi
-      .spyOn(client.varro.sessionHistoryScope, 'set')
+      .spyOn(client.loomery.sessionHistoryScope, 'set')
       .mockResolvedValue({ scope: 'descendants', git: true });
     setState('editorContext', {
       workspacePath: '/repo',
@@ -366,7 +366,7 @@ describe('SessionListView model details', () => {
   });
 
   it('updates the scope picker immediately while persistence remains pending', async () => {
-    vi.spyOn(client.varro.sessionHistoryScope, 'get').mockResolvedValue({
+    vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({
       scope: 'directory',
       git: true,
     });
@@ -374,7 +374,7 @@ describe('SessionListView model details', () => {
     const setRequest = new Promise<{ scope: 'descendants'; git: true }>((resolve) => {
       resolveSet = resolve;
     });
-    vi.spyOn(client.varro.sessionHistoryScope, 'set').mockReturnValue(setRequest);
+    vi.spyOn(client.loomery.sessionHistoryScope, 'set').mockReturnValue(setRequest);
     setState('editorContext', {
       workspacePath: '/repo',
       workspaceFolders: [{ name: 'Repo', path: '/repo' }],
@@ -406,12 +406,12 @@ describe('SessionListView model details', () => {
 
   it('ignores a scope save that completes after the directory changes', async () => {
     const save = deferred<{ scope: 'directory'; git: true }>();
-    vi.spyOn(client.varro.sessionHistoryScope, 'get').mockImplementation(async (directory) => ({
+    vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockImplementation(async (directory) => ({
       scope: directory === '/repo-b' ? 'project' : 'directory',
       git: true,
     }));
     const setScope = vi
-      .spyOn(client.varro.sessionHistoryScope, 'set')
+      .spyOn(client.loomery.sessionHistoryScope, 'set')
       .mockReturnValue(save.promise);
     setState('editorContext', {
       workspacePath: '/repo-a',
@@ -466,11 +466,11 @@ describe('SessionListView model details', () => {
 
   it('ignores a scope save error after unmount', async () => {
     const save = deferred<{ scope: 'descendants'; git: true }>();
-    vi.spyOn(client.varro.sessionHistoryScope, 'get').mockResolvedValue({
+    vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({
       scope: 'directory',
       git: true,
     });
-    vi.spyOn(client.varro.sessionHistoryScope, 'set').mockReturnValue(save.promise);
+    vi.spyOn(client.loomery.sessionHistoryScope, 'set').mockReturnValue(save.promise);
     setState('editorContext', {
       workspacePath: '/repo',
       workspaceFolders: [{ name: 'Repo', path: '/repo' }],
@@ -503,7 +503,7 @@ describe('SessionListView model details', () => {
   it.each(['descendants', 'project'] as const)(
     'shows compact folder names for sessions outside the current folder in %s scope',
     async (scope) => {
-      vi.spyOn(client.varro.sessionHistoryScope, 'get').mockResolvedValue({ scope, git: true });
+      vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({ scope, git: true });
       setState('editorContext', {
         workspacePath: '/repo',
         workspaceFolders: [{ name: 'Repo', path: '/repo' }],
@@ -535,7 +535,7 @@ describe('SessionListView model details', () => {
 
   it('shows folder scope only after selecting a folder in a multi-root workspace', async () => {
     const onPrimarySessionsCountChange = vi.fn();
-    const getScope = vi.spyOn(client.varro.sessionHistoryScope, 'get').mockResolvedValue({
+    const getScope = vi.spyOn(client.loomery.sessionHistoryScope, 'get').mockResolvedValue({
       scope: 'project',
       git: true,
     });
@@ -777,7 +777,7 @@ describe('SessionListView model details', () => {
   });
 
   it('renders hover-only model details and the provider icon in the row', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -835,7 +835,7 @@ describe('SessionListView model details', () => {
     { name: 'GPT-6.1 Sol Ultrafast', count: 3, text: 'GPT-6.1 Sol ' },
     { name: 'GPT-6.1 Sol', count: 0, text: 'GPT-6.1 Sol' },
   ])('renders $name with $count speed icons instead of emoji', async ({ name, count, text }) => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -877,7 +877,7 @@ describe('SessionListView model details', () => {
   });
 
   it('shows the provider name when no provider icon is available', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -920,7 +920,7 @@ describe('SessionListView model details', () => {
   });
 
   it('shows and opens with the message summary instead of a persisted selection', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -976,7 +976,7 @@ describe('SessionListView model details', () => {
   });
 
   it('reveals model details for every row while Alt is held', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1084,7 +1084,7 @@ describe('SessionListView diff summaries', () => {
       durationMs: 65_000,
       activeStartedAt: null,
     };
-    vi.spyOn(client.varro.session, 'diffSummary').mockImplementation((id) =>
+    vi.spyOn(client.loomery.session, 'diffSummary').mockImplementation((id) =>
       id === 'settled' ? Promise.resolve(settled) : pending.promise
     );
     const now = Date.now();
@@ -1124,7 +1124,7 @@ describe('SessionListView diff summaries', () => {
       durationMs: number;
       activeStartedAt: number | null;
     }>();
-    vi.spyOn(client.varro.session, 'diffSummary').mockReturnValue(pending.promise);
+    vi.spyOn(client.loomery.session, 'diffSummary').mockReturnValue(pending.promise);
     setState('sessions', [session('session-1', Date.now())]);
 
     cleanup = render(() => <SessionListView />, container);
@@ -1150,7 +1150,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('uses the aggregate session diff response instead of loading full diffs or messages', async () => {
-    const diffSummarySpy = vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    const diffSummarySpy = vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 2,
       additions: 6,
       deletions: 4,
@@ -1210,7 +1210,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('compacts large edit counts', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 62,
       additions: 8_190,
       deletions: 32_568,
@@ -1231,7 +1231,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('labels trimmed file summaries without zero line counts', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       filesTruncated: true,
       historyStatsUnavailable: true,
@@ -1255,7 +1255,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('uses loaded diff counts when stale edit counts already exist on the session', async () => {
-    const diffSummarySpy = vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    const diffSummarySpy = vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 2,
       additions: 6,
       deletions: 4,
@@ -1288,7 +1288,7 @@ describe('SessionListView diff summaries', () => {
   it('updates the duration of a running session every second', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(100_000);
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1322,7 +1322,7 @@ describe('SessionListView diff summaries', () => {
       durationMs: number;
       activeStartedAt: number | null;
     }>();
-    vi.spyOn(client.varro.session, 'diffSummary').mockReturnValue(pending.promise);
+    vi.spyOn(client.loomery.session, 'diffSummary').mockReturnValue(pending.promise);
     setState(
       'sessions',
       Array.from({ length: 160 }, (_, index) => session(`session-${index}`, Date.now() - index))
@@ -1369,7 +1369,7 @@ describe('SessionListView diff summaries', () => {
     // SAFETY: The fixture provides the unknown fields read by this statement.
     globalThis.IntersectionObserver =
       fixture<typeof IntersectionObserver>(TestIntersectionObserver);
-    const diffSummarySpy = vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    const diffSummarySpy = vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1405,7 +1405,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('bounds cached summaries across changing visible session sets', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1438,7 +1438,7 @@ describe('SessionListView diff summaries', () => {
 
   it('settles failures for a revision instead of immediately retrying', async () => {
     const diffSummarySpy = vi
-      .spyOn(client.varro.session, 'diffSummary')
+      .spyOn(client.loomery.session, 'diffSummary')
       .mockRejectedValue(new Error('server unavailable'));
     const updated = Date.now();
     setState('sessions', [session('session-1', updated)]);
@@ -1457,7 +1457,7 @@ describe('SessionListView diff summaries', () => {
   });
 
   it('refreshes a root summary when a descendant session updates', async () => {
-    const diffSummarySpy = vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    const diffSummarySpy = vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1507,10 +1507,10 @@ describe('SessionListView pins', () => {
 
   it('pins and unpins a session from its row menu and marks it', async () => {
     const setPinned = vi
-      .spyOn(client.varro.session, 'setPinned')
+      .spyOn(client.loomery.session, 'setPinned')
       .mockResolvedValueOnce(['session-1'])
       .mockResolvedValueOnce([]);
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1578,7 +1578,7 @@ describe('SessionListView pins', () => {
 
   it('renders persisted pin order and reorders pinned sessions by drag and drop', async () => {
     const reorderPinned = vi
-      .spyOn(client.varro.session, 'reorderPinned')
+      .spyOn(client.loomery.session, 'reorderPinned')
       .mockResolvedValue(['pinned-newer', 'pinned-older']);
     const now = Date.now();
     setState('sessions', [
@@ -1633,7 +1633,7 @@ describe('SessionListView pins', () => {
 
   it('supports keyboard pin reordering and restores order after a failed write', async () => {
     const reorderPinned = vi
-      .spyOn(client.varro.session, 'reorderPinned')
+      .spyOn(client.loomery.session, 'reorderPinned')
       .mockRejectedValue(new Error('write failed'));
     const now = Date.now();
     setState('sessions', [session('first', now), session('second', now - 1_000)]);
@@ -1686,7 +1686,7 @@ describe('SessionListView selection', () => {
   });
 
   it('does not highlight the active session in the session picker', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1704,7 +1704,7 @@ describe('SessionListView selection', () => {
   });
 
   it('highlights the active session in the embedded desktop list', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1930,7 +1930,7 @@ describe('SessionListView ordering', () => {
   });
 
   it('preserves a running indicator across same-session updates', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1953,7 +1953,7 @@ describe('SessionListView ordering', () => {
   });
 
   it('keeps similarly updated sessions in newest-created-first order', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -1983,7 +1983,7 @@ describe('SessionListView ordering', () => {
 
 describe('SessionListView actions', () => {
   it('hides rename and recycle-bin actions for sub-agent sessions', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2010,7 +2010,7 @@ describe('SessionListView actions', () => {
     // SAFETY: The fixture provides the unknown fields read by this statement.
     (window as { __sendToExtension?: (message: TestRuntimeValue) => void }).__sendToExtension =
       send;
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2062,7 +2062,7 @@ describe('SessionListView actions', () => {
       // SAFETY: The fixture provides the unknown fields read by this statement.
       (window as { __sendToExtension?: (message: TestRuntimeValue) => void }).__sendToExtension =
         send;
-      vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+      vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
         files: 0,
         additions: 0,
         deletions: 0,
@@ -2098,7 +2098,7 @@ describe('SessionListView actions', () => {
   it('shares, copies, and unshares a session from its row menu', async () => {
     const activityUpdatedAt = Date.now() - 60_000;
     const shareUpdatedAt = Date.now();
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2209,7 +2209,7 @@ describe('SessionListView actions', () => {
   });
 
   it('closes the context menu without selecting another session with one click', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2245,7 +2245,7 @@ describe('SessionListView actions', () => {
   });
 
   it('freezes session row order until the context menu closes', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2274,7 +2274,7 @@ describe('SessionListView actions', () => {
   });
 
   it('keeps the context menu and owning row selected across session list updates', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2304,7 +2304,7 @@ describe('SessionListView actions', () => {
   });
 
   it('keeps an in-progress rename across session list updates', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2358,7 +2358,7 @@ describe('SessionListView actions', () => {
   });
 
   it('does not override repeated caret placement while renaming', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2396,7 +2396,7 @@ describe('SessionListView actions', () => {
   });
 
   it('closes the context menu when rename is cancelled', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2424,7 +2424,7 @@ describe('SessionListView actions', () => {
   });
 
   it('renames a session from its row action menu', async () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,
@@ -2452,7 +2452,7 @@ describe('SessionListView actions', () => {
   });
 
   it('opens the row menu at the right-click position without an actions button', () => {
-    vi.spyOn(client.varro.session, 'diffSummary').mockResolvedValue({
+    vi.spyOn(client.loomery.session, 'diffSummary').mockResolvedValue({
       files: 0,
       additions: 0,
       deletions: 0,

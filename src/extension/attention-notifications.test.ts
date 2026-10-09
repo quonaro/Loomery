@@ -140,7 +140,7 @@ describe('AttentionNotifications', () => {
     test.complete();
     await vi.advanceTimersByTimeAsync(5_000);
     expect(test.transport.show).toHaveBeenLastCalledWith({
-      projectName: 'Project: Varro',
+      projectName: 'Project: Loomery',
       chatTitle: 'Untitled chat',
       message: 'Response ready',
       sessionID: 'session',

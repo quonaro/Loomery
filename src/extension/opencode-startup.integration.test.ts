@@ -32,7 +32,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed startup', () => {
+describe.skipIf(!process.env.LOOMERY_OPENCODE_TEST_BINARY)('released managed startup', () => {
   it.for([
     'configured',
     'shadowed-discovery',
@@ -48,17 +48,18 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
     async (mode, context) => {
       if (
         mode === 'shadowed-discovery' &&
-        (process.platform === 'win32' || !process.env.VARRO_OPENCODE_TEST_VERSION?.startsWith('2.'))
+        (process.platform === 'win32' ||
+          !process.env.LOOMERY_OPENCODE_TEST_VERSION?.startsWith('2.'))
       )
         context.skip();
       if (
         (mode === 'service-replacement' ||
           mode === 'marker-reload' ||
           mode === 'credential-port-replacement') &&
-        !process.env.VARRO_OPENCODE_TEST_VERSION?.startsWith('2.')
+        !process.env.LOOMERY_OPENCODE_TEST_VERSION?.startsWith('2.')
       )
         context.skip();
-      const binary = process.env.VARRO_OPENCODE_TEST_BINARY!;
+      const binary = process.env.LOOMERY_OPENCODE_TEST_BINARY!;
       diagnosticTimeline.clear();
       prompts.warning.mockClear();
       const parent = resolve('artifacts/ai-test-data');
@@ -90,8 +91,8 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
       vi.stubEnv('XDG_CACHE_HOME', join(root, 'cache'));
       vi.stubEnv('OPENCODE_DB', join(root, 'data/test.db'));
       vi.stubEnv('OPENCODE_TEST_HOME', join(root, 'home'));
-      vi.stubEnv('VARRO_TEST_SERVER_URL', url);
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', join(root, 'varro-test-state'));
+      vi.stubEnv('LOOMERY_TEST_SERVER_URL', url);
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(root, 'loomery-test-state'));
       let command = binary;
       let discoveredCommand: string | undefined;
       if (mode === 'shadowed-discovery') {
@@ -107,7 +108,7 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
         vi.stubEnv('PATH', [early, later, process.env.PATH].join(delimiter));
         command = '';
       }
-      const leasePath = join(root, `varro-opencode-server-${address.port}.json`);
+      const leasePath = join(root, `loomery-opencode-server-${address.port}.json`);
       let server = new OpenCodeServer(address.port, true, command, false, leasePath);
       let attached: OpenCodeServer | undefined;
       let replacement: ChildProcess | undefined;
@@ -200,8 +201,8 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
         expect(info.health.healthy).toBe(true);
         expect(info.managedProcess).toBe(!credentialLaunch);
         if (discoveredCommand) expect(info.resolvedCommand).toBe(discoveredCommand);
-        if (process.env.VARRO_OPENCODE_TEST_VERSION)
-          expect(info.health.version).toBe(process.env.VARRO_OPENCODE_TEST_VERSION);
+        if (process.env.LOOMERY_OPENCODE_TEST_VERSION)
+          expect(info.health.version).toBe(process.env.LOOMERY_OPENCODE_TEST_VERSION);
         const recordPath = credentialLaunch ? `${leasePath}.credentials` : leasePath;
         const lease = asRecord(JSON.parse(await readFile(recordPath, 'utf8')));
         const initialListeners = await findListeningPids(address.port);
@@ -337,7 +338,7 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
               binary,
               false,
               info.health.version?.startsWith('2.')
-                ? join(root, 'varro-opencode-server-4096.json')
+                ? join(root, 'loomery-opencode-server-4096.json')
                 : leasePath
             );
             expect(await attached.start()).toBe(url);
@@ -370,8 +371,8 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
               await new Promise<void>((done) => setTimeout(done, 50));
             expect(attached.status).toMatchObject({ state: 'running', eventStream: 'healthy' });
             const account = await inspectLocalServerAccount(address.port);
-            if (process.env.VARRO_TEST_EXPECT_ACCOUNT)
-              expect(account.kind).toBe(process.env.VARRO_TEST_EXPECT_ACCOUNT);
+            if (process.env.LOOMERY_TEST_EXPECT_ACCOUNT)
+              expect(account.kind).toBe(process.env.LOOMERY_TEST_EXPECT_ACCOUNT);
             reconnects.push({
               reload: reload + 1,
               account: account.kind,
@@ -435,7 +436,7 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
           });
           await new Promise<void>((done) => listener.close(() => done()));
           const replacementUrl = `http://127.0.0.1:${replacementPort}`;
-          vi.stubEnv('VARRO_TEST_SERVER_URL', replacementUrl);
+          vi.stubEnv('LOOMERY_TEST_SERVER_URL', replacementUrl);
           replacement = spawn(binary, ['serve', '--service', '--port', String(replacementPort)], {
             cwd: editor.directory,
             env: { ...process.env, OPENCODE_SERVER_PASSWORD: password },
@@ -464,7 +465,7 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
             true,
             binary,
             false,
-            join(root, 'varro-opencode-server-4096.json')
+            join(root, 'loomery-opencode-server-4096.json')
           );
           phase = 'replacement recovery';
           expect(await attached.start()).toBe(replacementUrl);
@@ -503,7 +504,7 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
             true,
             binary,
             false,
-            join(root, 'varro-opencode-server-4096.json')
+            join(root, 'loomery-opencode-server-4096.json')
           );
           expect(await attached.start()).toBe(url);
           const sharedInfo = await attached.readServerInfo();
@@ -573,12 +574,12 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released managed start
   );
 });
 
-describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released multi-window recovery', () => {
+describe.skipIf(!process.env.LOOMERY_OPENCODE_TEST_BINARY)('released multi-window recovery', () => {
   it(
     'reattaches a second window after the shared server is killed or restarted, without consent prompts',
     { timeout: 90000 },
     async () => {
-      const binary = process.env.VARRO_OPENCODE_TEST_BINARY!;
+      const binary = process.env.LOOMERY_OPENCODE_TEST_BINARY!;
       diagnosticTimeline.clear();
       prompts.warning.mockClear();
       const parent = resolve('artifacts/ai-test-data');
@@ -609,9 +610,9 @@ describe.skipIf(!process.env.VARRO_OPENCODE_TEST_BINARY)('released multi-window 
       vi.stubEnv('XDG_CACHE_HOME', join(root, 'cache'));
       vi.stubEnv('OPENCODE_DB', join(root, 'data/test.db'));
       vi.stubEnv('OPENCODE_TEST_HOME', join(root, 'home'));
-      vi.stubEnv('VARRO_TEST_SERVER_URL', url);
-      vi.stubEnv('VARRO_TEST_STATE_ROOT', join(root, 'varro-test-state'));
-      const leasePath = join(root, `varro-opencode-server-${address.port}.json`);
+      vi.stubEnv('LOOMERY_TEST_SERVER_URL', url);
+      vi.stubEnv('LOOMERY_TEST_STATE_ROOT', join(root, 'loomery-test-state'));
+      const leasePath = join(root, `loomery-opencode-server-${address.port}.json`);
       const readLease = async (): Promise<{ pid: number; host: string }> => {
         const lease = asRecord(JSON.parse(await readFile(leasePath, 'utf8')));
         if (!isNumber(lease?.pid) || !isString(lease.host))

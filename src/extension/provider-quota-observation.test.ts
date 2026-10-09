@@ -27,7 +27,7 @@ describe.skipIf(process.platform === 'win32')('shared quota observation', () => 
   const owners: Array<{ coordinator: ProviderQuotaCoordinator; owner: symbol }> = [];
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(join(tmpdir(), 'varro-quota-observation-'));
+    root = await fs.mkdtemp(join(tmpdir(), 'loomery-quota-observation-'));
     auth.path = join(root, 'auth.json');
     auth.home = root;
     now = Date.now();

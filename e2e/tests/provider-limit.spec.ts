@@ -63,9 +63,9 @@ test('provider limit popup expands OpenAI usage-limit reset details', async ({ p
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { externalUrls?: string[] };
+            __loomeryE2E?: { externalUrls?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.externalUrls?.[0] || null;
       })
     )

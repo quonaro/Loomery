@@ -55,7 +55,7 @@ const EXPECTATIONS = {
   'explicit-port-conflict': [
     '  - **Version:** `1.18.15`',
     'Explicit ports never fall back.',
-    'Set varro.server.port to auto or an available integer between 1 and 65535.',
+    'Set loomery.server.port to auto or an available integer between 1 and 65535.',
     '  - **Health:** unhealthy',
   ],
   'required-update-disabled': [
@@ -83,14 +83,14 @@ const EXPECTATIONS = {
   ],
   'healthy-first-run': [
     '- **Version:** `1.18.15`',
-    '- **Install method:** a path configured in varro.server.command',
-    '- **Ownership:** managed by Varro',
+    '- **Install method:** a path configured in loomery.server.command',
+    '- **Ownership:** managed by Loomery',
     '  - **Status:** `running, event stream healthy`',
     '  - **Health:** healthy',
   ],
   'v2-first-run': [
-    `- **Version:** \`${process.env.VARRO_SANDBOX_V2_VERSION}\``,
-    '- **Ownership:** managed by Varro',
+    `- **Version:** \`${process.env.LOOMERY_SANDBOX_V2_VERSION}\``,
+    '- **Ownership:** managed by Loomery',
     '  - **Status:** `running, event stream healthy`',
     '  - **Health:** healthy',
   ],
@@ -104,8 +104,8 @@ async function readAboutDocument() {
   const document = vscode.workspace.textDocuments
     .filter(
       (candidate) =>
-        candidate.uri.scheme === 'varro-tool-output' &&
-        candidate.uri.path.endsWith('/Varro About.md')
+        candidate.uri.scheme === 'loomery-tool-output' &&
+        candidate.uri.path.endsWith('/Loomery About.md')
     )
     .at(-1);
   if (!document) return '';
@@ -116,7 +116,7 @@ async function waitForExpectedAboutText(expected, timeoutMs = DEFAULT_WAIT_TIMEO
   const deadline = Date.now() + timeoutMs;
   let lastText = '';
   while (Date.now() < deadline) {
-    await vscode.commands.executeCommand('varro.about');
+    await vscode.commands.executeCommand('loomery.about');
     lastText = await readAboutDocument();
     if (expected.every((text) => lastText.includes(text))) return lastText;
     await delay(250);
@@ -131,7 +131,7 @@ async function waitForLaunchCount(expected, timeoutMs = DEFAULT_WAIT_TIMEOUT_MS)
   let launches = [];
   while (Date.now() < deadline) {
     try {
-      launches = readFileSync(process.env.VARRO_SANDBOX_LAUNCH_FILE, 'utf8')
+      launches = readFileSync(process.env.LOOMERY_SANDBOX_LAUNCH_FILE, 'utf8')
         .trim()
         .split(/\r?\n/)
         .filter(Boolean);
@@ -145,7 +145,7 @@ async function waitForLaunchCount(expected, timeoutMs = DEFAULT_WAIT_TIMEOUT_MS)
 }
 
 async function run() {
-  const scenario = process.env.VARRO_SANDBOX_SCENARIO;
+  const scenario = process.env.LOOMERY_SANDBOX_SCENARIO;
   assert.ok(
     scenario && Object.hasOwn(EXPECTATIONS, scenario),
     `Unknown sandbox scenario: ${scenario}`
@@ -162,14 +162,14 @@ async function run() {
     '- **Auto updates:**'
   );
   if (scenario === 'explicit-port-conflict') {
-    const originalPort = Number(process.env.VARRO_SANDBOX_PORT);
+    const originalPort = Number(process.env.LOOMERY_SANDBOX_PORT);
     assert.ok(Number.isInteger(originalPort), 'Sandbox port was not provided');
     expected.push(`  - **URL:** [http://127.0.0.1:${String(originalPort)}]`);
     expected.push(`  - **Status:** \`error: Port ${String(originalPort)} is already in use.`);
   }
 
-  const extension = vscode.extensions.getExtension('koltyakov.varro');
-  assert.ok(extension, 'Varro extension was not loaded in the Extension Development Host');
+  const extension = vscode.extensions.getExtension('quonaro.loomery');
+  assert.ok(extension, 'Loomery extension was not loaded in the Extension Development Host');
   if (scenario === 'empty-window-missing-cli') {
     assert.equal(vscode.workspace.workspaceFolders, undefined, 'Sandbox must have no folder open');
   }
@@ -180,7 +180,7 @@ async function run() {
       new Promise((_, reject) => {
         activationTimer = setTimeout(
           () =>
-            reject(new Error('Varro activation did not finish before first-run view resolution')),
+            reject(new Error('Loomery activation did not finish before first-run view resolution')),
           DEFAULT_WAIT_TIMEOUT_MS
         );
       }),
@@ -190,7 +190,7 @@ async function run() {
   }
 
   const commands = await vscode.commands.getCommands(true);
-  assert.ok(commands.includes('varro.about'), 'Varro commands were not registered');
+  assert.ok(commands.includes('loomery.about'), 'Loomery commands were not registered');
 
   // A fresh profile should reveal the view and start onboarding without a
   // command from the test. The About status therefore verifies first-run
@@ -203,16 +203,16 @@ async function run() {
   }
   if (scenario === 'startup-process-exit') {
     const launches = await waitForLaunchCount(4);
-    assert.equal(launches.length, 4, 'Varro did not exhaust all three startup retries');
+    assert.equal(launches.length, 4, 'Loomery did not exhaust all three startup retries');
   }
   assert.match(about, /- \*\*VS Code:\*\* `\d+\.\d+\.\d+`/);
   assert.match(about, /- \*\*Platform:\*\* `(darwin|linux|win32) /);
   if (scenario === 'file-link-open') {
-    const root = process.env.VARRO_SANDBOX_FILE_LINK_ROOT;
-    const target = process.env.VARRO_SANDBOX_FILE_LINK_TARGET;
+    const root = process.env.LOOMERY_SANDBOX_FILE_LINK_ROOT;
+    const target = process.env.LOOMERY_SANDBOX_FILE_LINK_TARGET;
     assert.ok(root && target, 'File-link sandbox paths were not provided');
     await vscode.commands.executeCommand(
-      'varro.test.openPath',
+      'loomery.test.openPath',
       `${root}/MarkdownRenderer.tsx`,
       1447
     );
@@ -220,7 +220,7 @@ async function run() {
     assert.equal(editor?.document.uri.fsPath, target, 'The unique nested file was not opened');
     assert.equal(editor?.selection.active.line, 1446, 'The requested line was not selected');
     const missingResult = await vscode.commands.executeCommand(
-      'varro.test.openPath',
+      'loomery.test.openPath',
       `${root}/DefinitelyMissing.ts`,
       12
     );

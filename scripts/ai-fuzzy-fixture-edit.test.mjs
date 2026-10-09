@@ -6,7 +6,7 @@ import test from 'node:test';
 import { ReversibleFixtureEdit } from './ai-fuzzy-fixture-edit.mjs';
 
 async function fixture(t, original = 'existing dirty content\n') {
-  const workspace = await mkdtemp(path.join(os.tmpdir(), 'varro-reversible-edit-'));
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'loomery-reversible-edit-'));
   t.after(() => rm(workspace, { recursive: true, force: true }));
   const file = path.join(workspace, 'timeout.ts');
   const evidencePath = path.join(workspace, 'evidence.json');
@@ -92,7 +92,7 @@ test('refuses a hardlinked target rather than changing another file through rest
 
 test('refuses a parent junction redirect before restoring any external content', async (t) => {
   const { workspace, file, edit, evidencePath } = await fixture(t);
-  const external = await mkdtemp(path.join(os.tmpdir(), 'varro-external-edit-'));
+  const external = await mkdtemp(path.join(os.tmpdir(), 'loomery-external-edit-'));
   t.after(() => rm(external, { recursive: true, force: true }));
   const linked = path.join(workspace, 'linked');
   await symlink(external, linked, process.platform === 'win32' ? 'junction' : 'dir');

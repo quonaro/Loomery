@@ -13,7 +13,7 @@ import type { RalphStatePayload } from '../../../shared/protocol';
 import { postMessage } from '../bridge';
 import { readStored, writeStored } from '../state-storage';
 
-const LEGACY_STORAGE_KEY = 'varro.ralph.runs';
+const LEGACY_STORAGE_KEY = 'loomery.ralph.runs';
 
 type RalphRunsRecord = Record<string, RalphRun>;
 

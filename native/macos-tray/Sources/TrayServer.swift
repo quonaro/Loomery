@@ -10,7 +10,7 @@ enum TrayServerError: LocalizedError {
 
 /// A same-user Unix socket. All I/O runs on one serial queue; UI callbacks run on main.
 final class TrayServer {
-  private let queue = DispatchQueue(label: "com.koltyakov.varro.tray.socket")
+  private let queue = DispatchQueue(label: "com.quonaro.loomery.tray.socket")
   private var listener: DispatchSourceRead?
   private var clients: [UUID: Client] = [:]
   private var lockFD: Int32 = -1
@@ -32,7 +32,7 @@ final class TrayServer {
   }
 
   static func prepareDirectory(_ directory: URL) throws {
-    // The app may launch before Varro has created its shared state directory.
+    // The app may launch before Loomery has created its shared state directory.
     for path in [directory.deletingLastPathComponent().path, directory.path] {
       if mkdir(path, 0o700) != 0 && errno != EEXIST {
         throw TrayServerError.message("Could not create the tray data directory: \(String(cString: strerror(errno)))")
@@ -57,7 +57,7 @@ final class TrayServer {
     guard lock >= 0 else { throw TrayServerError.message("Could not open the tray instance lock.") }
     guard flock(lock, LOCK_EX | LOCK_NB) == 0 else {
       close(lock)
-      throw TrayServerError.message("Varro's menu-bar app is already running.")
+      throw TrayServerError.message("Loomery's menu-bar app is already running.")
     }
     let fd = socket(AF_UNIX, SOCK_STREAM, 0)
     guard fd >= 0 else { close(lock); throw TrayServerError.message("Could not create the tray socket.") }

@@ -579,7 +579,7 @@ export function PermissionSettingsPanel() {
     setLoading(true);
     setError(null);
     try {
-      const next = await client.varro.openCodePermissionConfig();
+      const next = await client.loomery.openCodePermissionConfig();
       setConfig(next);
       setRules(next.projectRules.map((rule) => ({ ...rule })));
     } catch (cause) {
@@ -602,7 +602,7 @@ export function PermissionSettingsPanel() {
     setSaving(true);
     setError(null);
     try {
-      const next = await client.varro.saveOpenCodePermissionConfig(normalized);
+      const next = await client.loomery.saveOpenCodePermissionConfig(normalized);
       setConfig(next);
       setRules(next.projectRules.map((rule) => ({ ...rule })));
     } catch (cause) {
@@ -624,7 +624,7 @@ export function PermissionSettingsPanel() {
       session
         ? client.session.getPermissionRulesForSession(session.id, { directory: session.directory })
         : Promise.resolve([]),
-      client.varro.serverMemoryPermissions(session?.id ?? null, {
+      client.loomery.serverMemoryPermissions(session?.id ?? null, {
         directory: session?.directory,
       }),
     ]);
@@ -708,7 +708,7 @@ export function PermissionSettingsPanel() {
     setRemovingServerRule(id);
     setServerMemoryError(null);
     try {
-      const next = await client.varro.removeServerMemoryPermission(sessionId, id, {
+      const next = await client.loomery.removeServerMemoryPermission(sessionId, id, {
         directory: session?.directory,
       });
       if (shouldApply()) setServerMemory(next);
@@ -1008,7 +1008,7 @@ export function PermissionSettingsPanel() {
               <div class="permission-config-heading">
                 <div>
                   <h2>Effective Default rules</h2>
-                  <p>OpenCode's merged policy plus Varro's shared direct allowances.</p>
+                  <p>OpenCode's merged policy plus Loomery's shared direct allowances.</p>
                 </div>
                 <span class="permission-config-level">Effective</span>
               </div>

@@ -60,12 +60,12 @@ for (const width of [454, 800]) {
     await page.evaluate(() => {
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             getSessionMessages(sessionId: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const message = harness
         .getSessionMessages('session-tool-cards')
         .find((entry) => entry.info.role === 'assistant');
@@ -237,12 +237,12 @@ for (const theme of ['dark', 'light']) {
     await page.evaluate(() => {
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             getSessionMessages: (sessionId: string) => MessageEntry[];
             replayServerEvent: (event: ServerEvent) => void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const message = harness
         .getSessionMessages('session-tool-cards')
         .find((entry) => entry.info.role === 'assistant');
@@ -445,7 +445,7 @@ test('keeps tool detail text smaller while preserving editor font scaling', asyn
     for (const editorFontSize of [12, 16]) {
       await tool.evaluate((element, size) => {
         if (!(element instanceof HTMLElement)) throw new Error('Expected a tool card');
-        element.style.setProperty('--varro-chat-editor-font-size', `${size}px`);
+        element.style.setProperty('--loomery-chat-editor-font-size', `${size}px`);
       }, editorFontSize);
 
       await expect(detail).toHaveCSS('font-size', `${editorFontSize - 1}px`);
@@ -516,14 +516,14 @@ test('opens files and directories from tool cards', async ({ page }) => {
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
+            __loomeryE2E?: { openTargets?: Array<{ path: string; kind?: string; line?: number }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.openTargets || [];
       })
     )
     .toEqual([
-      { path: '/workspace/varro/src/components/App.tsx', kind: 'file', line: 2 },
-      { path: '/workspace/varro/src/components', kind: 'directory' },
+      { path: '/workspace/loomery/src/components/App.tsx', kind: 'file', line: 2 },
+      { path: '/workspace/loomery/src/components', kind: 'directory' },
     ]);
 });

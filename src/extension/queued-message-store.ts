@@ -3,8 +3,8 @@ import type { QueuedMessageSnapshot } from '../shared/protocol';
 import { isString } from '../shared/type-utils';
 import { sanitizeQueuedMessages } from './util/webview-message';
 
-const QUEUED_MESSAGES_KEY = 'varro.queuedMessages';
-const QUEUED_MESSAGE_REMOVALS_KEY = 'varro.queuedMessageRemovals';
+const QUEUED_MESSAGES_KEY = 'loomery.queuedMessages';
+const QUEUED_MESSAGE_REMOVALS_KEY = 'loomery.queuedMessageRemovals';
 const COMPLETION_PERSIST_ATTEMPTS = 3;
 const MAX_COMPLETED_DISPATCHES = 512;
 

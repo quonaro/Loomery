@@ -593,11 +593,11 @@ describe('optimistic image part de-duplication', () => {
     });
     const renamed = imagePart('server-second', 'msg-1', {
       filename: 'renamed.png',
-      url: 'varro-content:/second',
+      url: 'loomery-content:/second',
     });
     const first = imagePart('server-first', 'msg-1', {
       filename: 'first.png',
-      url: 'varro-content:/first',
+      url: 'loomery-content:/first',
     });
     setMessagesIncremental([{ info: userMessage('msg-1'), parts: [renamed, first] }], {
       preserveExtraParts: true,
@@ -615,7 +615,7 @@ describe('optimistic image part de-duplication', () => {
     const canonical = local.map((part, index) => ({
       ...part,
       id: `server-${index}`,
-      url: `varro-content:/session/session-1/message/msg-1/part/server-${index}`,
+      url: `loomery-content:/session/session-1/message/msg-1/part/server-${index}`,
     }));
     upsertMessage({
       info: userMessage('msg-1'),
@@ -642,7 +642,7 @@ describe('optimistic image part de-duplication', () => {
       ],
     });
     upsertMessageInfo(userMessage('msg-1'));
-    upsertPart(imagePart('server-image', 'msg-1', { url: 'varro-content:/image' }));
+    upsertPart(imagePart('server-image', 'msg-1', { url: 'loomery-content:/image' }));
     upsertMessageInfo(userMessage('msg-1'));
     expect(partIds()).toEqual([['msg-1-part-0', 'server-image']]);
   });
@@ -656,7 +656,7 @@ describe('optimistic image part de-duplication', () => {
     );
     const first = imagePart('server-0', 'msg-1', {
       filename: '0.png',
-      url: 'varro-content:/image-0',
+      url: 'loomery-content:/image-0',
     });
     upsertMessage({ info: userMessage('msg-1'), parts: local });
     upsertPart(first);
@@ -678,7 +678,7 @@ describe('optimistic image part de-duplication', () => {
     upsertMessage({ info: userMessage('msg-1'), parts: local });
     const second = imagePart('server-1', 'msg-1', {
       filename: '1.png',
-      url: 'varro-content:/image-1',
+      url: 'loomery-content:/image-1',
     });
     setMessagesIncremental([{ info: userMessage('msg-1'), parts: [second] }], {
       preserveExtraParts: true,

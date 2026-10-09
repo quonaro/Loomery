@@ -66,7 +66,7 @@ vi.mock('os', async () => {
   const actual = await vi.importActual<typeof OsModule>('os');
   return {
     ...actual,
-    tmpdir: () => `${actual.tmpdir()}/varro-server-test-${process.pid}`,
+    tmpdir: () => `${actual.tmpdir()}/loomery-server-test-${process.pid}`,
   };
 });
 vi.mock('fs', async () => {
@@ -75,7 +75,7 @@ vi.mock('fs', async () => {
     ...actual,
     existsSync: vi.fn(actual.existsSync),
     readFileSync: vi.fn((path: FsModule.PathOrFileDescriptor, options?: unknown) => {
-      if (typeof path === 'string' && /(?:^|[/\\])varro-opencode-server-\d+\.json$/.test(path)) {
+      if (typeof path === 'string' && /(?:^|[/\\])loomery-opencode-server-\d+\.json$/.test(path)) {
         throw Object.assign(new Error(`ENOENT: no such file or directory, open '${path}'`), {
           code: 'ENOENT',
         });
@@ -112,7 +112,7 @@ import {
 import { readLocalServerConnectionInfo } from './server-connection-info';
 import type { ServerConnectionAdmission } from './server-connection-admission';
 import type * as ProcessInspection from './process-inspection';
-import { getVarroStateDirectory } from './varro-state-paths';
+import { getLoomeryStateDirectory } from './loomery-state-paths';
 
 vi.mock('./process-inspection', async (importOriginal) => ({
   ...(await importOriginal<typeof ProcessInspection>()),
@@ -138,7 +138,7 @@ class OpenCodeServer extends RealOpenCodeServer {
       autoStart,
       command,
       simulateMissingCli,
-      join('/tmp', `varro-server-test-${process.pid}-${++serverOwnershipPathSequence}.json`),
+      join('/tmp', `loomery-server-test-${process.pid}-${++serverOwnershipPathSequence}.json`),
       secrets,
       legacyDefaultEndpoint
     );
@@ -165,7 +165,7 @@ describe('OpenCodeServer port validation', () => {
   it.each([0, -1, 1.5, 65_536, Number.NaN, Number.POSITIVE_INFINITY])(
     'rejects invalid runtime port %s',
     (port) => {
-      expect(() => new OpenCodeServer(port, true)).toThrow('varro.server.port');
+      expect(() => new OpenCodeServer(port, true)).toThrow('loomery.server.port');
     }
   );
 });
@@ -889,7 +889,7 @@ afterEach(async () => {
 });
 
 describe('automatic-port migration and admission', () => {
-  it('reuses a registered Varro server quietly when Windows account inspection is unavailable', async () => {
+  it('reuses a registered Loomery server quietly when Windows account inspection is unavailable', async () => {
     stubPlatform('win32');
     const server = new OpenCodeServer('auto', true);
     const { api, children } = configureManagedStartup(server);
@@ -912,7 +912,7 @@ describe('automatic-port migration and admission', () => {
     await server.disconnect();
   });
 
-  it('quietly admits a newly confirmed Varro launch with unavailable account evidence', async () => {
+  it('quietly admits a newly confirmed Loomery launch with unavailable account evidence', async () => {
     stubPlatform('win32');
     const server = new OpenCodeServer('auto', true);
     const state = server as unknown as {
@@ -1083,7 +1083,7 @@ describe('automatic-port migration and admission', () => {
   );
 
   it.each(['current-host', 'other-host'] as const)(
-    'recovers a Varro-registered shared service as %s rather than attach-only',
+    'recovers a Loomery-registered shared service as %s rather than attach-only',
     async (ownership) => {
       const server = new OpenCodeServer('auto', true);
       const { api, children } = configureManagedStartup(server);
@@ -1269,7 +1269,7 @@ describe('automatic-port migration and admission', () => {
     await server.start();
     expect(server.isAttachOnly).toBe(true);
     await expect(server.restart({ force: true })).rejects.toThrow(
-      'Varro has not established ownership of this server'
+      'Loomery has not established ownership of this server'
     );
     expect(vscodeMock.window.showWarningMessage).not.toHaveBeenCalled();
     await server.disconnect();
@@ -1662,7 +1662,7 @@ describe('OpenCodeServer credential prompts', () => {
       expect.objectContaining({ password: true, ignoreFocusOut: true })
     );
     expect(secrets.store).toHaveBeenCalledExactlyOnceWith(
-      `varro.opencode.serverCredentials:${server.url}`,
+      `loomery.opencode.serverCredentials:${server.url}`,
       JSON.stringify({ username: 'fixture-user', password: ' password with spaces ' })
     );
     expect(spawnMock).not.toHaveBeenCalled();
@@ -1676,7 +1676,7 @@ describe('OpenCodeServer credential prompts', () => {
       JSON.stringify({ username: 'fixture-user', password: ' password with spaces ' })
     );
     await expect(server.start()).resolves.toBe(server.url);
-    expect(secrets.get).toHaveBeenCalledWith(`varro.opencode.serverCredentials:${server.url}`);
+    expect(secrets.get).toHaveBeenCalledWith(`loomery.opencode.serverCredentials:${server.url}`);
     expect(vscodeMock.window.showInputBox).not.toHaveBeenCalled();
     expect(secrets.store).not.toHaveBeenCalled();
   });
@@ -2089,7 +2089,7 @@ describe('OpenCodeServer runtime config injection', () => {
     expect(spawnCall).toBeTruthy();
     const options = spawnCall?.[2] as { env?: NodeJS.ProcessEnv } | undefined;
     const configPath = options?.env?.OPENCODE_CONFIG;
-    expect(configPath).toContain('varro-opencode-config-');
+    expect(configPath).toContain('loomery-opencode-config-');
     expect(configPath).toMatch(/opencode\.json$/);
     expect(options?.env?.OPENCODE_CONFIG_CONTENT).toBe(inheritedContent);
     const actualFs = await vi.importActual<typeof FsPromisesModule>('fs/promises');
@@ -2114,7 +2114,7 @@ describe('OpenCodeServer runtime config injection', () => {
 
       expect(processManager.buildServerEnv().OPENCODE_CONFIG).toBe('/caller/opencode.jsonc');
       expect(loggerMock.warn).toHaveBeenCalledWith(
-        'Preserving caller-provided OPENCODE_CONFIG; Varro runtime settings are not injected for this managed server'
+        'Preserving caller-provided OPENCODE_CONFIG; Loomery runtime settings are not injected for this managed server'
       );
     } finally {
       if (previous === undefined) delete process.env.OPENCODE_CONFIG;
@@ -2175,7 +2175,7 @@ describe('OpenCodeServer maintenance', () => {
     const fs = await vi.importActual<typeof FsPromisesModule>('fs/promises');
     const fixtureRoot = join(process.cwd(), 'tmp');
     await fs.mkdir(fixtureRoot, { recursive: true });
-    const fixture = await fs.mkdtemp(join(fixtureRoot, 'varro-cli-date-'));
+    const fixture = await fs.mkdtemp(join(fixtureRoot, 'loomery-cli-date-'));
     onTestFinished(() => fs.rm(fixture, { recursive: true, force: true }));
     const binary = join(fixture, 'cli');
     const command = process.platform === 'win32' ? binary : join(fixture, 'opencode2');
@@ -2311,7 +2311,7 @@ describe('OpenCodeServer maintenance', () => {
       }
       if (
         path ===
-        `/session/status?directory=${encodeURIComponent(getVarroStateDirectory('scratch'))}`
+        `/session/status?directory=${encodeURIComponent(getLoomeryStateDirectory('scratch'))}`
       ) {
         return {};
       }
@@ -2326,7 +2326,7 @@ describe('OpenCodeServer maintenance', () => {
     expect(api.request).toHaveBeenCalledWith('GET', '/experimental/session?limit=100', undefined, {
       unscoped: true,
     });
-    expect(info.workspaceCwd).toBe(getVarroStateDirectory('scratch'));
+    expect(info.workspaceCwd).toBe(getLoomeryStateDirectory('scratch'));
   });
 
   it('reports the current status when health collection outlives a startup transition', async () => {
@@ -2701,7 +2701,7 @@ describe('OpenCodeServer maintenance', () => {
     expect(restartServerForCliUpdate).not.toHaveBeenCalled();
     expect(server.status.state).toBe('running');
     expect(loggerMock.info).toHaveBeenCalledWith(
-      'OpenCode CLI 1.17.19 is newer than running server 1.17.18, but Varro does not own the server; continuing with the existing server'
+      'OpenCode CLI 1.17.19 is newer than running server 1.17.18, but Loomery does not own the server; continuing with the existing server'
     );
   });
 
@@ -2903,7 +2903,7 @@ describe('OpenCodeServer maintenance', () => {
 
     expect(vscodeMock.window.createTerminal).toHaveBeenCalledWith({
       name: 'OpenCode Upgrade',
-      cwd: getVarroStateDirectory('scratch'),
+      cwd: getLoomeryStateDirectory('scratch'),
     });
     expect(terminal.show).toHaveBeenCalledWith(false);
     expect(terminal.sendText).toHaveBeenCalledWith(
@@ -3039,7 +3039,7 @@ describe('OpenCodeServer maintenance', () => {
       expect.any(Object)
     );
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      expect.stringContaining('Varro could not update the OpenCode CLI to 2.0.22 automatically.'),
+      expect.stringContaining('Loomery could not update the OpenCode CLI to 2.0.22 automatically.'),
       'Show Logs'
     );
     expect(loggerMock.warn).toHaveBeenCalledWith(
@@ -3158,7 +3158,7 @@ describe('OpenCodeServer maintenance', () => {
     expect(runWindowsCliUpdate).toHaveBeenCalledWith(
       expect.stringMatching(/^& '.+' upgrade 1\.14\.22$/),
       'OpenCode Upgrade',
-      getVarroStateDirectory('scratch'),
+      getLoomeryStateDirectory('scratch'),
       expect.any(Function)
     );
   });
@@ -3216,7 +3216,7 @@ describe('OpenCodeServer maintenance', () => {
     expect(runWindowsCliUpdate).toHaveBeenCalledWith(
       expect.stringMatching(/^& '.+' upgrade 1\.14\.22$/),
       'OpenCode Upgrade',
-      getVarroStateDirectory('scratch'),
+      getLoomeryStateDirectory('scratch'),
       expect.any(Function)
     );
   });
@@ -3462,7 +3462,7 @@ describe('OpenCodeServer maintenance', () => {
     await server.finishWindowsCliUpgrade();
   });
 
-  it('does not stop a server owned by another live Varro window for an update', async () => {
+  it('does not stop a server owned by another live Loomery window for an update', async () => {
     stubPlatform('win32');
     const server = new OpenCodeServer(4096, true);
     const api = server as unknown as {
@@ -3476,7 +3476,7 @@ describe('OpenCodeServer maintenance', () => {
     api.stopManagedProcessForRestart = vi.fn();
 
     await expect(server.prepareForWindowsCliUpgrade()).rejects.toThrow(
-      'owned by another Varro window'
+      'owned by another Loomery window'
     );
     expect(api.stopManagedProcessForRestart).not.toHaveBeenCalled();
   });
@@ -3491,7 +3491,7 @@ describe('OpenCodeServer maintenance', () => {
     setRunning(server);
 
     await expect(server.prepareForWindowsCliUpgrade()).rejects.toThrow(
-      'not owned by this Varro window'
+      'not owned by this Loomery window'
     );
   });
 });
@@ -3704,7 +3704,7 @@ describe('OpenCodeServer compatibility gate', () => {
       expect.objectContaining({
         state: 'error',
         message: expect.stringContaining(
-          `Varro requires OpenCode ${MINIMUM_SUPPORTED_OPENCODE_VERSION} or newer`
+          `Loomery requires OpenCode ${MINIMUM_SUPPORTED_OPENCODE_VERSION} or newer`
         ),
       })
     );
@@ -3951,12 +3951,12 @@ describe('OpenCodeServer compatibility gate', () => {
       expect.objectContaining({
         kind: 'update-blocked',
         blockedBy: 'auto-update-disabled',
-        settingId: 'varro.server.autoUpdate',
+        settingId: 'loomery.server.autoUpdate',
         installMethod: 'npm',
         suggestedCommand: 'npm install -g opencode-ai@latest',
       })
     );
-    expect(status.message).toContain('Enable varro.server.autoUpdate');
+    expect(status.message).toContain('Enable loomery.server.autoUpdate');
   });
 
   it('marks an update deferred by active sessions as blocked, not failed', async () => {
@@ -4005,7 +4005,7 @@ describe('OpenCodeServer startup health polling', () => {
   async function createCliFixture() {
     const fs = await vi.importActual<typeof FsModule>('fs');
     const os = await vi.importActual<typeof OsModule>('os');
-    const directory = fs.mkdtempSync(join(os.tmpdir(), 'varro-cli-startup-'));
+    const directory = fs.mkdtempSync(join(os.tmpdir(), 'loomery-cli-startup-'));
     onTestFinished(() => fs.rmSync(directory, { recursive: true, force: true }));
     const v1 = join(directory, 'opencode');
     const v2 = join(directory, 'opencode2');
@@ -4587,7 +4587,7 @@ describe('OpenCodeServer restart blockers', () => {
     };
     api._status = {
       state: 'error',
-      message: 'Port 4096 is occupied by a process Varro does not own',
+      message: 'Port 4096 is occupied by a process Loomery does not own',
     };
     api.start = start;
     api.processManager.takeOwnershipOfExistingServer = takeOwnershipOfExistingServer;
@@ -4977,7 +4977,7 @@ describe('OpenCodeServer managed process lifecycle', () => {
     processManager.confirmManagedServerOwnership = vi.fn().mockResolvedValue(false);
 
     const startResult = expect(server.start()).rejects.toThrow(
-      'Could not confirm ownership of the OpenCode server started by Varro'
+      'Could not confirm ownership of the OpenCode server started by Loomery'
     );
     await flushMicrotasks();
     await vi.advanceTimersByTimeAsync(200);
@@ -4986,7 +4986,7 @@ describe('OpenCodeServer managed process lifecycle', () => {
     expect(server.status).toEqual(
       expect.objectContaining({
         state: 'error',
-        message: 'Could not confirm ownership of the OpenCode server started by Varro',
+        message: 'Could not confirm ownership of the OpenCode server started by Loomery',
       })
     );
     expect(children[0]!.kill).toHaveBeenCalledWith('SIGTERM');
@@ -5875,7 +5875,7 @@ describe('OpenCodeServer startup recovery', () => {
     crashDuringStartup(children[0]!, 'Error: listen EADDRINUSE: address already in use :::65535');
     await settleRecovery();
 
-    await expect(startResult).rejects.toThrow(/varro\.server\.port.*1.*65535/i);
+    await expect(startResult).rejects.toThrow(/loomery\.server\.port.*1.*65535/i);
     expect(children).toHaveLength(1);
     expect(getProcessManager(server).port).toBe(65_535);
     expect(

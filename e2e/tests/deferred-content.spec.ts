@@ -55,7 +55,7 @@ for (const [width, height] of [
         type: 'file',
         filename: 'deferred.png',
         mime: 'image/png',
-        url: `varro-content:/session/${sessionID}/message/${info.id}/part/deferred-file`,
+        url: `loomery-content:/session/${sessionID}/message/${info.id}/part/deferred-file`,
       };
       for (const event of [
         { type: 'message.updated', properties: { info } },

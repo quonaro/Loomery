@@ -103,8 +103,8 @@ for (const virtualized of [false, true]) {
         (fixture) => {
           // SAFETY: The isolated E2E page reads this fixture before mounting.
           (
-            window as typeof window & { varroPlaybackCapture: typeof fixture }
-          ).varroPlaybackCapture = fixture;
+            window as typeof window & { loomeryPlaybackCapture: typeof fixture }
+          ).loomeryPlaybackCapture = fixture;
         },
         { session, initialMessages }
       );

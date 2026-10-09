@@ -88,7 +88,7 @@ describe('state helpers', () => {
   it('restores full text attachments from a saved draft', async () => {
     const { readStoredDroppedFiles } = await import('./state-stored-values');
     const file = {
-      path: 'varro-paste:one',
+      path: 'loomery-paste:one',
       relativePath: 'paste.txt',
       type: 'file',
       pastedText: '雪\r\n  text  ',
@@ -217,11 +217,9 @@ describe('state helpers', () => {
       undefined,
       true,
     ]);
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]')).toMatchObject([
-      { id: 'q1', paused: true },
-      { id: 'other' },
-      { id: 'q2', paused: true },
-    ]);
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]')).toMatchObject(
+      [{ id: 'q1', paused: true }, { id: 'other' }, { id: 'q2', paused: true }]
+    );
 
     stateModule.setQueuedMessagePaused('q1', false, true);
     expect(stateModule.state.queuedMessages.map((item) => item.paused)).toEqual([
@@ -273,7 +271,7 @@ describe('state helpers', () => {
 
     expect(stateModule.state.queuedMessages.map((item) => item.id)).toEqual(['q2', 'other', 'q1']);
     expect(
-      JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]').map(
+      JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]').map(
         (item: { id: string }) => item.id
       )
     ).toEqual(['q2', 'other']);
@@ -287,7 +285,7 @@ describe('state helpers', () => {
     stateModule.removeQueuedMessage('q2');
     stateModule.clearQueuedMessagesForSession('session-1');
     expect(stateModule.state.queuedMessages.map((item) => item.id)).toEqual(['other']);
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]')).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]')).toEqual([
       {
         id: 'other',
         sessionId: 'session-2',
@@ -301,7 +299,7 @@ describe('state helpers', () => {
 
   it('restores the host queue ahead of the legacy browser mirror', async () => {
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([{ id: 'legacy', sessionId: 'session-1', text: 'legacy' }])
     );
     // SAFETY: The fixture provides the unknown fields read by this statement.
@@ -409,7 +407,7 @@ describe('state helpers', () => {
           diagnosticsTotal: 1,
         },
       });
-      expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]')).toEqual([]);
+      expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]')).toEqual([]);
     } finally {
       // SAFETY: The fixture provides the unknown fields read by this statement.
       delete (window as { __initialWebviewState?: unknown }).__initialWebviewState;
@@ -438,7 +436,7 @@ describe('state helpers', () => {
       ],
     };
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([
         {
           id: 'problems',
@@ -462,7 +460,7 @@ describe('state helpers', () => {
       message: `Problem ${index}`,
     }));
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([
         {
           id: 'all-problems',
@@ -498,7 +496,7 @@ describe('state helpers', () => {
     stateModule.enqueueMessage(imageMessage);
 
     expect(stateModule.state.queuedMessages).toEqual([imageMessage]);
-    expect(window.localStorage.getItem('varro.queuedMessages')).not.toContain('base64');
+    expect(window.localStorage.getItem('loomery.queuedMessages')).not.toContain('base64');
 
     expect(
       stateModule.replaceQueuedMessage('image-message', {
@@ -507,17 +505,17 @@ describe('state helpers', () => {
         text: 'inspect image later',
       })
     ).toBe(true);
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]')).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]')).toEqual([
       { id: 'image-message', sessionId: 'session-1', text: 'inspect image later' },
     ]);
 
     expect(stateModule.replaceQueuedMessage('image-message', imageMessage)).toBe(true);
-    expect(JSON.parse(window.localStorage.getItem('varro.queuedMessages') || '[]')).toEqual([]);
+    expect(JSON.parse(window.localStorage.getItem('loomery.queuedMessages') || '[]')).toEqual([]);
   });
 
   it('discards malformed persisted queued messages', async () => {
     window.localStorage.setItem(
-      'varro.queuedMessages',
+      'loomery.queuedMessages',
       JSON.stringify([
         {
           id: 'legacy-image',
@@ -577,7 +575,7 @@ describe('state helpers', () => {
         terminalSelection: null,
       },
     ]);
-    expect(window.localStorage.getItem('varro.queuedMessages')).not.toContain('base64');
+    expect(window.localStorage.getItem('loomery.queuedMessages')).not.toContain('base64');
   });
 
   it('persists active session state and unread markers', async () => {
@@ -620,9 +618,9 @@ describe('state helpers', () => {
       { type: 'session-read-state/update', payload: { sessionId: 'session-1', seenAt: 1_500 } },
     ]);
     expect(stateModule.isSessionUnread('session-1', 1_500)).toBe(false);
-    expect(window.localStorage.getItem('varro.lastSeenSessions')).toBe(
+    expect(window.localStorage.getItem('loomery.lastSeenSessions')).toBe(
       JSON.stringify({
-        '__varro.no-workspace__': { 'session-1': 1_500, 'session-2': 1_000 },
+        '__loomery.no-workspace__': { 'session-1': 1_500, 'session-2': 1_000 },
       })
     );
     delete bridgeWindow.__sendToExtension;
@@ -656,7 +654,7 @@ describe('state helpers', () => {
     expect(stateModule.state.skippedPlanSessions).toEqual({ 'session-1': 200 });
     expect(stateModule.isSkippedPlanSession('session-1', 200)).toBe(true);
     expect(stateModule.isSkippedPlanSession('session-1', 201)).toBe(false);
-    expect(window.localStorage.getItem('varro.skippedPlanSessions')).toBe(
+    expect(window.localStorage.getItem('loomery.skippedPlanSessions')).toBe(
       JSON.stringify({ '/repo': { 'session-1': 200 } })
     );
     expect(sent).toContainEqual({
@@ -667,7 +665,7 @@ describe('state helpers', () => {
     stateModule.clearSkippedPlanSession('session-1');
 
     expect(stateModule.state.skippedPlanSessions).toEqual({});
-    expect(window.localStorage.getItem('varro.skippedPlanSessions')).toBe(JSON.stringify({}));
+    expect(window.localStorage.getItem('loomery.skippedPlanSessions')).toBe(JSON.stringify({}));
     expect(sent).toContainEqual({
       type: 'session-plan-state/update',
       payload: { sessionId: 'session-1', skippedAt: null },
@@ -677,7 +675,7 @@ describe('state helpers', () => {
     stateModule.setState('lastSeenSessions', { 'session-1': 100, 'session-2': 200 });
     stateModule.clearSessionSeen('session-1');
     expect(stateModule.state.lastSeenSessions).toEqual({ 'session-2': 200 });
-    expect(window.localStorage.getItem('varro.lastSeenSessions')).toBe(JSON.stringify({}));
+    expect(window.localStorage.getItem('loomery.lastSeenSessions')).toBe(JSON.stringify({}));
   });
 
   it('prunes stale skipped session markers on a complete refresh', async () => {
@@ -741,11 +739,11 @@ describe('state helpers', () => {
     stateModule.markSessionSeen('session-b', 2_000);
     stateModule.skipPlanSession('session-b');
 
-    expect(JSON.parse(window.localStorage.getItem('varro.lastSeenSessions') || '{}')).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.lastSeenSessions') || '{}')).toEqual({
       '/repo-a': { 'session-a': 1_000 },
       '/repo-b': { 'session-b': 2_000 },
     });
-    expect(JSON.parse(window.localStorage.getItem('varro.skippedPlanSessions') || '{}')).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.skippedPlanSessions') || '{}')).toEqual({
       '/repo-a': { 'session-a': 200 },
       '/repo-b': { 'session-b': 400 },
     });
@@ -756,8 +754,8 @@ describe('state helpers', () => {
   });
 
   it('migrates legacy flat session marker storage into the current workspace scope', async () => {
-    window.localStorage.setItem('varro.lastSeenSessions', JSON.stringify({ legacy: 123 }));
-    window.localStorage.setItem('varro.skippedPlanSessions', JSON.stringify({ legacy: 456 }));
+    window.localStorage.setItem('loomery.lastSeenSessions', JSON.stringify({ legacy: 123 }));
+    window.localStorage.setItem('loomery.skippedPlanSessions', JSON.stringify({ legacy: 456 }));
     // SAFETY: The fixture provides the unknown fields read by this statement.
     (window as { __initialWebviewState?: unknown }).__initialWebviewState = {
       editorContext: {
@@ -772,10 +770,10 @@ describe('state helpers', () => {
 
     expect(stateModule.state.lastSeenSessions).toEqual({ legacy: 123 });
     expect(stateModule.state.skippedPlanSessions).toEqual({ legacy: 456 });
-    expect(JSON.parse(window.localStorage.getItem('varro.lastSeenSessions') || '{}')).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.lastSeenSessions') || '{}')).toEqual({
       '/repo': { legacy: 123 },
     });
-    expect(JSON.parse(window.localStorage.getItem('varro.skippedPlanSessions') || '{}')).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.skippedPlanSessions') || '{}')).toEqual({
       '/repo': { legacy: 456 },
     });
   });
@@ -788,19 +786,19 @@ describe('state helpers', () => {
 
     stateModule.setPermissionModeForSession(null, 'full');
     expect(stateModule.getPermissionModeForSession(null)).toBe('full');
-    expect(window.localStorage.getItem('varro.draftPermissionMode')).toBe(JSON.stringify('full'));
-    expect(JSON.parse(window.localStorage.getItem('varro.projectPermissionModes') || '{}')).toEqual(
-      {
-        '/repo': 'full',
-      }
-    );
+    expect(window.localStorage.getItem('loomery.draftPermissionMode')).toBe(JSON.stringify('full'));
+    expect(
+      JSON.parse(window.localStorage.getItem('loomery.projectPermissionModes') || '{}')
+    ).toEqual({
+      '/repo': 'full',
+    });
 
     stateModule.setPermissionModeForSession('session-1', 'full');
     expect(stateModule.getPermissionModeForSession('session-1')).toBe('full');
 
     stateModule.removePermissionModeForSession('session-1');
     expect(stateModule.state.sessionPermissionModes).toEqual({});
-    expect(window.localStorage.getItem('varro.sessionPermissionModes')).toBe(JSON.stringify({}));
+    expect(window.localStorage.getItem('loomery.sessionPermissionModes')).toBe(JSON.stringify({}));
 
     stateModule.syncDraftPermissionForWorkspace('/other');
     expect(stateModule.draftPermissionMode()).toBe('default');
@@ -808,7 +806,7 @@ describe('state helpers', () => {
     stateModule.syncDraftPermissionForWorkspace('/repo');
     stateModule.resetDraftPermissionMode();
     expect(stateModule.draftPermissionMode()).toBe('full');
-    expect(window.localStorage.getItem('varro.draftPermissionMode')).toBeNull();
+    expect(window.localStorage.getItem('loomery.draftPermissionMode')).toBeNull();
   });
 
   it('uses configured default permission mode only without a persisted selection', async () => {
@@ -823,7 +821,7 @@ describe('state helpers', () => {
 
     stateModule.setPermissionModeForSession(null, 'default');
     expect(stateModule.draftPermissionMode()).toBe('default');
-    expect(window.localStorage.getItem('varro.draftPermissionMode')).toBe(
+    expect(window.localStorage.getItem('loomery.draftPermissionMode')).toBe(
       JSON.stringify('default')
     );
 
@@ -1017,7 +1015,7 @@ describe('state helpers', () => {
     stateModule.toggleCurrentDocumentEnabled();
     expect(stateModule.getCurrentDocumentEnabled()).toBe(false);
     expect(
-      JSON.parse(window.localStorage.getItem('varro.projectCurrentDocumentEnabled') || '{}')
+      JSON.parse(window.localStorage.getItem('loomery.projectCurrentDocumentEnabled') || '{}')
     ).toEqual({ '/repo': false });
 
     stateModule.rememberCurrentDocumentNavigation('/repo/a.ts', '/repo/b.ts');
@@ -1163,7 +1161,7 @@ describe('state helpers', () => {
 
     stateModule.clearContextFiles();
     expect(stateModule.state.droppedFiles).toEqual([]);
-    expect(window.localStorage.getItem('varro.inputDraftFiles')).toBeNull();
+    expect(window.localStorage.getItem('loomery.inputDraftFiles')).toBeNull();
 
     stateModule.setInputText('See [img-2.png] later');
     for (let i = 1; i <= stateModule.MAX_CLIPBOARD_IMAGES + 1; i++) {
@@ -1287,13 +1285,13 @@ describe('state helpers', () => {
     stateModule.setState('editorContext', 'workspacePath', '/repo-a');
 
     expect(stateModule.getPersistedSelectedModel()).toEqual(repoAModel);
-    expect(JSON.parse(window.localStorage.getItem('varro.selectedModel:/repo-a')!)).toEqual(
+    expect(JSON.parse(window.localStorage.getItem('loomery.selectedModel:/repo-a')!)).toEqual(
       repoAModel
     );
-    expect(JSON.parse(window.localStorage.getItem('varro.selectedModel:/repo-b')!)).toEqual(
+    expect(JSON.parse(window.localStorage.getItem('loomery.selectedModel:/repo-b')!)).toEqual(
       repoBModel
     );
-    expect(window.localStorage.getItem('varro.selectedModel')).toBeNull();
+    expect(window.localStorage.getItem('loomery.selectedModel')).toBeNull();
     expect(stateModule.getModelPreferencesSnapshot().lastSelectedModel).toEqual(repoBModel);
   });
 
@@ -1373,38 +1371,47 @@ describe('state helpers', () => {
   });
 
   it('normalizes persisted routing state while preserving valid entries', async () => {
-    window.localStorage.setItem('varro.hiddenProviders', JSON.stringify(['openai', 42, '', null]));
-    window.localStorage.setItem('varro.hiddenModels', JSON.stringify(['openai:gpt-4o', false, '']));
-    window.localStorage.setItem('varro.pinnedModels', JSON.stringify(['openai:gpt-5', false, '']));
-    window.localStorage.setItem('varro.selectedAgent', JSON.stringify({ name: 'build' }));
     window.localStorage.setItem(
-      'varro.selectedModel',
+      'loomery.hiddenProviders',
+      JSON.stringify(['openai', 42, '', null])
+    );
+    window.localStorage.setItem(
+      'loomery.hiddenModels',
+      JSON.stringify(['openai:gpt-4o', false, ''])
+    );
+    window.localStorage.setItem(
+      'loomery.pinnedModels',
+      JSON.stringify(['openai:gpt-5', false, ''])
+    );
+    window.localStorage.setItem('loomery.selectedAgent', JSON.stringify({ name: 'build' }));
+    window.localStorage.setItem(
+      'loomery.selectedModel',
       JSON.stringify({ providerID: 'openai', modelID: 'gpt-5', variant: 42 })
     );
     window.localStorage.setItem(
-      'varro.sessionSelectedAgents',
+      'loomery.sessionSelectedAgents',
       JSON.stringify({ 'session-1': 'build', 'session-2': 42, '': 'plan' })
     );
     window.localStorage.setItem(
-      'varro.sessionSelectedModels',
+      'loomery.sessionSelectedModels',
       JSON.stringify({
         'session-1': { providerID: 'openai', modelID: 'gpt-4o', variant: 'high' },
         'session-2': { providerID: 'openai' },
       })
     );
     window.localStorage.setItem(
-      'varro.modelVariantSelections',
+      'loomery.modelVariantSelections',
       JSON.stringify({ 'openai:gpt-5': 'medium', 'openai:gpt-5.5': null, invalid: false })
     );
     window.localStorage.setItem(
-      'varro.sessionSelectedMcps',
+      'loomery.sessionSelectedMcps',
       JSON.stringify({ 'session-1': ['docs', 42, '', 'browser-bridge'], 'session-2': 'docs' })
     );
     window.localStorage.setItem(
-      'varro.sessionPermissionModes',
+      'loomery.sessionPermissionModes',
       JSON.stringify({ 'session-1': 'full', 'session-2': 'invalid' })
     );
-    window.localStorage.setItem('varro.lastActiveSessionId', JSON.stringify(42));
+    window.localStorage.setItem('loomery.lastActiveSessionId', JSON.stringify(42));
 
     const stateModule = await loadState();
 
@@ -1436,15 +1443,15 @@ describe('state helpers', () => {
 
   it('rejects malformed routing values from VS Code webview state', async () => {
     const persisted = {
-      'varro.hiddenProviders': { openai: true },
-      'varro.hiddenModels': ['openai:gpt-4o', null],
-      'varro.pinnedModels': ['openai:gpt-5', null],
-      'varro.selectedAgent': ['build'],
-      'varro.selectedModel': 'openai/gpt-5',
-      'varro.sessionSelectedAgents': ['build'],
-      'varro.sessionSelectedModels': null,
-      'varro.modelVariantSelections': 42,
-      'varro.sessionSelectedMcps': { 'session-1': null },
+      'loomery.hiddenProviders': { openai: true },
+      'loomery.hiddenModels': ['openai:gpt-4o', null],
+      'loomery.pinnedModels': ['openai:gpt-5', null],
+      'loomery.selectedAgent': ['build'],
+      'loomery.selectedModel': 'openai/gpt-5',
+      'loomery.sessionSelectedAgents': ['build'],
+      'loomery.sessionSelectedModels': null,
+      'loomery.modelVariantSelections': 42,
+      'loomery.sessionSelectedMcps': { 'session-1': null },
     };
     // SAFETY: The fixture provides the unknown fields read by this statement.
     (window as { __vscodeWebviewState?: unknown }).__vscodeWebviewState = {
@@ -1589,10 +1596,10 @@ describe('state helpers', () => {
       modelID: 'gpt-5',
     });
     expect(stateModule.getStoredVariantForModel('openai', 'gpt-5')).toBeNull();
-    expect(JSON.parse(window.localStorage.getItem('varro.modelVariantSelections')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.modelVariantSelections')!)).toEqual({
       'openai:gpt-5': null,
     });
-    expect(JSON.parse(window.localStorage.getItem('varro.sessionSelectedModels')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.sessionSelectedModels')!)).toEqual({
       'session-1': { providerID: 'openai', modelID: 'gpt-5' },
     });
   });
@@ -1675,7 +1682,7 @@ describe('state helpers', () => {
   });
 
   it('hydrates a session agent catalog with one persisted full-map write', async () => {
-    window.localStorage.removeItem('varro.sessionSelectedAgents');
+    window.localStorage.removeItem('loomery.sessionSelectedAgents');
     const stateModule = await loadState();
     const setItem = vi.spyOn(Storage.prototype, 'setItem');
 
@@ -1686,7 +1693,7 @@ describe('state helpers', () => {
     });
 
     expect(
-      setItem.mock.calls.filter(([key]) => key === 'varro.sessionSelectedAgents')
+      setItem.mock.calls.filter(([key]) => key === 'loomery.sessionSelectedAgents')
     ).toHaveLength(1);
     expect(stateModule.state.sessionSelectedAgents).toEqual({
       'session-1': 'build',
@@ -1712,7 +1719,7 @@ describe('state helpers', () => {
 
     expect(stateModule.state.selectedAgent).toBe('build');
     expect(stateModule.getSelectedAgentForSession('session-1')).toBe('build');
-    expect(JSON.parse(window.localStorage.getItem('varro.sessionSelectedAgents')!)).toEqual({
+    expect(JSON.parse(window.localStorage.getItem('loomery.sessionSelectedAgents')!)).toEqual({
       'session-1': 'build',
     });
   });
@@ -1883,7 +1890,7 @@ describe('state helpers', () => {
     stateModule.setState('providers', providers);
     stateModule.setModelPinned('openai', 'gpt-4.1', true);
     expect(stateModule.isModelPinned('openai', 'gpt-4.1')).toBe(true);
-    expect(JSON.parse(window.localStorage.getItem('varro.pinnedModels')!)).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.pinnedModels')!)).toEqual([
       'openai:gpt-4.1',
     ]);
     stateModule.setModelPinned('openai', 'gpt-4.1', false);
@@ -2069,7 +2076,7 @@ describe('state helpers', () => {
     expect(Object.keys(stateModule.getVisibleProviders([openRouter])[0]?.models ?? {})).toEqual([
       'model-42',
     ]);
-    expect(JSON.parse(window.localStorage.getItem('varro.addedModels')!)).toEqual([
+    expect(JSON.parse(window.localStorage.getItem('loomery.addedModels')!)).toEqual([
       'openrouter:model-42',
     ]);
 
@@ -2595,6 +2602,7 @@ describe('state helpers', () => {
     expect(stateModule.composerFocusKey()).toBe(0);
     expect(stateModule.openAttentionSessionsKey()).toBe(0);
     expect(stateModule.openCompletedSessionsKey()).toBe(0);
+    expect(stateModule.openAllSessionsKey()).toBe(0);
     expect(stateModule.messageListScrollRequestKey()).toBe(0);
     expect(stateModule.showThinking()).toBe(true);
     expect(stateModule.showChangedFiles()).toBe(false);
@@ -2603,6 +2611,7 @@ describe('state helpers', () => {
     stateModule.requestComposerFocus();
     stateModule.requestOpenAttentionSessions();
     stateModule.requestOpenCompletedSessions();
+    stateModule.requestOpenAllSessions();
     stateModule.requestMessageListScrollToBottom('message-new-turn');
     stateModule.toggleThinking();
     stateModule.resetPastedImageIndex();
@@ -2610,6 +2619,7 @@ describe('state helpers', () => {
     expect(stateModule.composerFocusKey()).toBe(1);
     expect(stateModule.openAttentionSessionsKey()).toBe(1);
     expect(stateModule.openCompletedSessionsKey()).toBe(1);
+    expect(stateModule.openAllSessionsKey()).toBe(1);
     expect(stateModule.messageListScrollRequestKey()).toBe(1);
     expect(stateModule.messageListScrollTargetMessageId()).toBe('message-new-turn');
     stateModule.requestMessageListScrollToBottom();
@@ -2617,7 +2627,7 @@ describe('state helpers', () => {
     expect(stateModule.messageListScrollTargetMessageId()).toBeNull();
     expect(stateModule.showThinking()).toBe(false);
     expect(stateModule.nextPastedImageIndex()).toBe(1);
-    expect(window.localStorage.getItem('varro.showThinking')).toBe(JSON.stringify(false));
+    expect(window.localStorage.getItem('loomery.showThinking')).toBe(JSON.stringify(false));
   });
 
   it('updates incremental message entries when only metadata changes', async () => {

@@ -1275,19 +1275,19 @@ describe('UserMessageContent', () => {
   it('keeps prose ending in a Git remote as linked message text', () => {
     const send = installSendToExtension();
     const prompt =
-      'All JS should be strongly typed similar as in git@github.com:koltyakov/browser-bridge.git';
+      'All JS should be strongly typed similar as in git@github.com:quonaro/browser-bridge.git';
     renderUserContent([textPart('text-1', prompt)]);
 
     expect(container?.querySelector('.message-attachments')).toBeNull();
     expect(container?.querySelector('.user-message-text')?.textContent?.trim()).toBe(prompt);
     const link = container?.querySelector<HTMLAnchorElement>('a.external-link');
-    expect(link?.textContent).toBe('git@github.com:koltyakov/browser-bridge.git');
+    expect(link?.textContent).toBe('git@github.com:quonaro/browser-bridge.git');
     expect(link?.querySelector('.material-chip-icon')).toBeInstanceOf(HTMLImageElement);
 
     link?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     expect(send).toHaveBeenCalledWith({
       type: 'vscode/open-external',
-      payload: { url: 'https://github.com/koltyakov/browser-bridge' },
+      payload: { url: 'https://github.com/quonaro/browser-bridge' },
     });
   });
 
@@ -1295,12 +1295,12 @@ describe('UserMessageContent', () => {
     const image = imageFilePart('image-1', '1786723794731-image-1');
     image.source = {
       text: {
-        value: '{file:/tmp/varro-drops/drop-1/1786723794731-image-1}',
+        value: '{file:/tmp/loomery-drops/drop-1/1786723794731-image-1}',
         start: 102,
         end: 162,
       },
       type: 'file',
-      path: '/tmp/varro-drops/drop-1/1786723794731-image-1',
+      path: '/tmp/loomery-drops/drop-1/1786723794731-image-1',
     };
 
     renderUserContent([
@@ -1308,8 +1308,8 @@ describe('UserMessageContent', () => {
       agentPart('agent-1', 'vision'),
       textPart(
         'text-2',
-        '[Image for @vision: /tmp/varro-drops/drop-1/1786723794731-image-1]\n' +
-          'When calling the vision subagent, include {file:/tmp/varro-drops/drop-1/1786723794731-image-1} in its task prompt.'
+        '[Image for @vision: /tmp/loomery-drops/drop-1/1786723794731-image-1]\n' +
+          'When calling the vision subagent, include {file:/tmp/loomery-drops/drop-1/1786723794731-image-1} in its task prompt.'
       ),
       image,
     ]);

@@ -246,7 +246,7 @@ export function RalphForm() {
     setErrorMessage(null);
     setIsPickingPlan(true);
     try {
-      const pickedPath = await client.varro.pickWorkspaceFile();
+      const pickedPath = await client.loomery.pickWorkspaceFile();
       if (pickedPath) {
         setPlanPath(pickedPath.path);
         setPlanWorkspaceDirectory(

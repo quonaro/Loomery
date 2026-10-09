@@ -90,8 +90,8 @@ for (const shortHistory of [false, true]) {
           (fixture) => {
             // SAFETY: The isolated E2E page reads this fixture before mounting.
             (
-              window as typeof window & { varroPlaybackCapture: typeof fixture }
-            ).varroPlaybackCapture = fixture;
+              window as typeof window & { loomeryPlaybackCapture: typeof fixture }
+            ).loomeryPlaybackCapture = fixture;
           },
           { session, initialMessages: [user, assistant] }
         );
@@ -106,9 +106,9 @@ for (const shortHistory of [false, true]) {
           // SAFETY: This page owns the isolated E2E event transport.
           const harness = (
             window as typeof window & {
-              __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+              __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
             }
-          ).__varroE2E;
+          ).__loomeryE2E;
           harness.replayServerEvent({
             type: 'message.updated',
             properties: { info: assistantInfo },
@@ -163,9 +163,9 @@ for (const shortHistory of [false, true]) {
           // SAFETY: This page owns the isolated E2E event transport.
           const harness = (
             window as typeof window & {
-              __varroE2E: { replayServerEvent: (event: ServerEvent) => void };
+              __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void };
             }
-          ).__varroE2E;
+          ).__loomeryE2E;
           const marker = element.querySelector<HTMLElement>('.assistant-activity-summary')!;
           const frameSamples = [
             { top: marker.getBoundingClientRect().top, scrollTop: element.scrollTop },

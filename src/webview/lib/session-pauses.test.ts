@@ -18,7 +18,7 @@ afterEach(() => {
 
 describe('session pause markers', () => {
   const pausedSession = session('session-1', {
-    metadata: { varro: { pauses: [{ messageId: 'boundary', pausedAt: 100 }] } },
+    metadata: { loomery: { pauses: [{ messageId: 'boundary', pausedAt: 100 }] } },
   });
   const boundary = { info: assistantMessage('boundary'), parts: [] };
 
@@ -58,7 +58,7 @@ describe('session pause markers', () => {
 
   it('persists the canonical boundary while preserving other session metadata', async () => {
     const current = session('session-1', {
-      metadata: { source: 'test', varro: { agent: 'build' } },
+      metadata: { source: 'test', loomery: { agent: 'build' } },
     });
     setState('sessions', [current]);
     vi.spyOn(client.session, 'get').mockResolvedValue(current);
@@ -72,7 +72,7 @@ describe('session pause markers', () => {
       {
         metadata: {
           source: 'test',
-          varro: {
+          loomery: {
             agent: 'build',
             pauses: [{ messageId: 'boundary', pausedAt: expect.any(Number) }],
           },

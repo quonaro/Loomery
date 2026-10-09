@@ -47,12 +47,12 @@ test('remounted Markdown tables have their final column layout at the first row 
     // SAFETY: The isolated harness owns these history and event APIs.
     const harness = (
       window as Window & {
-        __varroE2E?: {
+        __loomeryE2E?: {
           getSessionMessages(sessionId: string): MessageEntry[];
           replayServerEvent(event: ServerEvent): void;
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     if (!harness) throw new Error('Missing E2E harness');
     const sessionID = 'session-large-transcript';
     const text = [
@@ -115,12 +115,12 @@ for (const scenario of ['mixed-small-transcript', 'large-transcript']) {
       // SAFETY: The isolated E2E fixture installs these message and replay APIs before rendering.
       const harness = (
         window as Window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages(sessionId: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       if (!harness) throw new Error('Missing E2E harness');
       const sessionID = `session-${fixtureName}`;
       const assistant = harness

@@ -22,7 +22,7 @@ const MAX_CONCURRENT_DROPPED_PATH_STATS = 8;
 const MAX_CONCURRENT_DROPPED_CONTENT_REMOVALS = 8;
 const STALE_DROPS_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const DROP_DIRECTORY_NAME_PATTERN = /^drop-[a-zA-Z0-9_-]+$/;
-const DROP_OWNER_MARKER_NAME = '.varro-owner.json';
+const DROP_OWNER_MARKER_NAME = '.loomery-owner.json';
 const SENT_IMAGE_RETENTION_MS = 30 * 60 * 1000;
 
 interface DropOwnerMarker {
@@ -467,7 +467,7 @@ export class DroppedFilesService {
 
   private async createDropsDir(): Promise<string | null> {
     const generation = this.dropsDirGeneration;
-    const dropsRoot = join(tmpdir(), 'varro-drops');
+    const dropsRoot = join(tmpdir(), 'loomery-drops');
     try {
       await mkdir(dropsRoot, { recursive: true, mode: 0o700 });
       this.staleSweepPromise ??= this.sweepStaleDrops(dropsRoot);

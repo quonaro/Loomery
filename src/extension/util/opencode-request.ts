@@ -56,7 +56,7 @@ export function normalizeOpenCodeDirectory(directory: string | undefined) {
   const trimmed = directory.trim();
   if (!trimmed) return undefined;
   // Preserve the original directory spelling. OpenCode session lookups on
-  // Windows have regressed when Varro rewrote drive casing or path separators.
+  // Windows have regressed when Loomery rewrote drive casing or path separators.
   // We only trim trailing separators so equivalent user input stays stable
   // without changing the underlying path identity.
   if (

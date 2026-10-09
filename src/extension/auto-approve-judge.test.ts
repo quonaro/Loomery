@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 function createTemporaryWorkspace(options: { git?: boolean } = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'varro-auto-approve-'));
+  const root = mkdtempSync(join(tmpdir(), 'loomery-auto-approve-'));
   const workspace = join(root, 'workspace');
   mkdirSync(workspace);
   if (options.git) execFileSync('git', ['init', '--quiet', workspace]);
@@ -1486,9 +1486,9 @@ describe('AutoApproveJudge', () => {
     });
     expect(hiddenSessions.isHidden('judge-session-1')).toBe(false);
     expect(request).toHaveBeenCalledWith('POST', '/session', {
-      title: 'Varro permission judge: perm-1',
+      title: 'Loomery permission judge: perm-1',
       parentID: 'session-1',
-      metadata: { varroInternal: 'permission-judge' },
+      metadata: { loomeryInternal: 'permission-judge' },
       permission: expect.any(Array),
     });
     expect(request).toHaveBeenCalledWith(

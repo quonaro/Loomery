@@ -1,6 +1,6 @@
-# Varro menu-bar app
+# Loomery menu-bar app
 
-An optional experimental macOS companion for local Varro VS Code windows. It shows running sessions, approvals, questions, failures, plans ready for review, and unread completions. Clicking a row opens its project window without selecting another chat. Closed projects can reopen.
+An optional experimental macOS companion for local Loomery VS Code windows. It shows running sessions, approvals, questions, failures, plans ready for review, and unread completions. Clicking a row opens its project window without selecting another chat. Closed projects can reopen.
 
 ## Build and install
 
@@ -11,16 +11,16 @@ cd native/macos-tray
 make build
 make test
 make install
-open ~/Applications/Varro.app
+open ~/Applications/Loomery.app
 ```
 
-`make build` writes `build/Varro.app`. `make install` installs to `~/Applications/Varro.app`; override with `make install INSTALL_DIR=/Applications`. Quit the running app before replacing it. `make run` opens the build directly, `make clean` removes build output, and `make uninstall` removes the installed app and its data directory. Disable Launch at login and quit before uninstalling. Installation refuses to overwrite a different app named Varro.
+`make build` writes `build/Loomery.app`. `make install` installs to `~/Applications/Loomery.app`; override with `make install INSTALL_DIR=/Applications`. Quit the running app before replacing it. `make run` opens the build directly, `make clean` removes build output, and `make uninstall` removes the installed app and its data directory. Disable Launch at login and quit before uninstalling. Installation refuses to overwrite a different app named Loomery.
 
 Enable **Launch at login** in the gear menu after installation. macOS may request approval in Login Items. This local build is not notarized or intended as a public release artifact.
 
 After the first launch, reload VS Code windows that were already open. Editors check for the app's data directory once at startup; without it they stay inert until the next reload.
 
-Build/install the Varro extension separately using the repository's normal workflow. The companion app is not built by npm, included in the VSIX, or launched by the extension. When the app is absent or closed, Varro and its existing notifications work as usual. The app itself does not send banners or duplicate notification sounds.
+Build/install the Loomery extension separately using the repository's normal workflow. The companion app is not built by npm, included in the VSIX, or launched by the extension. When the app is absent or closed, Loomery and its existing notifications work as usual. The app itself does not send banners or duplicate notification sounds.
 
 ## Behavior
 
@@ -42,10 +42,10 @@ Build/install the Varro extension separately using the repository's normal workf
 
 ## Local protocol
 
-The app owns `~/Library/Application Support/Varro/tray/tray.sock` in a dedicated user-owned mode-700 directory, separate from Varro's shared state. The socket is mode 600, accepts only same-user peers, and uses a lock to prevent competing app instances. Stale sockets are replaced only after acquiring that lock.
+The app owns `~/Library/Application Support/Loomery/tray/tray.sock` in a dedicated user-owned mode-700 directory, separate from Loomery's shared state. The socket is mode 600, accepts only same-user peers, and uses a lock to prevent competing app instances. Stale sockets are replaced only after acquiring that lock.
 
 The directory is the extension's install marker. An editor that starts without it makes no connection attempts, watches nothing, schedules no timers, and does no work on state changes. When it exists, the extension watches only that directory and connects, with a two-second deadline, when the socket appears or is replaced. State changes do no work while disconnected. A reset of an established connection gets one immediate recovery attempt; otherwise the extension waits for the app to replace its socket, without polling. It sends a full newline-delimited JSON snapshot on connect and after coalesced state or workspace changes, suppressing identical snapshots. Each frame has `version: 1`, `eventDriven: true`, a per-extension-instance UUID `instanceID`, an `available` flag for the backend connection, up to 256 `projects`, and up to 256 `sessions`. Projects contain a folder `id`, display `name`, and project-window `url`. Each session contains `id`, `title`, `project`, `projectID`, `projectUrl`, `status`, and epoch-millisecond `updatedAt`. Session IDs hash server/workspace/root-session identity; snapshots contain no credentials, transcripts, or tool arguments. Older publishers without a project catalog still work, with project choices derived from their sessions. Frames are capped at 1 MiB. The app sends no commands back to the extension.
 
-Socket disconnects retain the last report for a 15-second reconnect grace period. Event-driven publishers remain registered while their socket is open, even without updates; silence is not proof that a chat was read or a request resolved. A 60-second heartbeat expiry remains for legacy publishers without `eventDriven: true`. Earlier builds used `~/Library/Application Support/Varro/tray.sock`; rebuild both the app and extension together, then delete the old `tray.lock` and `tray-history.json` from that folder. Reconnection replaces that editor's entire snapshot. Offline running/request summaries are stored in `tray-history.json` beside the socket. Old local dismissal markers are ignored so they cannot override VS Code's unread state. Delete that file while the app is closed to erase local history.
+Socket disconnects retain the last report for a 15-second reconnect grace period. Event-driven publishers remain registered while their socket is open, even without updates; silence is not proof that a chat was read or a request resolved. A 60-second heartbeat expiry remains for legacy publishers without `eventDriven: true`. Earlier builds used `~/Library/Application Support/Loomery/tray.sock`; rebuild both the app and extension together, then delete the old `tray.lock` and `tray-history.json` from that folder. Reconnection replaces that editor's entire snapshot. Offline running/request summaries are stored in `tray-history.json` beside the socket. Old local dismissal markers are ignored so they cannot override VS Code's unread state. Delete that file while the app is closed to erase local history.
 
 `make test` checks protocol validation, attention counts, multi-editor deduplication, disconnect/reconnect, history persistence, navigation without read-state overrides, and the real Unix socket using a temporary fixture. It also runs offscreen SwiftUI layout checks for compact content, wrapped titles, section spacing, the height cap, errors, and shrinking after updates; run those alone with `make test-layout`. `make test-indicator` checks the menu-bar counter and event dot offscreen. Extension tests live in `src/extension/macos-tray.test.ts`.

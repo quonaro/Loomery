@@ -2,7 +2,7 @@
 import type { Persistence } from '../shared/persistence';
 import { asRecord } from '../shared/type-utils';
 
-const SESSION_READ_STATE_KEY = 'varro.sessionReadState';
+const SESSION_READ_STATE_KEY = 'loomery.sessionReadState';
 
 export class SessionReadStateStore {
   private mutationQueue: Promise<void> = Promise.resolve();

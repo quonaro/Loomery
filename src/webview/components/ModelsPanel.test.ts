@@ -59,7 +59,7 @@ const providerSetupMocks = vi.hoisted(() => ({
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise ModelsPanel integration with client, setup, and hook modules. */
 vi.mock('../lib/client', () => ({
   client: {
-    varro: {
+    loomery: {
       openCodeConfig: clientMocks.openCodeConfig,
       saveModelRouting: clientMocks.saveModelRouting,
       decisionProviders: {

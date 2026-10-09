@@ -37,7 +37,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'fs/promises';
-import { VARRO_USER_AGENT } from '../adapter-utils';
+import { LOOMERY_USER_AGENT } from '../adapter-utils';
 
 const adapter = createAnthropicAdapter();
 
@@ -328,7 +328,7 @@ describe('createAnthropicAdapter', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           Accept: 'application/json',
-          'User-Agent': VARRO_USER_AGENT,
+          'User-Agent': LOOMERY_USER_AGENT,
         }),
       })
     );
@@ -903,7 +903,7 @@ describe('createAnthropicAdapter', () => {
     const lockError = Object.assign(new Error('lock exists'), { code: 'EEXIST' });
     vi.mocked(mkdir).mockRejectedValueOnce(lockError).mockResolvedValueOnce(undefined);
     vi.mocked(stat).mockImplementation(async (path) => {
-      if (String(path).endsWith('.varro.lock')) {
+      if (String(path).endsWith('.loomery.lock')) {
         return { mtimeMs: Date.now() - 60_000 } as Awaited<ReturnType<typeof stat>>;
       }
       throw new Error('missing statusline file');
@@ -937,7 +937,7 @@ describe('createAnthropicAdapter', () => {
 
     expect(status.status).toBe('available');
     expect(mkdir).toHaveBeenCalledTimes(2);
-    expect(rm).toHaveBeenCalledWith(expect.stringMatching(/\.credentials\.json\.varro\.lock$/), {
+    expect(rm).toHaveBeenCalledWith(expect.stringMatching(/\.credentials\.json\.loomery\.lock$/), {
       recursive: true,
       force: true,
     });

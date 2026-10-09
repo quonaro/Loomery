@@ -30,7 +30,7 @@ describe('session selection metadata', () => {
     expect(
       posted.filter((message) => asRecord(message)?.type === 'session-plan-state/update')
     ).toEqual(selections.map((payload) => ({ type: 'session-plan-state/update', payload })));
-    expect(asRecord(asRecord(metadata)?.varro)?.agent).toBe('build');
+    expect(asRecord(asRecord(metadata)?.loomery)?.agent).toBe('build');
   });
 
   it('settles a failed agent selection without publishing it as confirmed', async () => {
@@ -62,7 +62,7 @@ describe('session selection metadata', () => {
       title: 'Shared session',
       version: '1',
       time: { created: 1, updated: 2 },
-      metadata: { varro: { model: { provider: 'openai', model: 'old-model' } } },
+      metadata: { loomery: { model: { provider: 'openai', model: 'old-model' } } },
     };
     const oldSession = session;
     let finishRead: ((value: Session) => void) | undefined;
@@ -127,7 +127,7 @@ describe('session selection metadata', () => {
       title: 'Shared session',
       version: '1',
       time: { created: 1, updated: 2 },
-      metadata: { custom: 'preserved', varro: { workspaceScope: 'folder' } },
+      metadata: { custom: 'preserved', loomery: { workspaceScope: 'folder' } },
     };
     const request = vi.fn(async (method: string, path: string, body?: unknown) => {
       if (method === 'PATCH') {
@@ -152,14 +152,14 @@ describe('session selection metadata', () => {
         payload: {
           id: 1,
           method: 'POST',
-          path: '/varro/session/session-1/permission-mode',
+          path: '/loomery/session/session-1/permission-mode',
           body: { mode: 'auto' },
         },
       }),
     ]);
     expect(session.metadata).toEqual({
       custom: 'preserved',
-      varro: {
+      loomery: {
         schemaVersion: 1,
         workspaceScope: 'folder',
         model: { provider: 'openai', model: 'test-model', variant: 'high' },
@@ -196,7 +196,7 @@ describe('session selection metadata', () => {
       type: 'session-model/update',
       payload: { sessionId: session.id, model: modelWithoutVariant },
     });
-    expect(asRecord(session.metadata?.varro)?.model).toEqual({
+    expect(asRecord(session.metadata?.loomery)?.model).toEqual({
       provider: 'openai',
       model: 'test-model',
     });
@@ -218,7 +218,7 @@ describe('session selection metadata', () => {
           ...session,
           metadata: {
             ...session.metadata,
-            varro: { ...asRecord(session.metadata?.varro), agent: 'build' },
+            loomery: { ...asRecord(session.metadata?.loomery), agent: 'build' },
           },
         },
       },

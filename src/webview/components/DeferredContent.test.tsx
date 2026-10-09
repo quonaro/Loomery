@@ -68,7 +68,7 @@ it('requests only a thumbnail near the viewport and the original only when the p
     }
   );
   const [open, setOpen] = createSignal(false);
-  const image = { url: `varro-content:${path}`, alt: 'Shot', title: 'shot.png' };
+  const image = { url: `loomery-content:${path}`, alt: 'Shot', title: 'shot.png' };
   dispose = render(
     () => (
       <>
@@ -338,7 +338,7 @@ it('resolves a deferred text attachment before creating an editable draft', asyn
             type: 'file',
             mime: 'text/plain',
             filename: 'notes.txt',
-            url: `varro-content:${path}`,
+            url: `loomery-content:${path}`,
           },
         ]}
       />

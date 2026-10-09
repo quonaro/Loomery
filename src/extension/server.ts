@@ -164,7 +164,7 @@ function createUpdateRequiredError(options: {
   failure?: UpgradeFailureReport;
 }): { message: string; detail: ServerErrorDetail } {
   const required = minimumVersion(options.observed);
-  const summary = `${OPENCODE_UPDATE_REQUIRED_PREFIX} Varro requires OpenCode ${required} or newer, but ${options.observed}. ${options.reason}`;
+  const summary = `${OPENCODE_UPDATE_REQUIRED_PREFIX} Loomery requires OpenCode ${required} or newer, but ${options.observed}. ${options.reason}`;
   const installMethod = options.failure?.installMethod ?? options.installMethod;
   const suggestedCommand = installMethod
     ? getUpgradeCommand(
@@ -177,7 +177,7 @@ function createUpdateRequiredError(options: {
     !options.blockedBy ||
     options.blockedBy === 'auto-update-disabled' ||
     options.blockedBy === 'auto-start-disabled';
-  let instruction = `Run "${suggestedCommand}", stop any running OpenCode server, then restart the Varro server.`;
+  let instruction = `Run "${suggestedCommand}", stop any running OpenCode server, then restart the Loomery server.`;
   if (options.failure) {
     instruction = options.failure.guidance;
   } else {
@@ -186,17 +186,18 @@ function createUpdateRequiredError(options: {
         instruction = 'Finish or close those sessions, then check again.';
         break;
       case 'auto-update-disabled':
-        instruction = 'Enable varro.server.autoUpdate, then restart the Varro server.';
+        instruction = 'Enable loomery.server.autoUpdate, then restart the Loomery server.';
         break;
       case 'auto-start-disabled':
-        instruction = 'Enable varro.server.autoStart, then restart the Varro server.';
+        instruction = 'Enable loomery.server.autoStart, then restart the Loomery server.';
         break;
       case 'foreign-owner':
         instruction =
-          'Finish work in the other Varro window and close it before retrying from this window.';
+          'Finish work in the other Loomery window and close it before retrying from this window.';
         break;
       case 'verify-failed':
-        instruction = 'Check the Varro output, then retry when the OpenCode server is responding.';
+        instruction =
+          'Check the Loomery output, then retry when the OpenCode server is responding.';
         break;
     }
   }
@@ -240,7 +241,7 @@ export class OpenCodeServer extends EventEmitter {
   /** Lets the owning window relaunch first; followers then reuse its new registration. */
   private static readonly FOLLOWER_RECOVERY_DELAY_MS = 1000;
   private static readonly OWNERSHIP_CONFIRMATION_FAILED_MESSAGE =
-    'Could not confirm ownership of the OpenCode server started by Varro';
+    'Could not confirm ownership of the OpenCode server started by Loomery';
 
   private readonly lifecycle = new ServerLifecycleStateMachine();
   private readonly processManager: OpenCodeProcess;
@@ -313,7 +314,7 @@ export class OpenCodeServer extends EventEmitter {
         const description =
           account.kind === 'different-user'
             ? 'The listening process belongs to another OS user.'
-            : 'Varro could not verify which OS user owns the listening process.';
+            : 'Loomery could not verify which OS user owns the listening process.';
         const answer = await vscode.window.showWarningMessage(
           `Connect to OpenCode at ${url}? ${description} Connecting can expose that server's sessions and execute tools under its account. Supplied credentials alone do not prove the server enforces authentication.`,
           { modal: true },
@@ -525,7 +526,7 @@ export class OpenCodeServer extends EventEmitter {
     this.setRunningStatus(this._status.url, eventStream);
   }
 
-  /** Varro registrations are followed across restarts; external endpoints are never relaunched implicitly. */
+  /** Loomery registrations are followed across restarts; external endpoints are never relaunched implicitly. */
   private get followsManagedRegistration(): boolean {
     return (
       !this.externalEndpoint &&
@@ -551,7 +552,7 @@ export class OpenCodeServer extends EventEmitter {
    * so followers reattach to the owner's replacement instead of prompting.
    */
   private recoverLostRegisteredServer(reason: string) {
-    logger.warn(`${reason}; reconnecting through the Varro server registration`);
+    logger.warn(`${reason}; reconnecting through the Loomery server registration`);
     // Cancels any consent prompt an in-flight admission could still reach.
     this.admission.reset();
     this.stopEventStream();
@@ -658,7 +659,7 @@ export class OpenCodeServer extends EventEmitter {
     const url = this.url;
     const secrets = this.secrets;
     if (!secrets) return { healthy: false };
-    const key = `varro.opencode.serverCredentials:${url}`;
+    const key = `loomery.opencode.serverCredentials:${url}`;
     const checkCurrent = () => {
       signal.throwIfAborted();
       if (this.url !== url)
@@ -882,7 +883,7 @@ export class OpenCodeServer extends EventEmitter {
         if (!this.processManager.isAutoStartEnabled) {
           this.setStatus({
             state: 'error',
-            message: `No server at ${this.url}. Start one with "opencode serve --port ${this.processManager.port}" or enable varro.server.autoStart.`,
+            message: `No server at ${this.url}. Start one with "opencode serve --port ${this.processManager.port}" or enable loomery.server.autoStart.`,
           });
           throw new Error(
             this._status.state === 'error'
@@ -1050,7 +1051,7 @@ export class OpenCodeServer extends EventEmitter {
       // The claim protects ownership, not work submitted by other clients.
       if ((await this.readRestartBlockers()).totalSessionCount > 0) return;
       this.throwIfStartCancelled(disposeGeneration, signal);
-      logger.info('Restoring Varro runtime Ask agent on the replaced managed OpenCode server');
+      logger.info('Restoring Loomery runtime Ask agent on the replaced managed OpenCode server');
       await this.stopServerForRestart(true);
     } finally {
       await release();
@@ -1385,7 +1386,7 @@ export class OpenCodeServer extends EventEmitter {
           failStartup(
             this.processManager.isAutomaticPort
               ? 'Automatic OpenCode port collision retries were exhausted. Retry startup or select an available integer port.'
-              : `Port ${occupiedPort} is already in use. Explicit ports never fall back. Set varro.server.port to auto or an available integer between 1 and 65535.`
+              : `Port ${occupiedPort} is already in use. Explicit ports never fall back. Set loomery.server.port to auto or an available integer between 1 and 65535.`
           );
           return;
         }
@@ -2157,7 +2158,7 @@ export class OpenCodeServer extends EventEmitter {
     // runRestart reserves the lifecycle, drains requests, rechecks global work
     // and acquires verified ownership before stopping. Never force this repair.
     await this.runRestart(async () => {
-      logger.info('Restoring Varro runtime Ask agent on the replaced managed OpenCode server');
+      logger.info('Restoring Loomery runtime Ask agent on the replaced managed OpenCode server');
       await this.processManager.stopServerForRestart();
     });
     this.runtimeAskRecoveryPending = false;
@@ -2259,7 +2260,7 @@ export class OpenCodeServer extends EventEmitter {
         this.maybeSuggestCliUpdate(installedCliVersion),
       readHealthInfo: async () => {
         const health = await this.readHealthInfo();
-        // Covers servers Varro launched itself, which never pass through the
+        // Covers servers Loomery launched itself, which never pass through the
         // existing-server branch in startOperation.
         return health;
       },
@@ -2280,7 +2281,7 @@ export class OpenCodeServer extends EventEmitter {
       : 'the running server version could not be determined';
 
     if (this.isAttachOnly) {
-      const message = `OpenCode update required: ${observed}. Update OpenCode on the server host or rebuild the Docker image, then reconnect Varro. Local updates are not supported in attach-only mode.`;
+      const message = `OpenCode update required: ${observed}. Update OpenCode on the server host or rebuild the Docker image, then reconnect Loomery. Local updates are not supported in attach-only mode.`;
       this.setStatus({ state: 'error', message, detail: { kind: 'generic' } });
       throw new Error(message);
     }
@@ -2288,14 +2289,14 @@ export class OpenCodeServer extends EventEmitter {
     if (!this.processManager.isAutoUpdateEnabled) {
       this.failForRequiredUpdate(observed, 'Automatic updates are disabled.', {
         blockedBy: 'auto-update-disabled',
-        settingId: 'varro.server.autoUpdate',
+        settingId: 'loomery.server.autoUpdate',
       });
     }
     if (!this.processManager.isAutoStartEnabled) {
       this.failForRequiredUpdate(
         observed,
-        'Varro server auto-start is disabled, so Varro cannot safely replace the running server.',
-        { blockedBy: 'auto-start-disabled', settingId: 'varro.server.autoStart' }
+        'Loomery server auto-start is disabled, so Loomery cannot safely replace the running server.',
+        { blockedBy: 'auto-start-disabled', settingId: 'loomery.server.autoStart' }
       );
     }
 
@@ -2340,7 +2341,7 @@ export class OpenCodeServer extends EventEmitter {
 
     if (!installedVersion || isSupportedOpenCodeVersion(installedVersion)) return;
     if (Number(installedVersion.split('.')[0]) > 2) {
-      const message = `Unsupported OpenCode CLI version: ${installedVersion}. Varro supports the v1 and v2 APIs.`;
+      const message = `Unsupported OpenCode CLI version: ${installedVersion}. Loomery supports the v1 and v2 APIs.`;
       this.setStatus({ state: 'error', message });
       throw new Error(message);
     }
@@ -2349,12 +2350,12 @@ export class OpenCodeServer extends EventEmitter {
     if (!this.processManager.isAutoUpdateEnabled) {
       this.failForRequiredUpdate(observed, 'Automatic updates are disabled.', {
         blockedBy: 'auto-update-disabled',
-        settingId: 'varro.server.autoUpdate',
+        settingId: 'loomery.server.autoUpdate',
       });
     }
 
     logger.info(
-      `Updating OpenCode CLI ${installedVersion} to meet Varro's minimum ${minimumVersion(installedVersion)}`
+      `Updating OpenCode CLI ${installedVersion} to meet Loomery's minimum ${minimumVersion(installedVersion)}`
     );
     // Kept for the case below: `opencode upgrade` can print why it failed and
     // still exit 0, and that text is the only basis for actionable guidance.
@@ -2373,7 +2374,7 @@ export class OpenCodeServer extends EventEmitter {
     let updatedVersion: string | null;
     try {
       this.throwIfStartCancelled(disposeGeneration, signal);
-      // The upgrade may have replaced a binary Varro resolved before it ran.
+      // The upgrade may have replaced a binary Loomery resolved before it ran.
       this.processManager.clearResolvedCommandCache();
       updatedVersion = await this.readInstalledCliVersion();
       this.throwIfStartCancelled(disposeGeneration, signal);
@@ -2381,7 +2382,7 @@ export class OpenCodeServer extends EventEmitter {
       this.throwIfStartCancelled(disposeGeneration, signal);
       this.failForRequiredUpdate(
         observed,
-        `The update finished, but Varro could not verify it: ${err instanceof Error ? err.message : String(err)}.`,
+        `The update finished, but Loomery could not verify it: ${err instanceof Error ? err.message : String(err)}.`,
         { blockedBy: 'verify-failed' }
       );
     }
@@ -2426,20 +2427,20 @@ export class OpenCodeServer extends EventEmitter {
   }
 
   /**
-   * "Not installed" and "installed somewhere Varro did not look" need opposite
+   * "Not installed" and "installed somewhere Loomery did not look" need opposite
    * instructions, and telling someone with a working CLI to reinstall it is the
-   * most misleading thing Varro can say. Split them on what actually resolved.
+   * most misleading thing Loomery can say. Split them on what actually resolved.
    */
   private buildMissingCliError(): { message: string; detail: ServerErrorDetail } {
     const install = this.processManager.getInstallInfo();
 
     if (install.configuredCommandMissing) {
       return {
-        message: `OpenCode CLI not found at the configured path: ${install.configuredCommand}. Update varro.server.command to point at your OpenCode executable, or clear it to let Varro search PATH.`,
+        message: `OpenCode CLI not found at the configured path: ${install.configuredCommand}. Update loomery.server.command to point at your OpenCode executable, or clear it to let Loomery search PATH.`,
         detail: {
           kind: 'cli-path-invalid',
           configuredCommand: install.configuredCommand,
-          settingId: 'varro.server.command',
+          settingId: 'loomery.server.command',
         },
       };
     }
@@ -2449,7 +2450,7 @@ export class OpenCodeServer extends EventEmitter {
       detail: {
         kind: 'cli-missing',
         suggestedCommand: OPENCODE_INSTALL_COMMAND,
-        settingId: 'varro.server.command',
+        settingId: 'loomery.server.command',
         searchedPaths: install.searchedPaths,
       },
     };
@@ -2691,7 +2692,7 @@ export class OpenCodeServer extends EventEmitter {
       this.throwIfStartCancelled(disposeGeneration, signal);
       this.failForRequiredUpdate(
         observed,
-        `Varro could not verify that the old server is idle: ${err instanceof Error ? err.message : String(err)}.`,
+        `Loomery could not verify that the old server is idle: ${err instanceof Error ? err.message : String(err)}.`,
         { blockedBy: 'verify-failed' }
       );
     }
@@ -2709,7 +2710,7 @@ export class OpenCodeServer extends EventEmitter {
     if (!health.healthy) {
       if (this.managedProcess && !allowUnresponsiveManagedProcess) {
         throw new Error(
-          'Varro could not verify that the managed OpenCode server is idle; retry when the server is responding'
+          'Loomery could not verify that the managed OpenCode server is idle; retry when the server is responding'
         );
       }
       return;
@@ -2720,7 +2721,7 @@ export class OpenCodeServer extends EventEmitter {
       activeSessions = await this.hasActiveSessions();
     } catch (err) {
       throw new Error(
-        `Varro could not verify that the OpenCode server is idle: ${err instanceof Error ? err.message : String(err)}`,
+        `Loomery could not verify that the OpenCode server is idle: ${err instanceof Error ? err.message : String(err)}`,
         { cause: err }
       );
     }
@@ -2768,8 +2769,8 @@ export class OpenCodeServer extends EventEmitter {
   /**
    * Releases the Windows file lock on the OpenCode binary before something
    * tries to replace it. Public because the webview's one-click update runs the
-   * command in a terminal, which needs the same prerequisite as Varro's own
-   * upgrade path. No-op off Windows and when Varro owns no process.
+   * command in a terminal, which needs the same prerequisite as Loomery's own
+   * upgrade path. No-op off Windows and when Loomery owns no process.
    */
   async prepareForWindowsCliUpgrade(targetVersion?: string) {
     if (process.platform !== 'win32') return;
@@ -2797,7 +2798,7 @@ export class OpenCodeServer extends EventEmitter {
   private async prepareWindowsCliUpgrade(targetVersion?: string) {
     if (this.processManager.hasForeignActiveOwnership) {
       throw new Error(
-        'The running OpenCode server is owned by another Varro window; close that window or stop its server before updating OpenCode'
+        'The running OpenCode server is owned by another Loomery window; close that window or stop its server before updating OpenCode'
       );
     }
 
@@ -2808,7 +2809,7 @@ export class OpenCodeServer extends EventEmitter {
       const health = await this.readHealthInfo();
       if (this._status.state === 'running' || health.healthy) {
         throw new Error(
-          'A running OpenCode server is not owned by this Varro window; stop it before updating OpenCode'
+          'A running OpenCode server is not owned by this Loomery window; stop it before updating OpenCode'
         );
       }
     } else {
@@ -2953,7 +2954,7 @@ export class OpenCodeServer extends EventEmitter {
       if (this._status.state !== 'running') return this.start();
       return Promise.reject(
         new Error(
-          'Restart is not supported in attach-only mode because Varro has not established ownership of this server. Restart it using the terminal or service that launched it, then reconnect Varro.'
+          'Restart is not supported in attach-only mode because Loomery has not established ownership of this server. Restart it using the terminal or service that launched it, then reconnect Loomery.'
         )
       );
     }

@@ -20,7 +20,7 @@ export function createPastedText(text: string): DroppedFile {
   }
   const id = crypto.randomUUID();
   return {
-    path: `varro-paste:${id}`,
+    path: `loomery-paste:${id}`,
     relativePath: `pasted-text-${id.slice(0, 8)}.txt`,
     type: 'file',
     pastedText: text,

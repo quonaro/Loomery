@@ -85,8 +85,8 @@ test('keeps painted content fixed when an inline file edit drops its running sta
   const samples = await row.evaluate(async (element, activity) => {
     // SAFETY: This page owns the deterministic mock transport and message row.
     const harness = (
-      window as typeof window & { __varroE2E: { replayServerEvent: (event: ServerEvent) => void } }
-    ).__varroE2E;
+      window as typeof window & { __loomeryE2E: { replayServerEvent: (event: ServerEvent) => void } }
+    ).__loomeryE2E;
     const list = element.closest<HTMLElement>('.interactive-list')!;
     const marker = element.querySelector<HTMLElement>('.rendered-markdown p')!;
     const result: Array<{

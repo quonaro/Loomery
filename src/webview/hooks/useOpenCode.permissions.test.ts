@@ -147,7 +147,7 @@ describe('useOpenCode permission and config flows', () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([permissionListItem()]);
-    clientMocks.varroJudgePermission.mockResolvedValue({
+    clientMocks.loomeryJudgePermission.mockResolvedValue({
       decision: 'ask',
       reason: 'review',
       actionSummary: 'Check installed tool versions',
@@ -172,7 +172,7 @@ describe('useOpenCode permission and config flows', () => {
           }),
         ])
       );
-      expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(1);
+      expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(1);
       expect(stateModule.state.sessionAutoPermissionActivity['session-1']).toEqual([
         expect.objectContaining({
           permissionId: 'perm-1',
@@ -209,7 +209,7 @@ describe('useOpenCode permission and config flows', () => {
           expect.objectContaining({ id: 'perm-unowned' }),
         ])
       );
-      expect(clientMocks.varroJudgePermission).not.toHaveBeenCalled();
+      expect(clientMocks.loomeryJudgePermission).not.toHaveBeenCalled();
       expect(clientMocks.sessionRespondPermission).not.toHaveBeenCalled();
       expect(bridgeMocks.postMessage).toHaveBeenCalledWith({
         type: 'permission/reveal',
@@ -230,7 +230,7 @@ describe('useOpenCode permission and config flows', () => {
     });
     const serverEventHandlers = captureServerEventHandlers();
     clientMocks.permissionList.mockResolvedValue([permissionListItem('perm-failover')]);
-    clientMocks.varroJudgePermission.mockResolvedValue({
+    clientMocks.loomeryJudgePermission.mockResolvedValue({
       decision: 'ask',
       reason: 'Needs confirmation.',
     });
@@ -255,7 +255,7 @@ describe('useOpenCode permission and config flows', () => {
           expect.objectContaining({ id: 'perm-failover' }),
         ])
       );
-      expect(clientMocks.varroJudgePermission).not.toHaveBeenCalled();
+      expect(clientMocks.loomeryJudgePermission).not.toHaveBeenCalled();
       if (!bridgeHandler) throw new Error('Expected webview bridge handler to be registered');
 
       bridgeHandler({
@@ -263,7 +263,7 @@ describe('useOpenCode permission and config flows', () => {
         payload: { owner: true, lease: 2 },
       });
 
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       await vi.waitFor(() =>
         expect(stateModule.state.permissions).toEqual([
           expect.objectContaining({
@@ -279,7 +279,7 @@ describe('useOpenCode permission and config flows', () => {
       });
       await Promise.resolve();
       expect(clientMocks.permissionList).toHaveBeenCalledOnce();
-      expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce();
+      expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce();
     } finally {
       dispose();
     }
@@ -288,7 +288,7 @@ describe('useOpenCode permission and config flows', () => {
   it('counts acknowledged automatic rejections', async () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
-    clientMocks.varroJudgePermission.mockResolvedValue({
+    clientMocks.loomeryJudgePermission.mockResolvedValue({
       decision: 'reject',
       reason: 'Matches a prior rejection.',
     });
@@ -332,7 +332,7 @@ describe('useOpenCode permission and config flows', () => {
   it('shows the judge failure reason on the permission fallback', async () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
-    clientMocks.varroJudgePermission.mockRejectedValue(new Error('Judge model unavailable'));
+    clientMocks.loomeryJudgePermission.mockRejectedValue(new Error('Judge model unavailable'));
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -364,7 +364,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([permissionListItem('perm-restored')]);
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     const { deriveSessionIndicators } = await import('../components/chat/SessionListView');
@@ -378,7 +378,7 @@ describe('useOpenCode permission and config flows', () => {
 
     try {
       serverEventHandlers.get('server.connected')?.({});
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([]);
       expect(deriveSessionIndicators(stateModule.state.sessions).attentionIds).not.toContain(
         'session-1'
@@ -410,7 +410,7 @@ describe('useOpenCode permission and config flows', () => {
       parentID: 'session-1',
     });
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setState('sessions', [session('session-1')]);
@@ -428,7 +428,7 @@ describe('useOpenCode permission and config flows', () => {
       expect(stateModule.state.permissions).toEqual([]);
       serverEventHandlers.get('server.connected')?.({});
 
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([
         expect.objectContaining({ id: 'perm-restored-child', sessionID: 'child-1' }),
       ]);
@@ -453,7 +453,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([]);
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -466,7 +466,7 @@ describe('useOpenCode permission and config flows', () => {
       serverEventHandlers.get('permission.asked')?.({
         properties: permissionListItem('perm-canceled'),
       });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
 
       serverEventHandlers.get('server.connected')?.({});
       await vi.waitFor(() =>
@@ -488,7 +488,7 @@ describe('useOpenCode permission and config flows', () => {
     const pendingPermissions = deferred<ReturnType<typeof permissionListItem>[]>();
     clientMocks.permissionList.mockReturnValue(pendingPermissions.promise);
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -504,7 +504,7 @@ describe('useOpenCode permission and config flows', () => {
       serverEventHandlers.get('permission.asked')?.({
         properties: permissionListItem('perm-current'),
       });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       pendingPermissions.resolve([]);
       await vi.waitFor(() =>
         expect(stateModule.getPermissionReconciliationMetadataSize().activeReconciliations).toBe(0)
@@ -527,7 +527,7 @@ describe('useOpenCode permission and config flows', () => {
     const pendingPermissions = deferred<ReturnType<typeof permissionListItem>[]>();
     clientMocks.permissionList.mockReturnValue(pendingPermissions.promise);
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     const { deriveSessionIndicators } = await import('../components/chat/SessionListView');
@@ -550,7 +550,7 @@ describe('useOpenCode permission and config flows', () => {
       expect(stateModule.state.permissions).toEqual([]);
 
       pendingPermissions.resolve([permissionListItem('perm-restored')]);
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([]);
 
       judge.resolve({ decision: 'ask', reason: 'Needs confirmation.' });
@@ -595,7 +595,7 @@ describe('useOpenCode permission and config flows', () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
     const modeUpdate = deferred<ReturnType<typeof session>>();
-    clientMocks.varroSessionUpdatePermissionMode.mockReturnValue(modeUpdate.promise);
+    clientMocks.loomerySessionUpdatePermissionMode.mockReturnValue(modeUpdate.promise);
     clientMocks.permissionList.mockRejectedValue(new Error('Permission list failed'));
 
     const { stateModule, hookModule } = await loadModules();
@@ -611,7 +611,7 @@ describe('useOpenCode permission and config flows', () => {
       expect(stateModule.state.permissions).toEqual([]);
       const update = hookModule.updatePermissionModeForSession('full', 'session-1');
       await vi.waitFor(() =>
-        expect(clientMocks.varroSessionUpdatePermissionMode).toHaveBeenCalledWith(
+        expect(clientMocks.loomerySessionUpdatePermissionMode).toHaveBeenCalledWith(
           'session-1',
           'full',
           { directory: '/repo' }
@@ -788,7 +788,7 @@ describe('useOpenCode permission and config flows', () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
     const judge = deferred<{ decision: 'allow'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
 
     const { stateModule, hookModule } = await loadModules();
@@ -804,7 +804,7 @@ describe('useOpenCode permission and config flows', () => {
       });
       await Promise.resolve();
       await Promise.resolve();
-      expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce();
+      expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce();
       expect(stateModule.state.sessionAutoPermissionCounts).toEqual({
         'session-1': { inFlight: 1, approved: 0, rejected: 0 },
       });
@@ -854,7 +854,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([permissionListItem('perm-timeout-sync')]);
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -883,7 +883,7 @@ describe('useOpenCode permission and config flows', () => {
         expect(stateModule.getPermissionReconciliationMetadataSize().activeReconciliations).toBe(0)
       );
 
-      expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce();
+      expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce();
       expect(stateModule.state.permissions).toEqual([
         expect.objectContaining({
           id: 'perm-timeout-sync',
@@ -912,7 +912,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     const judge = deferred<{ decision: 'allow'; reason: string }>();
     const response = deferred<void>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockReturnValue(response.promise);
 
     const { stateModule, hookModule } = await loadModules();
@@ -961,7 +961,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     const judge = deferred<{ decision: 'allow'; reason: string }>();
     const userResponse = deferred<void>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockReturnValue(userResponse.promise);
 
     const { stateModule, hookModule } = await loadModules();
@@ -1011,7 +1011,7 @@ describe('useOpenCode permission and config flows', () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
     const judge = deferred<{ decision: 'allow'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -1024,7 +1024,7 @@ describe('useOpenCode permission and config flows', () => {
       serverEventHandlers.get('permission.asked')?.({
         properties: permissionListItem('perm-replied-first'),
       });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.sessionAutoPermissionActivity['session-1']).toEqual([
         expect.objectContaining({ permissionId: 'perm-replied-first', status: 'reviewing' }),
       ]);
@@ -1051,7 +1051,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([]);
     const judge = deferred<{ decision: 'allow'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
 
     const { stateModule, hookModule } = await loadModules();
     stateModule.setPermissionModeForSession('session-1', 'auto');
@@ -1064,7 +1064,7 @@ describe('useOpenCode permission and config flows', () => {
       serverEventHandlers.get('permission.asked')?.({
         properties: permissionListItem('perm-snapshot-resolved'),
       });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.sessionAutoPermissionActivity['session-1']).toEqual([
         expect.objectContaining({ permissionId: 'perm-snapshot-resolved', status: 'reviewing' }),
       ]);
@@ -1092,7 +1092,7 @@ describe('useOpenCode permission and config flows', () => {
     const childSession = deferred<ReturnType<typeof session>>();
     const judge = deferred<{ decision: 'allow'; reason: string }>();
     clientMocks.sessionGet.mockReturnValue(childSession.promise);
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
 
     const { stateModule, hookModule } = await loadModules();
@@ -1111,11 +1111,11 @@ describe('useOpenCode permission and config flows', () => {
       await vi.waitFor(() =>
         expect(clientMocks.sessionGet).toHaveBeenCalledWith('child-1', { directory: undefined })
       );
-      expect(clientMocks.varroJudgePermission).not.toHaveBeenCalled();
+      expect(clientMocks.loomeryJudgePermission).not.toHaveBeenCalled();
       expect(stateModule.state.permissions).toEqual([]);
 
       childSession.resolve({ ...session('child-1'), parentID: 'session-1' });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([]);
       expect(bridgeMocks.postMessage).not.toHaveBeenCalledWith({
         type: 'permission/reveal',
@@ -1167,7 +1167,7 @@ describe('useOpenCode permission and config flows', () => {
       expect(stateModule.state.permissions).toEqual([
         expect.objectContaining({ id: 'perm-child-timeout', sessionID: 'child-1' }),
       ]);
-      expect(clientMocks.varroJudgePermission).not.toHaveBeenCalled();
+      expect(clientMocks.loomeryJudgePermission).not.toHaveBeenCalled();
       expect(bridgeMocks.postMessage).toHaveBeenCalledWith({
         type: 'permission/reveal',
         payload: { permissionId: 'perm-child-timeout' },
@@ -1186,7 +1186,7 @@ describe('useOpenCode permission and config flows', () => {
       parentID: 'session-1',
     });
     const judge = deferred<{ decision: 'ask'; reason: string }>();
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
 
     const { stateModule, hookModule } = await loadModules();
@@ -1204,7 +1204,7 @@ describe('useOpenCode permission and config flows', () => {
         properties: { ...permissionListItem('perm-child-ask'), sessionID: 'child-1' },
       });
 
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([]);
       expect(bridgeMocks.postMessage).not.toHaveBeenCalledWith({
         type: 'permission/reveal',
@@ -1240,7 +1240,7 @@ describe('useOpenCode permission and config flows', () => {
   it('restores an actionable prompt when an automatic permission response fails', async () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
-    clientMocks.varroJudgePermission.mockResolvedValue({
+    clientMocks.loomeryJudgePermission.mockResolvedValue({
       decision: 'allow',
       reason: 'Safe action.',
     });
@@ -1304,7 +1304,7 @@ describe('useOpenCode permission and config flows', () => {
       }
       throw new Error(`Unexpected session: ${sessionId}`);
     });
-    clientMocks.varroJudgePermission.mockReturnValue(judge.promise);
+    clientMocks.loomeryJudgePermission.mockReturnValue(judge.promise);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
 
     const { stateModule, hookModule } = await loadModules();
@@ -1326,7 +1326,7 @@ describe('useOpenCode permission and config flows', () => {
         });
         expect(clientMocks.sessionGet).toHaveBeenCalledWith('child-1', { directory: undefined });
       });
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledOnce());
       expect(stateModule.state.permissions).toEqual([]);
 
       judge.resolve({ decision: 'allow', reason: 'Safe nested child action.' });
@@ -1354,7 +1354,7 @@ describe('useOpenCode permission and config flows', () => {
       configureReconciliationMocks();
       clientMocks.permissionList.mockResolvedValue([]);
       clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
-      clientMocks.varroJudgePermission
+      clientMocks.loomeryJudgePermission
         .mockResolvedValue({ decision: 'ask', reason: 'review' })
         .mockResolvedValueOnce({ decision: 'ask', reason: 'first call needs review' })
         .mockResolvedValueOnce({ decision: judgeDecision, reason: 'matches user decision' });
@@ -1394,8 +1394,8 @@ describe('useOpenCode permission and config flows', () => {
           properties: { ...permissionListItem('perm-similar'), sessionID: 'child-1' },
         });
 
-        await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(2));
-        expect(clientMocks.varroJudgePermission.mock.calls[1]?.[0]).toEqual(
+        await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(2));
+        expect(clientMocks.loomeryJudgePermission.mock.calls[1]?.[0]).toEqual(
           expect.objectContaining({
             approvedReferences: [
               expect.objectContaining({
@@ -1430,8 +1430,8 @@ describe('useOpenCode permission and config flows', () => {
         serverEventHandlers.get('permission.asked')?.({
           properties: { ...permissionListItem('perm-other'), sessionID: 'session-2' },
         });
-        await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(3));
-        expect(clientMocks.varroJudgePermission.mock.calls[2]?.[0]).toEqual(
+        await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(3));
+        expect(clientMocks.loomeryJudgePermission.mock.calls[2]?.[0]).toEqual(
           expect.objectContaining({ approvedReferences: [] })
         );
       } finally {
@@ -1446,7 +1446,7 @@ describe('useOpenCode permission and config flows', () => {
     clientMocks.permissionList.mockResolvedValue([]);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
     const recheck = deferred<{ decision: 'allow'; reason: string }>();
-    clientMocks.varroJudgePermission
+    clientMocks.loomeryJudgePermission
       .mockResolvedValue({ decision: 'ask', reason: 'review' })
       .mockResolvedValueOnce({ decision: 'ask', reason: 'first request needs review' })
       .mockResolvedValueOnce({ decision: 'ask', reason: 'second request needs review' })
@@ -1482,7 +1482,7 @@ describe('useOpenCode permission and config flows', () => {
         },
       });
       await vi.waitFor(() => {
-        expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(2);
+        expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(2);
         expect(stateModule.state.permissions).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: 'perm-first' }),
@@ -1493,11 +1493,11 @@ describe('useOpenCode permission and config flows', () => {
 
       await hookModule.respondPermission('session-1', 'perm-first', 'always');
 
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(3));
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(3));
       expect(stateModule.state.permissions).toContainEqual(
         expect.objectContaining({ id: 'perm-second' })
       );
-      expect(clientMocks.varroJudgePermission.mock.calls[2]?.[0]).toEqual(
+      expect(clientMocks.loomeryJudgePermission.mock.calls[2]?.[0]).toEqual(
         expect.objectContaining({
           permission: expect.objectContaining({ id: 'perm-second' }),
           approvedReferences: [
@@ -1532,7 +1532,7 @@ describe('useOpenCode permission and config flows', () => {
     configureReconciliationMocks();
     clientMocks.permissionList.mockResolvedValue([permissionListItem()]);
     let resolveJudge: ((value: { decision: 'allow'; reason: string }) => void) | undefined;
-    clientMocks.varroJudgePermission.mockImplementation(
+    clientMocks.loomeryJudgePermission.mockImplementation(
       () =>
         new Promise((resolve) => {
           resolveJudge = resolve;
@@ -1548,7 +1548,7 @@ describe('useOpenCode permission and config flows', () => {
 
     try {
       serverEventHandlers.get('server.connected')?.({});
-      await vi.waitFor(() => expect(clientMocks.varroJudgePermission).toHaveBeenCalledTimes(1));
+      await vi.waitFor(() => expect(clientMocks.loomeryJudgePermission).toHaveBeenCalledTimes(1));
 
       stateModule.setPermissionModeForSession('session-1', 'default');
       resolveJudge?.({ decision: 'allow', reason: 'Allowed.' });
@@ -1596,7 +1596,7 @@ describe('useOpenCode permission and config flows', () => {
     const serverEventHandlers = captureServerEventHandlers();
     configureReconciliationMocks();
     const modeUpdate = deferred<ReturnType<typeof session>>();
-    clientMocks.varroSessionUpdatePermissionMode.mockReturnValue(modeUpdate.promise);
+    clientMocks.loomerySessionUpdatePermissionMode.mockReturnValue(modeUpdate.promise);
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
 
     const { stateModule, hookModule } = await loadModules();
@@ -1609,7 +1609,7 @@ describe('useOpenCode permission and config flows', () => {
     try {
       const update = hookModule.updatePermissionModeForSession('full', 'session-1');
       await vi.waitFor(() =>
-        expect(clientMocks.varroSessionUpdatePermissionMode).toHaveBeenCalledWith(
+        expect(clientMocks.loomerySessionUpdatePermissionMode).toHaveBeenCalledWith(
           'session-1',
           'full',
           { directory: '/repo' }
@@ -1641,7 +1641,7 @@ describe('useOpenCode permission and config flows', () => {
   it('sweeps only effective-full request owners in the selected child subtree', async () => {
     configureReconciliationMocks();
     clientMocks.sessionRespondPermission.mockResolvedValue(undefined);
-    clientMocks.varroSessionUpdatePermissionMode.mockResolvedValue({
+    clientMocks.loomerySessionUpdatePermissionMode.mockResolvedValue({
       ...session('child-1'),
       parentID: 'root-1',
     });

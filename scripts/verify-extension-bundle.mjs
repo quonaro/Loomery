@@ -100,7 +100,7 @@ export async function smokeThumbnailWorker(extensionDirectory) {
   } finally {
     await worker.terminate();
   }
-  const directory = await mkdtemp(join(tmpdir(), 'varro-thumbnail-smoke-'));
+  const directory = await mkdtemp(join(tmpdir(), 'loomery-thumbnail-smoke-'));
   const servicePath = join(extensionDirectory, 'thumbnail-service.js');
   const { SharedThumbnailClient } = createRequire(servicePath)(servicePath);
   const client = new SharedThumbnailClient({ servicePath, stateDirectory: directory, idleMs: 100 });

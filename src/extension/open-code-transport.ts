@@ -53,7 +53,7 @@ export type OpenCodeRescopeResult = {
 };
 
 // The global stream survives per-workspace instance disposal. Its envelopes retain
-// the event directory so Varro can route them to workspace-scoped endpoints.
+// the event directory so Loomery can route them to workspace-scoped endpoints.
 const EVENT_STREAM_PATH = CURRENT_OPENCODE_ENDPOINTS.eventStream;
 
 interface OpenCodeTransportOptions {
@@ -85,7 +85,7 @@ export class OpenCodeTransport {
   private static readonly EVENT_PROCESSING_YIELD_MS = 8;
   private static readonly MAX_EVENT_RECONNECT_DELAY_MS = 30_000;
   private readonly options: OpenCodeTransportOptions;
-  private readonly testServerUrl = process.env.VARRO_TEST_SERVER_URL;
+  private readonly testServerUrl = process.env.LOOMERY_TEST_SERVER_URL;
   private eventController: AbortController | null = null;
   private eventReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private eventReconnectDelay = 1000;
@@ -466,7 +466,7 @@ export class OpenCodeTransport {
           );
           if (res.status === 401 || res.status === 403) {
             this.healthFailure =
-              'OpenCode server authentication failed. Supply the server credentials or restart the Varro-managed server.';
+              'OpenCode server authentication failed. Supply the server credentials or restart the Loomery-managed server.';
             break;
           }
           if (!res.ok) {

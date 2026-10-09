@@ -306,7 +306,7 @@ describe('v2 session system instructions', () => {
         });
         expect(calls.map(({ method, path }) => `${method} ${path}`)).toEqual([
           'GET /api/session/ses_workspace',
-          'PUT /api/experimental/session/ses_workspace/instructions/entries/varro.system',
+          'PUT /api/experimental/session/ses_workspace/instructions/entries/loomery.system',
           ...(action === 'command' ? ['GET /api/command'] : []),
           `POST /api/session/ses_workspace/${action === 'command' ? 'command' : 'prompt'}`,
         ]);
@@ -1875,7 +1875,7 @@ describe('v2 transcript and permission projection', () => {
       version: '2',
     });
     wire.mockClear();
-    const metadata = { varro: { permissionMode: 'auto' } };
+    const metadata = { loomery: { permissionMode: 'auto' } };
     await adapter.request('PATCH', '/session/ses_local', { metadata });
     expect(wire.mock.calls).toHaveLength(1);
     expect(

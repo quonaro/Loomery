@@ -15,7 +15,7 @@ vi.mock('./logger', () => ({ logger: mocks.logger }));
 import { HostRalphStore, RalphHost } from './ralph-host';
 import type { OpenCodeServer } from './server';
 
-const RALPH_RUNS_KEY = 'varro.ralph.runs';
+const RALPH_RUNS_KEY = 'loomery.ralph.runs';
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;

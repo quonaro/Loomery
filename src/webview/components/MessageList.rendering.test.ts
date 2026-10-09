@@ -72,7 +72,7 @@ describe('session pause dividers', () => {
     setState('serverStatus', { state: 'running', url: 'mock://opencode', apiVersion: 2 });
     setState('sessions', [
       session('session-1', {
-        metadata: { varro: { pauses: [{ messageId: 'paused', pausedAt: 100 }] } },
+        metadata: { loomery: { pauses: [{ messageId: 'paused', pausedAt: 100 }] } },
       }),
     ]);
     replaceMessages([
@@ -104,7 +104,7 @@ describe('session pause dividers', () => {
     setState('serverStatus', { state: 'running', url: 'mock://opencode', apiVersion: 2 });
     setState('sessions', [
       session('session-1', {
-        metadata: { varro: { pauses: [{ messageId: 'paused', pausedAt: 100 }] } },
+        metadata: { loomery: { pauses: [{ messageId: 'paused', pausedAt: 100 }] } },
       }),
     ]);
     replaceMessages([
@@ -3245,7 +3245,7 @@ describe('MessageList session scoping', () => {
         id: 'child-1',
         projectID: 'project-1',
         directory: '/workspace',
-        title: 'Explore Varro codebase structure',
+        title: 'Explore Loomery codebase structure',
         version: '1',
         parentID: 'session-1',
         time: { created: 1, updated: 11 },
@@ -3272,7 +3272,7 @@ describe('MessageList session scoping', () => {
             sessionID: 'child-1',
             messageID: 'user-child-1',
             type: 'text',
-            text: 'Explore Varro codebase structure',
+            text: 'Explore Loomery codebase structure',
           },
         ],
       },
@@ -3301,7 +3301,7 @@ describe('MessageList session scoping', () => {
 
     expect(container?.textContent).toContain('Root prompt');
     expect(container?.textContent).toContain('Root response');
-    expect(container?.textContent).not.toContain('Explore Varro codebase structure');
+    expect(container?.textContent).not.toContain('Explore Loomery codebase structure');
     expect(container?.textContent).not.toContain('Subagent result');
   });
 
@@ -3373,7 +3373,7 @@ describe('MessageList session scoping', () => {
         id: 'child-1',
         projectID: 'project-1',
         directory: '/workspace',
-        title: 'Explore Varro codebase structure',
+        title: 'Explore Loomery codebase structure',
         version: '1',
         parentID: 'session-1',
         time: { created: 1, updated: 11 },
@@ -3609,7 +3609,7 @@ describe('MessageList session scoping', () => {
         id: 'child-1',
         projectID: 'project-1',
         directory: '/workspace',
-        title: 'Explore Varro codebase structure',
+        title: 'Explore Loomery codebase structure',
         version: '1',
         parentID: 'session-1',
         time: { created: 1, updated: 11 },
@@ -3662,7 +3662,7 @@ describe('MessageList session scoping', () => {
         id: 'child-1',
         projectID: 'project-1',
         directory: '/workspace',
-        title: 'Explore Varro codebase structure',
+        title: 'Explore Loomery codebase structure',
         version: '1',
         parentID: 'session-1',
         time: { created: 1, updated: 11 },

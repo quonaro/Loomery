@@ -100,7 +100,7 @@ export class ServerConnectionAdmission {
       }
       assertCurrent();
       this.admitted = { url, account, managed };
-      // Missing SID evidence remains unknown. A verified Varro registration
+      // Missing SID evidence remains unknown. A verified Loomery registration
       // admits its own process without downgrading it to an external server.
       this.external = account.kind !== 'same-user' && !managed;
       this.checkedAt = Date.now();

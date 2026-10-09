@@ -40,9 +40,9 @@ import type {
   OpenCodeServerMemoryPermissions,
 } from '../../shared/protocol';
 import {
-  buildVarroSessionEndpoint,
+  buildLoomerySessionEndpoint,
   isSessionHistoryScope,
-  VARRO_API_ENDPOINTS,
+  LOOMERY_API_ENDPOINTS,
 } from '../../shared/protocol';
 import { parseHealthResponse, type HealthResponse } from '../../shared/health';
 import { normalizeRecycleBinEntries } from '../../shared/recycle-bin';
@@ -131,7 +131,7 @@ export const client = {
     ): Promise<Session> {
       return apiCall<Session>(
         'POST',
-        buildVarroSessionEndpoint(id, 'activate'),
+        buildLoomerySessionEndpoint(id, 'activate'),
         { directory },
         { signal: options?.signal }
       ).then(applySessionShareOverride);
@@ -330,7 +330,7 @@ export const client = {
     ): Promise<void> {
       await apiCall(
         'POST',
-        withDirectory(VARRO_API_ENDPOINTS.permissionProjectAllow, options?.directory),
+        withDirectory(LOOMERY_API_ENDPOINTS.permissionProjectAllow, options?.directory),
         { sessionId, permissionId }
       );
     },
@@ -341,7 +341,7 @@ export const client = {
     ): Promise<void> {
       await apiCall(
         'POST',
-        withDirectory(VARRO_API_ENDPOINTS.permissionSessionAllow, options?.directory),
+        withDirectory(LOOMERY_API_ENDPOINTS.permissionSessionAllow, options?.directory),
         { sessionId, permissionId }
       );
     },
@@ -353,7 +353,7 @@ export const client = {
       return apiCall(
         'GET',
         withDirectory(
-          `${VARRO_API_ENDPOINTS.permissionSessionRules}?${params.toString()}`,
+          `${LOOMERY_API_ENDPOINTS.permissionSessionRules}?${params.toString()}`,
           options?.directory
         )
       );
@@ -365,7 +365,7 @@ export const client = {
     ): Promise<PermissionRule[]> {
       return apiCall(
         'POST',
-        withDirectory(VARRO_API_ENDPOINTS.permissionSessionRules, options?.directory),
+        withDirectory(LOOMERY_API_ENDPOINTS.permissionSessionRules, options?.directory),
         { sessionId, rules }
       );
     },
@@ -419,7 +419,7 @@ export const client = {
   config: {
     modelPricing(providerID: string, modelID: string): Promise<ModelPricing | null> {
       const params = new URLSearchParams({ providerID, modelID });
-      return apiCall('GET', `${VARRO_API_ENDPOINTS.modelPricing}?${params}`, undefined, {
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.modelPricing}?${params}`, undefined, {
         retries: 0,
       });
     },
@@ -451,7 +451,7 @@ export const client = {
     async providerLimit(providerID: string, modelID?: string | null): Promise<ProviderLimitStatus> {
       const params = new URLSearchParams({ providerID });
       if (modelID) params.set('modelID', modelID);
-      return apiCall('GET', `${VARRO_API_ENDPOINTS.providerLimit}?${params.toString()}`);
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.providerLimit}?${params.toString()}`);
     },
     async providerAuth(): Promise<ProviderAuthMethodsByProvider> {
       const path = '/provider/auth';
@@ -536,7 +536,7 @@ export const client = {
       return apiCall('DELETE', `/auth/${encodeURIComponent(providerID)}`);
     },
     async disableProvider(providerID: string): Promise<boolean> {
-      return apiCall('POST', VARRO_API_ENDPOINTS.openCodeConfigDisableProvider, { providerID });
+      return apiCall('POST', LOOMERY_API_ENDPOINTS.openCodeConfigDisableProvider, { providerID });
     },
     async workspaceStatus(): Promise<WorkspaceStatusEntry[]> {
       const path = '/experimental/workspace/status';
@@ -544,11 +544,11 @@ export const client = {
     },
   },
 
-  varro: {
+  loomery: {
     sessionHistoryScope: {
       async get(directory: string): Promise<{ scope: SessionHistoryScope; git: boolean }> {
         const params = new URLSearchParams({ directory });
-        const path = `${VARRO_API_ENDPOINTS.sessionHistoryScope}?${params.toString()}`;
+        const path = `${LOOMERY_API_ENDPOINTS.sessionHistoryScope}?${params.toString()}`;
         const value = asRecord(await apiCall('GET', path));
         if (!isSessionHistoryScope(value?.scope) || !isBoolean(value.git)) {
           throw new Error(`Malformed response from ${path}`);
@@ -560,7 +560,7 @@ export const client = {
         scope: SessionHistoryScope
       ): Promise<{ scope: SessionHistoryScope; git: boolean }> {
         const params = new URLSearchParams({ directory });
-        const path = `${VARRO_API_ENDPOINTS.sessionHistoryScope}?${params.toString()}`;
+        const path = `${LOOMERY_API_ENDPOINTS.sessionHistoryScope}?${params.toString()}`;
         const value = asRecord(await apiCall('POST', path, { scope }));
         if (!isSessionHistoryScope(value?.scope) || !isBoolean(value.git)) {
           throw new Error(`Malformed response from ${path}`);
@@ -575,7 +575,7 @@ export const client = {
       ): Promise<boolean> {
         return apiCall(
           'DELETE',
-          withDirectory(buildVarroSessionEndpoint(sessionID, 'delete'), options?.directory)
+          withDirectory(buildLoomerySessionEndpoint(sessionID, 'delete'), options?.directory)
         );
       },
       async diffSummary(
@@ -583,7 +583,7 @@ export const client = {
         revision?: number,
         options?: { directory?: string }
       ): Promise<SessionDiffSummary> {
-        const path = buildVarroSessionEndpoint(sessionID, 'diff-summary');
+        const path = buildLoomerySessionEndpoint(sessionID, 'diff-summary');
         const revisionPath = revision === undefined ? path : `${path}?revision=${revision}`;
         return apiCall('GET', withDirectory(revisionPath, options?.directory));
       },
@@ -594,7 +594,7 @@ export const client = {
       ): Promise<string[]> {
         return apiCall(
           'POST',
-          withDirectory(buildVarroSessionEndpoint(sessionID, 'pin'), options?.directory),
+          withDirectory(buildLoomerySessionEndpoint(sessionID, 'pin'), options?.directory),
           { pinned }
         );
       },
@@ -606,7 +606,7 @@ export const client = {
         return apiCall(
           'POST',
           withDirectory(
-            buildVarroSessionEndpoint(sourceSessionID, 'reorder-pin'),
+            buildLoomerySessionEndpoint(sourceSessionID, 'reorder-pin'),
             options?.directory
           ),
           { targetSessionID, targetDirectory: options?.targetDirectory }
@@ -619,7 +619,7 @@ export const client = {
         return apiCall(
           'POST',
           withDirectory(
-            buildVarroSessionEndpoint(sessionID, 'rename-if-untitled'),
+            buildLoomerySessionEndpoint(sessionID, 'rename-if-untitled'),
             options?.directory
           )
         );
@@ -641,7 +641,7 @@ export const client = {
         return apiCall(
           'POST',
           withDirectory(
-            buildVarroSessionEndpoint(sessionID, 'permission-mode'),
+            buildLoomerySessionEndpoint(sessionID, 'permission-mode'),
             options?.directory
           ),
           body
@@ -649,19 +649,19 @@ export const client = {
       },
     },
     async openPlan(content: string): Promise<{ path: string }> {
-      return apiCall('POST', VARRO_API_ENDPOINTS.planOpen, { content });
+      return apiCall('POST', LOOMERY_API_ENDPOINTS.planOpen, { content });
     },
     async pickWorkspaceFile(): Promise<WorkspaceFilePick | null> {
-      return apiCall('GET', VARRO_API_ENDPOINTS.workspaceFilePick);
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.workspaceFilePick);
     },
     async workspaceProblems(options?: {
       signal?: AbortSignal;
     }): Promise<WorkspaceProblemsSnapshot> {
-      return apiCall('GET', VARRO_API_ENDPOINTS.workspaceProblems, undefined, options);
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.workspaceProblems, undefined, options);
     },
     async readWorkspaceFile(path: string): Promise<string | null> {
       const params = new URLSearchParams({ path });
-      return apiCall('GET', `${VARRO_API_ENDPOINTS.workspaceFile}?${params.toString()}`);
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.workspaceFile}?${params.toString()}`);
     },
     async resolveWorkspacePath(path: string): Promise<{
       path: string;
@@ -669,7 +669,7 @@ export const client = {
       type: 'file' | 'directory';
     } | null> {
       const params = new URLSearchParams({ path });
-      return apiCall('GET', `${VARRO_API_ENDPOINTS.workspacePathResolve}?${params.toString()}`);
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.workspacePathResolve}?${params.toString()}`);
     },
     async matchCopiedSelection(
       text: string,
@@ -679,16 +679,16 @@ export const client = {
       | { type: 'terminal'; selection: { text: string; terminalName: string } }
       | null
     > {
-      return apiCall('POST', VARRO_API_ENDPOINTS.copiedSelectionMatch, { text, plainTextOnly });
+      return apiCall('POST', LOOMERY_API_ENDPOINTS.copiedSelectionMatch, { text, plainTextOnly });
     },
     async openCodeConfig(): Promise<OpenCodeModelRouting> {
-      return apiCall('GET', VARRO_API_ENDPOINTS.openCodeConfig);
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.openCodeConfig);
     },
     async openCodePermissionConfig(): Promise<OpenCodePermissionConfig> {
-      return apiCall('GET', VARRO_API_ENDPOINTS.openCodeConfigPermissions);
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.openCodeConfigPermissions);
     },
     async saveOpenCodePermissionConfig(rules: PermissionRule[]): Promise<OpenCodePermissionConfig> {
-      return apiCall('POST', VARRO_API_ENDPOINTS.openCodeConfigPermissions, { rules });
+      return apiCall('POST', LOOMERY_API_ENDPOINTS.openCodeConfigPermissions, { rules });
     },
     async serverMemoryPermissions(
       sessionId: string | null,
@@ -699,7 +699,7 @@ export const client = {
       const query = params.size > 0 ? `?${params.toString()}` : '';
       return apiCall(
         'GET',
-        withDirectory(`${VARRO_API_ENDPOINTS.permissionServerMemory}${query}`, options?.directory)
+        withDirectory(`${LOOMERY_API_ENDPOINTS.permissionServerMemory}${query}`, options?.directory)
       );
     },
     async removeServerMemoryPermission(
@@ -709,7 +709,7 @@ export const client = {
     ): Promise<OpenCodeServerMemoryPermissions> {
       return apiCall(
         'DELETE',
-        withDirectory(VARRO_API_ENDPOINTS.permissionServerMemory, options?.directory),
+        withDirectory(LOOMERY_API_ENDPOINTS.permissionServerMemory, options?.directory),
         sessionId ? { sessionId, id } : { id }
       );
     },
@@ -720,25 +720,25 @@ export const client = {
       agentName?: string;
       unset?: boolean;
     }): Promise<OpenCodeModelRouting> {
-      return apiCall('POST', VARRO_API_ENDPOINTS.openCodeConfigModelRouting, body);
+      return apiCall('POST', LOOMERY_API_ENDPOINTS.openCodeConfigModelRouting, body);
     },
     async judgePermission(
       body: AutoApproveJudgeRequest,
       options?: { permissionAutomationLease?: number }
     ): Promise<AutoApproveJudgeResponse> {
       return options?.permissionAutomationLease === undefined
-        ? apiCall('POST', VARRO_API_ENDPOINTS.permissionJudge, body)
-        : apiCall('POST', VARRO_API_ENDPOINTS.permissionJudge, body, {
+        ? apiCall('POST', LOOMERY_API_ENDPOINTS.permissionJudge, body)
+        : apiCall('POST', LOOMERY_API_ENDPOINTS.permissionJudge, body, {
             permissionAutomationLease: options.permissionAutomationLease,
           });
     },
     decisionProviders: {
       async status(): Promise<DecisionProviderStatus> {
-        return apiCall('GET', VARRO_API_ENDPOINTS.decisionProviders);
+        return apiCall('GET', LOOMERY_API_ENDPOINTS.decisionProviders);
       },
       async update(request: DecisionProviderRequest): Promise<DecisionProviderStatus> {
         // Connecting waits on a VS Code input box, so allow the user time to paste a key.
-        return apiCall('POST', VARRO_API_ENDPOINTS.decisionProviders, request, {
+        return apiCall('POST', LOOMERY_API_ENDPOINTS.decisionProviders, request, {
           timeoutMs: 315_000,
           retries: 0,
         });
@@ -752,26 +752,26 @@ export const client = {
         if (model.variant) params.set('variant', model.variant);
       }
       const query = params.size > 0 ? `?${params.toString()}` : '';
-      return apiCall('GET', `${VARRO_API_ENDPOINTS.permissionJudgeModel}${query}`);
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.permissionJudgeModel}${query}`);
     },
     recycleBin: {
       async list(): Promise<RecycleBinEntry[]> {
-        return normalizeRecycleBinEntries(await apiCall('GET', VARRO_API_ENDPOINTS.sessionTrash));
+        return normalizeRecycleBinEntries(await apiCall('GET', LOOMERY_API_ENDPOINTS.sessionTrash));
       },
       async restore(rootID: string): Promise<boolean> {
         return apiCall(
           'POST',
-          `${VARRO_API_ENDPOINTS.sessionTrash}/${encodeURIComponent(rootID)}/restore`
+          `${LOOMERY_API_ENDPOINTS.sessionTrash}/${encodeURIComponent(rootID)}/restore`
         );
       },
       async delete(rootID: string): Promise<boolean> {
         return apiCall(
           'DELETE',
-          `${VARRO_API_ENDPOINTS.sessionTrash}/${encodeURIComponent(rootID)}/delete`
+          `${LOOMERY_API_ENDPOINTS.sessionTrash}/${encodeURIComponent(rootID)}/delete`
         );
       },
       async empty(): Promise<boolean> {
-        return apiCall('DELETE', VARRO_API_ENDPOINTS.sessionTrash);
+        return apiCall('DELETE', LOOMERY_API_ENDPOINTS.sessionTrash);
       },
     },
   },
@@ -860,7 +860,7 @@ export const client = {
 
 function withDirectory(path: string, directory: string | undefined): string {
   if (!directory) return path;
-  const url = new URL(path, 'http://varro.local');
+  const url = new URL(path, 'http://loomery.local');
   url.searchParams.set('directory', directory);
   return `${url.pathname}${url.search}`;
 }

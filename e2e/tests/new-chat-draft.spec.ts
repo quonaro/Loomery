@@ -8,6 +8,7 @@
  */
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { openSessions } from './helpers';
 
 type StreamTarget = { sessionID: string; messageID: string; partID: string };
 
@@ -61,7 +62,7 @@ for (const source of ['chat', 'sessions']) {
       await expect(
         page.getByText('Still working through the requested refactor steps.', { exact: true })
       ).toBeVisible();
-      if (source === 'sessions') await page.getByLabel('Back to sessions').first().click();
+      if (source === 'sessions') await openSessions(page);
 
       const newChat = page.getByRole('button', { name: 'New chat', exact: true }).first();
       await newChat.evaluate((element) => {
@@ -129,7 +130,7 @@ test('new chat during active streaming opens a draft and keeps handlers alive', 
   await expect(page.getByText('Post-draft chunk 3', { exact: false })).toBeHidden();
 
   // Handlers must still work: navigate to the session list and back.
-  await page.getByLabel('Back to sessions').first().click();
+  await openSessions(page);
   await expect(page.getByText('Busy stop and send', { exact: false }).first()).toBeVisible();
 
   expect(errors).toEqual([]);
@@ -162,14 +163,14 @@ test('message typed in the draft after + goes to a new session, not the busy one
       page.evaluate(() => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return (
           value?.requests.filter(
             (request) =>
               request.method === 'POST' &&
-              new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+              new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
           ).length ?? 0
         );
       })
@@ -179,19 +180,19 @@ test('message typed in the draft after + goes to a new session, not the busy one
   const requests = await page.evaluate(() => {
     const value = (
       window as Window & {
-        __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+        __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.requests || [];
   });
 
   const promptRequests = requests.filter(
     (request) =>
       request.method === 'POST' &&
-      new URL(request.path, 'http://varro.test').pathname.endsWith('/prompt_async')
+      new URL(request.path, 'http://loomery.test').pathname.endsWith('/prompt_async')
   );
   expect(promptRequests).toHaveLength(1);
-  const promptPath = new URL(promptRequests[0]!.path, 'http://varro.test').pathname;
+  const promptPath = new URL(promptRequests[0]!.path, 'http://loomery.test').pathname;
   const promptSessionId = promptPath.match(/^\/session\/([^/]+)\/prompt_async$/)?.[1];
   if (!promptSessionId) throw new Error(`Unexpected prompt path: ${promptPath}`);
   const decodedPromptSessionId = decodeURIComponent(promptSessionId);
@@ -199,11 +200,11 @@ test('message typed in the draft after + goes to a new session, not the busy one
 
   const deliveredToPromptSession = await page.evaluate((sessionId) => {
     const harness = window as Window & {
-      __varroE2E?: {
+      __loomeryE2E?: {
         getSessionMessages?: (id: string) => Array<{ parts: Array<{ text?: string }> }>;
       };
     };
-    return !!harness.__varroE2E
+    return !!harness.__loomeryE2E
       ?.getSessionMessages?.(sessionId)
       .some((message) => message.parts.some((part) => part.text === 'Hello from the draft chat.'));
   }, decodedPromptSessionId);

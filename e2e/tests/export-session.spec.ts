@@ -16,9 +16,9 @@ test('slash /export sends session/export message for active session', async ({ p
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { exportSessionIds?: string[] };
+            __loomeryE2E?: { exportSessionIds?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.exportSessionIds?.[0] || null;
       })
     )
@@ -36,9 +36,9 @@ test('/export is unavailable when no session is active', async ({ page }) => {
   const exportCount = await getE2EState(page, () => {
     const value = (
       window as Window & {
-        __varroE2E?: { exportSessionIds?: string[] };
+        __loomeryE2E?: { exportSessionIds?: string[] };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     return value?.exportSessionIds?.length || 0;
   });
 
@@ -61,9 +61,9 @@ test('/export sends correct session after switching sessions', async ({ page }) 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { exportSessionIds?: string[] };
+            __loomeryE2E?: { exportSessionIds?: string[] };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         return value?.exportSessionIds?.[0] || null;
       })
     )

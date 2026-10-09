@@ -88,7 +88,7 @@ describe('explicit legacy session copy import', () => {
     expect(id).not.toBe('root');
     expect(payloads).toHaveLength(2);
     expect(payloads[0]).toMatchObject({
-      info: { id, metadata: { varroLegacyImport: { sourceSessionID: 'root' } } },
+      info: { id, metadata: { loomeryLegacyImport: { sourceSessionID: 'root' } } },
     });
     const childID = asRecord(payloads[1]?.info)?.id;
     expect(payloads[1]).toMatchObject({ info: { parentID: id } });
@@ -106,7 +106,7 @@ describe('explicit legacy session copy import', () => {
             },
           ],
           metadata: {
-            varroLegacy: {
+            loomeryLegacy: {
               info: { id: 'message-root', sessionID: 'root' },
               parts: [{ state: { metadata: { sessionId: 'child' } } }],
             },

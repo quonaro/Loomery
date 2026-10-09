@@ -23,7 +23,7 @@ async function exists(filename) {
 }
 
 export async function startAiTestServer(workspace) {
-  let binary = process.env.VARRO_OPENCODE_TEST_BINARY;
+  let binary = process.env.LOOMERY_OPENCODE_TEST_BINARY;
   if (!binary) {
     for (const candidate of ['opencode2', 'opencode']) {
       try {
@@ -33,7 +33,7 @@ export async function startAiTestServer(workspace) {
       } catch {}
     }
   }
-  if (!binary) throw new Error('Set VARRO_OPENCODE_TEST_BINARY to the host OpenCode executable');
+  if (!binary) throw new Error('Set LOOMERY_OPENCODE_TEST_BINARY to the host OpenCode executable');
   const version = execFileSync(binary, ['--version'], { encoding: 'utf8' }).trim();
   const major = Number(version.replace(/^opencode v/, '').split('.')[0]);
   if (major !== 1 && major !== 2) throw new Error(`Unsupported OpenCode version: ${version}`);

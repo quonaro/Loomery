@@ -135,7 +135,7 @@ export class OpenCodeConfigService {
       }
     }
 
-    const extensionConfig = vscode.workspace.getConfiguration('varro');
+    const extensionConfig = vscode.workspace.getConfiguration('loomery');
     return {
       smallModel,
       agentModels,
@@ -198,7 +198,7 @@ export class OpenCodeConfigService {
       const key =
         request.target === 'commit_message' ? 'commitMessage.model' : 'chat.autoApproveModel';
       await vscode.workspace
-        .getConfiguration('varro')
+        .getConfiguration('loomery')
         .update(
           key,
           request.unset ? undefined : `${request.providerID}/${request.modelID}`,

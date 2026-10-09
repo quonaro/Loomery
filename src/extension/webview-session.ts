@@ -63,6 +63,7 @@ export class WebviewSession {
   private pendingSearchSessions = false;
   private pendingOpenAttentionSessions = false;
   private pendingOpenCompletedSessions = false;
+  private pendingOpenAllSessions = false;
   private pendingCommands: Array<
     Extract<
       ExtensionMessage,
@@ -226,6 +227,11 @@ export class WebviewSession {
     this.flushPendingOpenCompletedSessions();
   }
 
+  openAllSessions() {
+    this.pendingOpenAllSessions = true;
+    this.flushPendingOpenAllSessions();
+  }
+
   queueCommand(
     message: Extract<
       ExtensionMessage,
@@ -255,10 +261,10 @@ export class WebviewSession {
       this.commandState.canSwitchSessions !== canSwitchSessions;
     this.commandState = { canAbort, canSwitchSessions };
     if (this.manageCommandContext && changed) {
-      void vscode.commands.executeCommand('setContext', 'varro:canAbortSession', canAbort);
+      void vscode.commands.executeCommand('setContext', 'loomery:canAbortSession', canAbort);
       void vscode.commands.executeCommand(
         'setContext',
-        'varro:canSwitchSessions',
+        'loomery:canSwitchSessions',
         canSwitchSessions
       );
     }
@@ -349,7 +355,7 @@ export class WebviewSession {
         logger.error(`getHtml failed: ${err instanceof Error ? err.message : String(err)}`);
         this.webviewReady = false;
         this.deps.handleUnavailableSideEffects();
-        webviewView.webview.html = '<p>Failed to load Varro webview. Please reload.</p>';
+        webviewView.webview.html = '<p>Failed to load Loomery webview. Please reload.</p>';
       });
 
     let wasVisible = webviewView.visible;
@@ -672,6 +678,7 @@ export class WebviewSession {
     this.flushPendingSearchSessions();
     this.flushPendingOpenAttentionSessions();
     this.flushPendingOpenCompletedSessions();
+    this.flushPendingOpenAllSessions();
   }
 
   private commitRecoverySnapshot(snapshot: RecoverySnapshot) {
@@ -705,6 +712,12 @@ export class WebviewSession {
     this.bridge.post({ type: 'command/open-completed-sessions' });
   }
 
+  private flushPendingOpenAllSessions() {
+    if (!this.pendingOpenAllSessions || !this.bridge.isVisible() || !this.webviewReady) return;
+    this.pendingOpenAllSessions = false;
+    this.bridge.post({ type: 'command/open-sessions' });
+  }
+
   private flushPendingSearchSessions() {
     if (!this.pendingSearchSessions || !this.bridge.isVisible() || !this.webviewReady) return;
     this.pendingSearchSessions = false;
@@ -721,8 +734,8 @@ export class WebviewSession {
     this.commandStateReady = false;
     this.commandState = undefined;
     if (!this.manageCommandContext) return;
-    void vscode.commands.executeCommand('setContext', 'varro:canAbortSession', false);
-    void vscode.commands.executeCommand('setContext', 'varro:canSwitchSessions', false);
+    void vscode.commands.executeCommand('setContext', 'loomery:canAbortSession', false);
+    void vscode.commands.executeCommand('setContext', 'loomery:canSwitchSessions', false);
   }
 
   private registerMessageListener(webviewView: WebviewHost, generation: number) {

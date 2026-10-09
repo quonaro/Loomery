@@ -30,10 +30,10 @@ test('keeps selected model, agent, MCP, and permission mode after reload', async
   await expect
     .poll(() =>
       getE2EState(page, () => ({
-        sessionSelectedAgents: localStorage.getItem('varro.sessionSelectedAgents'),
-        sessionSelectedModels: localStorage.getItem('varro.sessionSelectedModels'),
-        sessionPermissionModes: localStorage.getItem('varro.sessionPermissionModes'),
-        sessionSelectedMcps: localStorage.getItem('varro.sessionSelectedMcps'),
+        sessionSelectedAgents: localStorage.getItem('loomery.sessionSelectedAgents'),
+        sessionSelectedModels: localStorage.getItem('loomery.sessionSelectedModels'),
+        sessionPermissionModes: localStorage.getItem('loomery.sessionPermissionModes'),
+        sessionSelectedMcps: localStorage.getItem('loomery.sessionSelectedMcps'),
       }))
     )
     .toMatchObject({
@@ -69,7 +69,7 @@ test('keeps composer text and attached files after reload', async ({ page }) => 
         type: 'files/dropped',
         payload: [
           {
-            path: '/workspace/varro/src/persisted.ts',
+            path: '/workspace/loomery/src/persisted.ts',
             relativePath: 'src/persisted.ts',
             type: 'file',
           },
@@ -95,9 +95,9 @@ test('keeps composer text and attached files after reload', async ({ page }) => 
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (request) => request.method === 'POST' && request.path.includes('prompt_async')
         );

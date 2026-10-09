@@ -62,7 +62,7 @@ export function summarizeSamples(samples) {
 
 // Diagnostic only. Existing timers predate this probe and are explicitly outside its coverage.
 export function installSchedulingProbe() {
-  if (globalThis.varroSchedulingProbe) throw new Error('Scheduling probe already installed');
+  if (globalThis.loomerySchedulingProbe) throw new Error('Scheduling probe already installed');
   const sites = new Map();
   const originals = new Map();
   const longtasks = [];
@@ -108,12 +108,12 @@ export function installSchedulingProbe() {
       })
     : null;
   observer?.observe({ type: 'longtask' });
-  globalThis.varroSchedulingProbe = {
+  globalThis.loomerySchedulingProbe = {
     stop() {
       active = false;
       observer?.disconnect();
       for (const [name, original] of originals) globalThis[name] = original;
-      delete globalThis.varroSchedulingProbe;
+      delete globalThis.loomerySchedulingProbe;
       return {
         scope: 'Callbacks scheduled after probe installation only',
         longtasks: supported ? longtasks : null,
@@ -207,13 +207,13 @@ export async function measurePerformance({
       samples,
     };
     if (probe) {
-      report.attribution = await frame.evaluate(() => globalThis.varroSchedulingProbe.stop());
+      report.attribution = await frame.evaluate(() => globalThis.loomerySchedulingProbe.stop());
       probe = false;
     }
     await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
     return report;
   } finally {
-    if (probe) await frame.evaluate(() => globalThis.varroSchedulingProbe?.stop()).catch(() => {});
+    if (probe) await frame.evaluate(() => globalThis.loomerySchedulingProbe?.stop()).catch(() => {});
     await frame.call('Performance.disable').catch(() => {});
     frame.close();
     browser?.dispose();

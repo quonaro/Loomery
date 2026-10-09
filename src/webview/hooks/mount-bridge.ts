@@ -145,6 +145,7 @@ export function createMountBridgeOperations(deps: {
         requestComposerFocus: uiStore.requestComposerFocus,
         requestOpenAttentionSessions: uiStore.requestOpenAttentionSessions,
         requestOpenCompletedSessions: uiStore.requestOpenCompletedSessions,
+        requestOpenAllSessions: uiStore.requestOpenAllSessions,
         requestSessionSearchFocus: uiStore.requestSessionSearchFocus,
         abortSession: deps.abortSession,
         refreshMcps: deps.refreshMcps,
@@ -231,6 +232,7 @@ export function handleExtensionMessageWithDependencies(
     requestComposerFocus(): void;
     requestOpenAttentionSessions(): void;
     requestOpenCompletedSessions(): void;
+    requestOpenAllSessions?(): void;
     requestSessionSearchFocus?(): void;
     abortSession(): void;
     refreshMcps(): void;
@@ -358,6 +360,9 @@ export function handleExtensionMessageWithDependencies(
       break;
     case 'command/search-sessions':
       deps.requestSessionSearchFocus?.();
+      break;
+    case 'command/open-sessions':
+      deps.requestOpenAllSessions?.();
       break;
     case 'command/abort':
       deps.abortSession();

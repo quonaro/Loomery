@@ -170,7 +170,7 @@ const serverStatus = () => defaultAppState.state.serverStatus;
  */
 function inferDetail(message: string): ServerErrorDetail {
   if (message.includes('not found at the configured path')) {
-    return { kind: 'cli-path-invalid', settingId: 'varro.server.command' };
+    return { kind: 'cli-path-invalid', settingId: 'loomery.server.command' };
   }
   if (message.includes('OpenCode CLI not found')) {
     return { kind: 'cli-missing', suggestedCommand: OPENCODE_INSTALL_COMMAND };
@@ -225,7 +225,7 @@ export function ServerStatus() {
             <img
               class="server-status-detecting-logo animate-pulse-soft"
               src={defaultAppState.state.emptyStateLogoUri}
-              alt="Varro"
+              alt="Loomery"
             />
           </Show>
         </div>
@@ -269,7 +269,7 @@ export function ServerStatus() {
             <p class="text-[12px] leading-normal text-vscode-muted">
               OpenCode is running, but it does not have any providers configured yet.
               <br />
-              Add one with the provider login command. Varro will refresh the provider list
+              Add one with the provider login command. Loomery will refresh the provider list
               automatically when setup completes.
             </p>
           </div>
@@ -304,7 +304,7 @@ function MissingCliState() {
       <div class="flex w-full flex-col gap-1.5">
         <p class="text-[13px] font-medium text-vscode-fg">OpenCode is not installed</p>
         <p class="text-[12px] leading-normal text-vscode-muted">
-          Varro gives{' '}
+          Loomery gives{' '}
           <button
             type="button"
             class="text-vscode-link hover:text-vscode-link-active hover:underline"
@@ -327,7 +327,7 @@ function MissingCliState() {
       </button>
       <p class="text-[11px] leading-normal text-vscode-muted">
         Use npm on macOS, Linux, or WSL. On native Windows, download the CLI from the install docs
-        below and set its path in varro.server.command.
+        below and set its path in loomery.server.command.
       </p>
       <details class="w-full text-[11px] text-vscode-muted">
         <summary class="cursor-pointer">Use OpenCode v1 instead</summary>
@@ -338,23 +338,23 @@ function MissingCliState() {
             onClick={() => runInTerminal(OPENCODE_V1_INSTALL_COMMAND, 'OpenCode Install')}
           />
           <p>
-            Set varro.server.command to your v1 executable to keep using v1. Both versions now use
+            Set loomery.server.command to your v1 executable to keep using v1. Both versions now use
             the opencode command; use separate executable paths if you keep both.
           </p>
         </div>
       </details>
       <RecoveryActions />
       {/* Installs under a Node version manager land outside the directories
-          Varro can scan, so point at the escape hatch instead of insisting
+          Loomery can scan, so point at the escape hatch instead of insisting
           OpenCode is missing. */}
       <p class="text-[11px] leading-normal text-vscode-muted">
-        Already installed? Varro could not find it on PATH - set the full path in{' '}
+        Already installed? Loomery could not find it on PATH - set the full path in{' '}
         <button
           type="button"
           class="text-vscode-link hover:text-vscode-link-active hover:underline"
-          onClick={() => openSettings('varro.server.command')}
+          onClick={() => openSettings('loomery.server.command')}
         >
-          varro.server.command
+          loomery.server.command
         </button>
         .
       </p>
@@ -383,7 +383,7 @@ function InvalidPathState(props: { message: string; detail: ServerErrorDetail })
       <button
         type="button"
         class="server-status-action-button"
-        onClick={() => openSettings(props.detail.settingId || 'varro.server.command')}
+        onClick={() => openSettings(props.detail.settingId || 'loomery.server.command')}
       >
         <span>Open settings</span>
       </button>
@@ -428,7 +428,7 @@ function UpdateState(props: { message: string; detail: ServerErrorDetail }) {
 
       <Show when={isWaiting()}>
         <p class="text-[11px] leading-normal text-vscode-muted">
-          Varro will check again and only restart after the server is idle.
+          Loomery will check again and only restart after the server is idle.
         </p>
         <SecondaryButton label="Check Again" onClick={restartServer} />
       </Show>

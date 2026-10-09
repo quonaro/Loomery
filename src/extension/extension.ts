@@ -3,21 +3,22 @@ import { OpenCodeServer } from './server';
 import { SidebarProvider } from './sidebar-provider';
 import { ContextProvider } from './context-provider';
 import { registerCommands } from './commands';
+import { startDevAutoRestart } from './dev-auto-restart';
 import { logger } from './logger';
 import { readServerPortSetting, sweepStaleInjectedConfigDirectories } from './open-code-process';
 import { disposeProcessInspection } from './process-inspection';
 import { diagnosticTimeline } from './diagnostics';
 import { measureStartupPhase } from '../shared/startup';
-import { prepareVarroScratchDirectory } from './varro-state-paths';
+import { prepareLoomeryScratchDirectory } from './loomery-state-paths';
 
 const CONTEXT_RESCOPE_RETRY_MS = 50;
 const CONTEXT_RESTART_GRACE_MS = 3000;
 const INITIAL_SIDEBAR_REVEAL_KEY = 'layout.initialSidebarReveal.v1';
 const PRIMARY_SIDEBAR_MIGRATION_KEY = 'layout.cursorPrimarySidebar.v1';
-const PRIMARY_SIDEBAR_CONTAINER = 'workbench.view.extension.varro-primary';
-const SECONDARY_SIDEBAR_CONTAINER = 'workbench.view.extension.varro';
+const PRIMARY_SIDEBAR_CONTAINER = 'workbench.view.extension.loomery-primary';
+const SECONDARY_SIDEBAR_CONTAINER = 'workbench.view.extension.loomery';
 const PRIMARY_SIDEBAR_HOSTS = ['cursor', 'windsurf', 'devin'];
-const SHOW_FILE_DIFFS_CONTEXT = 'varro:showFileDiffs';
+const SHOW_FILE_DIFFS_CONTEXT = 'loomery:showFileDiffs';
 
 function syncShowFileDiffsContext(config: vscode.WorkspaceConfiguration): void {
   void vscode.commands.executeCommand(
@@ -62,7 +63,7 @@ async function placeViewInPrimarySidebar(context: vscode.ExtensionContext): Prom
     const commandIds = await vscode.commands.getCommands();
     if (!commandIds.includes('vscode.moveViews')) {
       logger.warn(
-        'The host does not expose the command required to move Varro to the Primary Sidebar'
+        'The host does not expose the command required to move Loomery to the Primary Sidebar'
       );
       return;
     }
@@ -73,7 +74,7 @@ async function placeViewInPrimarySidebar(context: vscode.ExtensionContext): Prom
     });
   } catch (err) {
     logger.warn(
-      `Failed to move Varro to the Primary Sidebar: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to move Loomery to the Primary Sidebar: ${err instanceof Error ? err.message : String(err)}`
     );
     return;
   }
@@ -82,7 +83,7 @@ async function placeViewInPrimarySidebar(context: vscode.ExtensionContext): Prom
     await context.globalState.update(PRIMARY_SIDEBAR_MIGRATION_KEY, true);
   } catch (err) {
     logger.warn(
-      `Failed to remember Varro's Primary Sidebar placement: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to remember Loomery's Primary Sidebar placement: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }
@@ -99,7 +100,7 @@ async function revealSidebarOnFirstActivation(
     await vscode.commands.executeCommand(`${SidebarProvider.viewType}.focus`);
   } catch (err) {
     logger.warn(
-      `Failed to reveal Varro after installation: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to reveal Loomery after installation: ${err instanceof Error ? err.message : String(err)}`
     );
     return;
   }
@@ -108,7 +109,7 @@ async function revealSidebarOnFirstActivation(
     await globalState.update(INITIAL_SIDEBAR_REVEAL_KEY, true);
   } catch (err) {
     logger.warn(
-      `Failed to remember Varro's initial sidebar reveal: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to remember Loomery's initial sidebar reveal: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }
@@ -122,7 +123,7 @@ function createSidebarRevealer(destinationId: string): () => Promise<void> {
       });
     } catch (err) {
       logger.warn(
-        `Failed to restore Varro's sidebar placement: ${err instanceof Error ? err.message : String(err)}`
+        `Failed to restore Loomery's sidebar placement: ${err instanceof Error ? err.message : String(err)}`
       );
       await vscode.commands.executeCommand(`${SidebarProvider.viewType}.resetViewLocation`);
     }
@@ -149,10 +150,10 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function activateExtension(context: vscode.ExtensionContext) {
-  logger.info('Activating Varro extension');
-  if (!vscode.workspace.workspaceFolders?.length) await prepareVarroScratchDirectory();
+  logger.info('Activating Loomery extension');
+  if (!vscode.workspace.workspaceFolders?.length) await prepareLoomeryScratchDirectory();
 
-  const config = vscode.workspace.getConfiguration('varro');
+  const config = vscode.workspace.getConfiguration('loomery');
   const port = readServerPortSetting(config.get<unknown>('server.port', 'auto'));
   const autoStart = config.get<boolean>('server.autoStart', true);
   const command = config.get<string>('server.command', '');
@@ -160,7 +161,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
   const simulateNoProviders = config.get<boolean>('debug.simulateNoProviders', false);
   let legacyDefaultEndpoint = false;
   if (port === 'auto' && context.globalState) {
-    const key = 'varro.server.legacyDefaultEndpoint';
+    const key = 'loomery.server.legacyDefaultEndpoint';
     legacyDefaultEndpoint =
       context.globalState.get<boolean>(key) ??
       context.globalState.get<boolean>(INITIAL_SIDEBAR_REVEAL_KEY) === true;
@@ -198,7 +199,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
         if (generation !== contextUpdateGeneration) return;
         try {
           if (ctx.workspaceFolders?.length === 0) {
-            await prepareVarroScratchDirectory();
+            await prepareLoomeryScratchDirectory();
             if (generation !== contextUpdateGeneration) return;
           }
           const result = await server?.rescopeEventStream(ctx.workspacePath || undefined);
@@ -227,9 +228,9 @@ async function activateExtension(context: vscode.ExtensionContext) {
       }
     })();
   }, context.workspaceState);
-  if (process.env.VARRO_SANDBOX_SCENARIO === 'file-link-open') {
+  if (process.env.LOOMERY_SANDBOX_SCENARIO === 'file-link-open') {
     context.subscriptions.push(
-      vscode.commands.registerCommand('varro.test.openPath', (path: string, line?: number) =>
+      vscode.commands.registerCommand('loomery.test.openPath', (path: string, line?: number) =>
         contextProvider?.openPath(path, { kind: 'file', line })
       )
     );
@@ -244,8 +245,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     context.extension.id,
     simulateNoProviders,
     undefined,
-    context.secrets,
-    context.globalStorageUri
+    context.secrets
   );
 
   context.subscriptions.push(
@@ -259,17 +259,17 @@ async function activateExtension(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      const portChanged = event.affectsConfiguration('varro.server.port');
+      const portChanged = event.affectsConfiguration('loomery.server.port');
       const launchSettingsChanged =
-        event.affectsConfiguration('varro.server.autoStart') ||
-        event.affectsConfiguration('varro.server.command');
-      const fileDiffsChanged = event.affectsConfiguration('varro.chat.showFileDiffs');
+        event.affectsConfiguration('loomery.server.autoStart') ||
+        event.affectsConfiguration('loomery.server.command');
+      const fileDiffsChanged = event.affectsConfiguration('loomery.chat.showFileDiffs');
       if (!portChanged && !launchSettingsChanged && !fileDiffsChanged) return;
 
       if (portChanged) {
         void vscode.window
           .showInformationMessage(
-            'Reload VS Code to apply the new Varro server port.',
+            'Reload VS Code to apply the new Loomery server port.',
             'Reload Window'
           )
           .then((selection) => {
@@ -279,7 +279,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
           });
       }
 
-      const nextConfig = vscode.workspace.getConfiguration('varro');
+      const nextConfig = vscode.workspace.getConfiguration('loomery');
       if (fileDiffsChanged) {
         syncShowFileDiffsContext(nextConfig);
       }
@@ -310,13 +310,15 @@ async function activateExtension(context: vscode.ExtensionContext) {
       await revealSidebarOnFirstActivation(context, sidebarDestination);
     } catch (err) {
       logger.warn(
-        `Failed to initialize Varro's sidebar placement: ${err instanceof Error ? err.message : String(err)}`
+        `Failed to initialize Loomery's sidebar placement: ${err instanceof Error ? err.message : String(err)}`
       );
     }
   })();
 
-  void vscode.commands.executeCommand('setContext', 'varro:activated', true);
+  void vscode.commands.executeCommand('setContext', 'loomery:activated', true);
   sidebarProvider.startProviderFileObservation();
+  const devAutoRestart = startDevAutoRestart(context);
+  if (devAutoRestart) context.subscriptions.push(devAutoRestart);
   void (async () => {
     try {
       await sweepStaleInjectedConfigDirectories();
@@ -326,7 +328,9 @@ async function activateExtension(context: vscode.ExtensionContext) {
       );
     }
   })();
-  logger.info('Varro extension activated; server startup is deferred until the chat view is used');
+  logger.info(
+    'Loomery extension activated; server startup is deferred until the chat view is used'
+  );
 }
 
 export async function deactivate() {
@@ -339,9 +343,9 @@ export async function deactivate() {
   contextProvider = null;
   sidebarProvider = null;
   await disposeSafe(
-    () => vscode.commands.executeCommand('setContext', 'varro:activated', false),
+    () => vscode.commands.executeCommand('setContext', 'loomery:activated', false),
     'setContext deactivate'
   );
-  logger.info('Varro extension deactivated');
+  logger.info('Loomery extension deactivated');
   logger.dispose();
 }

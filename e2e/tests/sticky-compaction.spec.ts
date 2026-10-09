@@ -13,12 +13,12 @@ test('virtualized sticky prompt stays visible across compaction in both directio
     // SAFETY: The isolated E2E fixture exposes this event transport and history lookup.
     const harness = (
       window as typeof window & {
-        __varroE2E: {
+        __loomeryE2E: {
           replayServerEvent: (event: ServerEvent) => void;
           getSessionMessages: (id: string) => MessageEntry[];
         };
       }
-    ).__varroE2E;
+    ).__loomeryE2E;
     const sessionID = 'session-sticky-preview-large';
     const answer = harness
       .getSessionMessages(sessionID)
@@ -93,12 +93,12 @@ for (const kind of ['compaction', 'action'] as const) {
       // SAFETY: The isolated E2E fixture exposes this event transport and history lookup.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             replayServerEvent: (event: ServerEvent) => void;
             getSessionMessages: (id: string) => MessageEntry[];
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const sessionID = 'session-sticky-preview';
       const messages = harness.getSessionMessages(sessionID);
       const user = messages.find((m) => m.info.id === 'message-sticky-user-2')!;

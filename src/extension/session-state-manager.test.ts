@@ -116,7 +116,7 @@ describe('SessionStateManager notifications', () => {
 
     expect(manager.pendingForUser.size).toBe(1);
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      'Varro needs permission approval.',
+      'Loomery needs permission approval.',
       'Open Chat'
     );
   });
@@ -138,7 +138,7 @@ describe('SessionStateManager notifications', () => {
     manager.revealPermission('perm-1');
 
     expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-      'Varro needs permission approval.',
+      'Loomery needs permission approval.',
       'Open Chat'
     );
 
@@ -203,7 +203,7 @@ describe('SessionStateManager notifications', () => {
       await vi.advanceTimersByTimeAsync(1);
       expect(manager.pendingForUser.size).toBe(1);
       expect(vscodeMock.window.showWarningMessage).toHaveBeenCalledWith(
-        'Varro needs permission approval.',
+        'Loomery needs permission approval.',
         'Open Chat'
       );
     } finally {
@@ -287,7 +287,7 @@ describe('SessionStateManager notifications', () => {
     expect(manager.busy.has('session-1')).toBe(false);
     expect(manager.completed.has('session-1')).toBe(true);
     expect(vscodeMock.window.showInformationMessage).toHaveBeenCalledWith(
-      'Varro has a plan ready for review for "Auth cleanup".',
+      'Loomery has a plan ready for review for "Auth cleanup".',
       'Open Chat'
     );
   });
@@ -859,7 +859,7 @@ describe('SessionStateManager notifications', () => {
     expect(manager.busy.has('session-1')).toBe(false);
     expect(manager.completed.has('session-1')).toBe(true);
     expect(vscodeMock.window.showInformationMessage).toHaveBeenCalledWith(
-      'Varro has a plan ready for review for "Auth cleanup".',
+      'Loomery has a plan ready for review for "Auth cleanup".',
       'Open Chat'
     );
   });
@@ -1159,7 +1159,7 @@ describe('SessionStateManager notifications', () => {
       manager.setSessionUnreadState('session-1', kind, true, '/repo', 100);
       manager.setSessionUnreadState('session-1', kind, false, '/repo', 200);
       await manager.flush();
-      expect(values.get('varro.acknowledgedCompletions')).toEqual({
+      expect(values.get('loomery.acknowledgedCompletions')).toEqual({
         'session-1': { [kind]: 200 },
       });
 
@@ -1197,7 +1197,7 @@ describe('SessionStateManager notifications', () => {
     manager.setSessionUnreadState('session-1', 'completed', false, '/repo', 150);
     await manager.flush();
 
-    expect(values.get('varro.acknowledgedCompletions')).toEqual({
+    expect(values.get('loomery.acknowledgedCompletions')).toEqual({
       'session-1': { completed: 150, 'plan-ready': 600 },
     });
 
@@ -1216,7 +1216,7 @@ describe('SessionStateManager notifications', () => {
     const workspaceState = {
       get: vi.fn((key: string) => values.get(key)),
       set: vi.fn((key: string, value: unknown) => {
-        if (key === 'varro.acknowledgedCompletions' && attempts++ === 0) {
+        if (key === 'loomery.acknowledgedCompletions' && attempts++ === 0) {
           return Promise.reject(new Error('write failed'));
         }
         values.set(key, value);
@@ -1235,7 +1235,7 @@ describe('SessionStateManager notifications', () => {
     manager.setSessionUnreadState('session-1', 'plan-ready', false, '/repo', 200);
     await manager.flush();
 
-    expect(values.get('varro.acknowledgedCompletions')).toEqual({
+    expect(values.get('loomery.acknowledgedCompletions')).toEqual({
       'session-1': { 'plan-ready': 200 },
     });
   });
@@ -1243,7 +1243,7 @@ describe('SessionStateManager notifications', () => {
   it('does not trust the kind of legacy mixed acknowledgement markers', () => {
     const workspaceState = {
       get: vi.fn((key: string) =>
-        key === 'varro.acknowledgedCompletions' ? { 'ordinary-1': 500, 'plan-1': 500 } : undefined
+        key === 'loomery.acknowledgedCompletions' ? { 'ordinary-1': 500, 'plan-1': 500 } : undefined
       ),
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn(() => Promise.resolve()),
@@ -1340,7 +1340,7 @@ describe('SessionStateManager notifications', () => {
 
     expect(vscodeMock.window.showErrorMessage).toHaveBeenCalledTimes(1);
     expect(vscodeMock.window.showErrorMessage).toHaveBeenCalledWith(
-      'Varro hit an error for "Build release": Command failed',
+      'Loomery hit an error for "Build release": Command failed',
       'Open Chat'
     );
   });
@@ -1393,7 +1393,7 @@ describe('SessionStateManager notifications', () => {
 
     expect(vscodeMock.window.showErrorMessage).toHaveBeenCalledTimes(1);
     expect(vscodeMock.window.showErrorMessage).toHaveBeenCalledWith(
-      'Varro hit an error for "Build release": Command failed',
+      'Loomery hit an error for "Build release": Command failed',
       'Open Chat'
     );
   });
@@ -1492,10 +1492,10 @@ describe('SessionStateManager notifications', () => {
 
     const interruptedUpdate = [...workspaceState.set.mock.calls]
       .toReversed()
-      .find((call) => call[0] === 'varro.interruptedSessions') as [string, unknown] | undefined;
+      .find((call) => call[0] === 'loomery.interruptedSessions') as [string, unknown] | undefined;
     const blockingUpdate = [...workspaceState.set.mock.calls]
       .toReversed()
-      .find((call) => call[0] === 'varro.blockingRequests') as [string, unknown] | undefined;
+      .find((call) => call[0] === 'loomery.blockingRequests') as [string, unknown] | undefined;
 
     const interruptedSnapshots = (interruptedUpdate?.[1] ?? []) as Array<{ title?: string }>;
     const blockingSnapshots = (blockingUpdate?.[1] ?? []) as Array<{
@@ -1566,7 +1566,7 @@ describe('SessionStateManager notifications', () => {
     });
     await manager.persist();
 
-    const snapshots = persisted.get('varro.blockingRequests') as Array<{
+    const snapshots = persisted.get('loomery.blockingRequests') as Array<{
       id: string;
       eventType?: string;
       props: Record<string, unknown>;
@@ -1617,7 +1617,7 @@ describe('SessionStateManager notifications', () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn(() => undefined),
       set: vi.fn((key: string, value: unknown) => {
-        if (key !== 'varro.interruptedSessions') return Promise.resolve();
+        if (key !== 'loomery.interruptedSessions') return Promise.resolve();
         interruptedSnapshots.push(value);
         if (interruptedSnapshots.length > 1) return Promise.resolve();
         return new Promise<void>((resolve) => {
@@ -1652,7 +1652,7 @@ describe('SessionStateManager notifications', () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn(() => undefined),
       set: vi.fn((key: string, value: unknown) => {
-        if (key !== 'varro.interruptedSessions') return Promise.resolve();
+        if (key !== 'loomery.interruptedSessions') return Promise.resolve();
         interruptedSnapshots.push(value);
         if (firstInterruptedWrite) {
           firstInterruptedWrite = false;
@@ -1688,11 +1688,11 @@ describe('SessionStateManager notifications', () => {
     let interruptedWriteCount = 0;
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) => {
-        if (key === 'varro.interruptedSessions') events.push('get');
+        if (key === 'loomery.interruptedSessions') events.push('get');
         return storage.get(key);
       }),
       set: vi.fn((key: string, value: unknown) => {
-        if (key !== 'varro.interruptedSessions') {
+        if (key !== 'loomery.interruptedSessions') {
           storage.set(key, value);
           return Promise.resolve();
         }
@@ -1712,7 +1712,7 @@ describe('SessionStateManager notifications', () => {
         });
       }),
       remove: vi.fn((key: string) => {
-        if (key === 'varro.interruptedSessions') events.push('remove');
+        if (key === 'loomery.interruptedSessions') events.push('remove');
         storage.delete(key);
         return Promise.resolve();
       }),
@@ -1748,7 +1748,7 @@ describe('SessionStateManager notifications', () => {
       'set-3-start',
       'set-3-finish',
     ]);
-    expect(storage.get('varro.interruptedSessions')).toEqual([]);
+    expect(storage.get('loomery.interruptedSessions')).toEqual([]);
   });
 
   it('serializes blocking recovery and preserves a newer reply', async () => {
@@ -1758,11 +1758,11 @@ describe('SessionStateManager notifications', () => {
     let blockingWriteCount = 0;
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) => {
-        if (key === 'varro.blockingRequests') events.push('get');
+        if (key === 'loomery.blockingRequests') events.push('get');
         return storage.get(key);
       }),
       set: vi.fn((key: string, value: unknown) => {
-        if (key !== 'varro.blockingRequests') {
+        if (key !== 'loomery.blockingRequests') {
           storage.set(key, value);
           return Promise.resolve();
         }
@@ -1782,7 +1782,7 @@ describe('SessionStateManager notifications', () => {
         });
       }),
       remove: vi.fn((key: string) => {
-        if (key === 'varro.blockingRequests') events.push('remove');
+        if (key === 'loomery.blockingRequests') events.push('remove');
         storage.delete(key);
         return Promise.resolve();
       }),
@@ -1817,13 +1817,13 @@ describe('SessionStateManager notifications', () => {
       'set-2-start',
       'set-2-finish',
     ]);
-    expect(storage.get('varro.blockingRequests')).toEqual([]);
+    expect(storage.get('loomery.blockingRequests')).toEqual([]);
   });
 
   it('claims persisted interrupted sessions and filters invalid snapshots', async () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) => {
-        if (key === 'varro.interruptedSessions') {
+        if (key === 'loomery.interruptedSessions') {
           return [
             { id: 'session-1', title: 'Session 1' },
             { id: 'child-1', title: 'Analyze opencode capabilities (@explore subagent)' },
@@ -1849,15 +1849,15 @@ describe('SessionStateManager notifications', () => {
     await expect(manager.consumeRecoverySnapshot()).resolves.toMatchObject({
       interruptedSessions: [{ id: 'session-1', title: 'Session 1' }, { id: 'session-2' }],
     });
-    expect(workspaceState.remove).not.toHaveBeenCalledWith('varro.interruptedSessions');
+    expect(workspaceState.remove).not.toHaveBeenCalledWith('loomery.interruptedSessions');
     await manager.acknowledgeInterruptedSessions(['session-1', 'session-2']);
-    expect(workspaceState.set).toHaveBeenCalledWith('varro.interruptedSessions', []);
+    expect(workspaceState.set).toHaveBeenCalledWith('loomery.interruptedSessions', []);
   });
 
   it('keeps an acknowledged recovery durable while the session is still busy', async () => {
     const stored = [{ id: 'session-1', title: 'Session 1' }];
     const workspaceState: WorkspaceStateMock = {
-      get: vi.fn((key: string) => (key === 'varro.interruptedSessions' ? stored : undefined)),
+      get: vi.fn((key: string) => (key === 'loomery.interruptedSessions' ? stored : undefined)),
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn(() => Promise.resolve()),
     };
@@ -1871,7 +1871,7 @@ describe('SessionStateManager notifications', () => {
 
     await manager.acknowledgeInterruptedSessions(['session-1']);
 
-    expect(workspaceState.set).toHaveBeenLastCalledWith('varro.interruptedSessions', [
+    expect(workspaceState.set).toHaveBeenLastCalledWith('loomery.interruptedSessions', [
       { id: 'session-1', title: undefined },
     ]);
     expect(manager.claimInterruptedSessions()).toEqual([]);
@@ -1880,7 +1880,7 @@ describe('SessionStateManager notifications', () => {
   it('consumes persisted blocking requests and filters invalid snapshots', async () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) => {
-        if (key === 'varro.blockingRequests') {
+        if (key === 'loomery.blockingRequests') {
           return [
             {
               id: 'perm-1',
@@ -1951,14 +1951,14 @@ describe('SessionStateManager notifications', () => {
         },
       ],
     });
-    expect(workspaceState.remove).toHaveBeenCalledWith('varro.blockingRequests');
+    expect(workspaceState.remove).toHaveBeenCalledWith('loomery.blockingRequests');
   });
 
   it('treats recovery cleanup as best-effort and safely retries stale blocking data', async () => {
     const storage = new Map<string, unknown>([
-      ['varro.interruptedSessions', [{ id: 'session-1', title: 'Interrupted' }]],
+      ['loomery.interruptedSessions', [{ id: 'session-1', title: 'Interrupted' }]],
       [
-        'varro.blockingRequests',
+        'loomery.blockingRequests',
         [
           {
             id: 'permission-1',
@@ -1977,7 +1977,7 @@ describe('SessionStateManager notifications', () => {
         return Promise.resolve();
       }),
       remove: vi.fn((key: string) => {
-        if (key === 'varro.blockingRequests') {
+        if (key === 'loomery.blockingRequests') {
           blockingRemoveAttempts += 1;
           if (blockingRemoveAttempts === 1) return Promise.reject(new Error('cleanup failed'));
         }
@@ -2012,7 +2012,7 @@ describe('SessionStateManager notifications', () => {
 
   it('replays interrupted sessions until they are acknowledged', async () => {
     const storage = new Map<string, unknown>([
-      ['varro.interruptedSessions', [{ id: 'session-1', title: 'Interrupted' }]],
+      ['loomery.interruptedSessions', [{ id: 'session-1', title: 'Interrupted' }]],
     ]);
     let interruptedRemoveAttempts = 0;
     const workspaceState: WorkspaceStateMock = {
@@ -2022,7 +2022,7 @@ describe('SessionStateManager notifications', () => {
         return Promise.resolve();
       }),
       remove: vi.fn((key: string) => {
-        if (key === 'varro.interruptedSessions') {
+        if (key === 'loomery.interruptedSessions') {
           interruptedRemoveAttempts += 1;
           if (interruptedRemoveAttempts === 1) {
             return Promise.reject(new Error('interrupted cleanup failed'));
@@ -2047,7 +2047,7 @@ describe('SessionStateManager notifications', () => {
 
     expect(interruptedRemoveAttempts).toBe(0);
     await manager.acknowledgeInterruptedSessions(['session-1']);
-    expect(storage.get('varro.interruptedSessions')).toEqual([]);
+    expect(storage.get('loomery.interruptedSessions')).toEqual([]);
     await expect(manager.consumeRecoverySnapshot()).resolves.toMatchObject({
       interruptedSessions: [],
     });
@@ -2056,7 +2056,7 @@ describe('SessionStateManager notifications', () => {
   it('keeps interrupted sessions claimable when acknowledgement persistence fails', async () => {
     const stored = [{ id: 'session-1', title: 'Interrupted' }];
     const workspaceState: WorkspaceStateMock = {
-      get: vi.fn((key: string) => (key === 'varro.interruptedSessions' ? stored : undefined)),
+      get: vi.fn((key: string) => (key === 'loomery.interruptedSessions' ? stored : undefined)),
       set: vi.fn(() => Promise.reject(new Error('write failed'))),
       remove: vi.fn(() => Promise.resolve()),
     };
@@ -2282,7 +2282,7 @@ describe('SessionStateManager notifications', () => {
         info: {
           id: 'workspace-session',
           directory: '/repo-a',
-          metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+          metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
         },
       },
     });
@@ -2474,7 +2474,7 @@ describe('SessionStateManager notifications', () => {
     let releaseBlockingRemove: (() => void) | undefined;
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) =>
-        key === 'varro.blockingRequests'
+        key === 'loomery.blockingRequests'
           ? [
               {
                 id: 'permission-1',
@@ -2487,7 +2487,7 @@ describe('SessionStateManager notifications', () => {
       ),
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn((key: string) => {
-        if (key !== 'varro.blockingRequests') return Promise.resolve();
+        if (key !== 'loomery.blockingRequests') return Promise.resolve();
         return new Promise<void>((resolve) => {
           releaseBlockingRemove = resolve;
         });
@@ -2519,7 +2519,7 @@ describe('SessionStateManager notifications', () => {
   it('applies recovered workspace scope when the same live request arrives before recovery', async () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) =>
-        key === 'varro.blockingRequests'
+        key === 'loomery.blockingRequests'
           ? [
               {
                 id: 'permission-1',
@@ -2557,7 +2557,7 @@ describe('SessionStateManager notifications', () => {
     let releaseBlockingRemove: (() => void) | undefined;
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) =>
-        key === 'varro.blockingRequests'
+        key === 'loomery.blockingRequests'
           ? [
               {
                 id: 'permission-1',
@@ -2570,7 +2570,7 @@ describe('SessionStateManager notifications', () => {
       ),
       set: vi.fn(() => Promise.resolve()),
       remove: vi.fn((key: string) => {
-        if (key !== 'varro.blockingRequests') return Promise.resolve();
+        if (key !== 'loomery.blockingRequests') return Promise.resolve();
         return new Promise<void>((resolve) => {
           releaseBlockingRemove = resolve;
         });
@@ -2597,7 +2597,7 @@ describe('SessionStateManager notifications', () => {
   it('skips recovered requests for a session deleted before merge and prunes the tombstone', async () => {
     const workspaceState: WorkspaceStateMock = {
       get: vi.fn((key: string) =>
-        key === 'varro.blockingRequests'
+        key === 'loomery.blockingRequests'
           ? [
               {
                 id: 'permission-deleted',
@@ -2937,12 +2937,14 @@ describe('SessionStateManager notifications', () => {
       properties: {
         info: {
           id: 'session-unc',
-          directory: '\\\\BuildServer\\Projects\\Varro',
+          directory: '\\\\BuildServer\\Projects\\Loomery',
         },
       },
     });
 
-    expect(manager.isSessionInWorkspace('session-unc', '//buildserver/PROJECTS/varro/')).toBe(true);
+    expect(manager.isSessionInWorkspace('session-unc', '//buildserver/PROJECTS/loomery/')).toBe(
+      true
+    );
   });
 
   it('treats nested session directories as out of workspace', () => {
@@ -2963,7 +2965,7 @@ describe('SessionStateManager notifications', () => {
     const manager = new SessionStateManager(
       {
         get: vi.fn((key: string) =>
-          key === 'varro.blockingRequests'
+          key === 'loomery.blockingRequests'
             ? [
                 {
                   id: 'perm-1',
@@ -3118,7 +3120,7 @@ describe('SessionStateManager notifications', () => {
         info: {
           id: 'workspace-session',
           directory: '/repo-a',
-          metadata: { varro: { workspaceScope: 'workspace', schemaVersion: 1 } },
+          metadata: { loomery: { workspaceScope: 'workspace', schemaVersion: 1 } },
         },
       },
     });

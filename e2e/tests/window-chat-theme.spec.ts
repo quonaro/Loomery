@@ -33,7 +33,7 @@ test('keeps the reverse preference local to window chats across host theme chang
   await windowChat.goto(route);
   await expect(windowChat.locator('.interactive-session')).toBeVisible();
   await windowChat.evaluate(() => {
-    document.documentElement.classList.add('varro-editor-surface');
+    document.documentElement.classList.add('loomery-editor-surface');
   });
   const chatBounds = await windowChat.locator('.interactive-session').boundingBox();
   const composerFooter = windowChat.locator('.chat-input-toolbars.toolbar-meta');

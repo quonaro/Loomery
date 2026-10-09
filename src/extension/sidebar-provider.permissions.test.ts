@@ -44,8 +44,8 @@ const projectAttentionCases = [
 
 async function createProjectAttentionHarness() {
   const values = new Map<string, unknown>([
-    ['varro.sessionHistoryScopes', { 'project:project-1': 'project' }],
-    ['varro.sessionHistoryScopeProjects', { [PROJECT_ROOT]: 'project:project-1' }],
+    ['loomery.sessionHistoryScopes', { 'project:project-1': 'project' }],
+    ['loomery.sessionHistoryScopeProjects', { [PROJECT_ROOT]: 'project:project-1' }],
   ]);
   const workspaceState = {
     get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -285,7 +285,7 @@ describe('SidebarProvider permission replay', () => {
     const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
     const statusBarItem = createStatusBarItem.mock.results.at(-1)?.value;
     const openCodeItemIndex = createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     const openCodeStatusBarItem = createStatusBarItem.mock.results[openCodeItemIndex]?.value;
     if (!statusBarItem) throw new Error('Expected status bar item to exist');
@@ -339,7 +339,7 @@ describe('SidebarProvider permission replay', () => {
     providerState.sessionState.revealPermission('perm-local');
 
     expect(statusBarItem.show).toHaveBeenCalled();
-    expect(statusBarItem.text).toBe('$(bell-dot) Varro: 1 waiting');
+    expect(statusBarItem.text).toBe('$(bell-dot) Loomery: 1 waiting');
     expect(statusBarItem.tooltip).toContain('Current repo: Run Bash command');
     expect(provider.getStatusBarClickAction()).toBe('attention');
   });
@@ -432,7 +432,7 @@ describe('SidebarProvider permission replay', () => {
       payload: {
         id: 203,
         method: 'POST',
-        path: '/varro/permission/session-allow?directory=%2Frepo',
+        path: '/loomery/permission/session-allow?directory=%2Frepo',
         body: { sessionId: 'session-1', permissionId: 'permission-1' },
       },
     });
@@ -456,8 +456,8 @@ describe('SidebarProvider permission replay', () => {
 
   it('accepts a project-catalog permission reply through the catalog root workspace', async () => {
     const values = new Map<string, unknown>([
-      ['varro.sessionHistoryScopes', { 'project:project-1': 'project' }],
-      ['varro.sessionHistoryScopeProjects', { '/repo': 'project:project-1' }],
+      ['loomery.sessionHistoryScopes', { 'project:project-1': 'project' }],
+      ['loomery.sessionHistoryScopeProjects', { '/repo': 'project:project-1' }],
     ]);
     const workspaceState = {
       get: vi.fn((key: string, fallback?: unknown) => values.get(key) ?? fallback),
@@ -621,7 +621,7 @@ describe('SidebarProvider permission replay', () => {
       payload: {
         id: 201,
         method: 'POST',
-        path: '/varro/permission/judge',
+        path: '/loomery/permission/judge',
         body: {
           permission: { id: 'permission-b', sessionID: 'session-b', type: 'bash' },
         },
@@ -669,12 +669,12 @@ describe('SidebarProvider permission replay', () => {
       await createSidebarProviderInstance({ server });
       const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
       const itemIndex = createStatusBarItem.mock.calls.findIndex(
-        ([id]) => id === 'varro.opencode-version'
+        ([id]) => id === 'loomery.opencode-version'
       );
       const item = createStatusBarItem.mock.results[itemIndex]?.value;
       const address = 'Server address: http://127.0.0.1:4097\nServer IP: 127.0.0.1';
       expect(item.tooltip).toBe(
-        `${address}\nOpenCode Server: unknown\nServer port: 4097\n\nVarro extension: 0.26.4`
+        `${address}\nOpenCode Server: unknown\nServer port: 4097\n\nLoomery extension: 0.26.4`
       );
 
       const statusHandler = server.on.mock.calls.findLast(([event]) => event === 'status')?.[1];
@@ -682,7 +682,7 @@ describe('SidebarProvider permission replay', () => {
 
       await vi.waitFor(() => expect(item.text).toBe(`$(robot) OpenCode ${version}`));
       expect(item.tooltip).toBe(
-        `${address}\nOpenCode Server: ${version}\nServer port: 4097\n\nVarro extension: 0.26.4`
+        `${address}\nOpenCode Server: ${version}\nServer port: 4097\n\nLoomery extension: 0.26.4`
       );
     }
   );
@@ -709,7 +709,7 @@ describe('SidebarProvider permission replay', () => {
       const statusHandler = server.on.mock.calls.findLast(([event]) => event === 'status')?.[1];
       const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
       const itemIndex = createStatusBarItem.mock.calls.findIndex(
-        ([id]) => id === 'varro.opencode-version'
+        ([id]) => id === 'loomery.opencode-version'
       );
       const item = createStatusBarItem.mock.results[itemIndex]?.value;
       statusHandler?.({ state: 'running', url: server.url });
@@ -739,12 +739,12 @@ describe('SidebarProvider permission replay', () => {
 
     const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
     const itemIndex = createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     const item = createStatusBarItem.mock.results[itemIndex]?.value;
     await vi.waitFor(() => expect(item.text).toBe('$(robot) OpenCode 1.16.0*'));
     expect(item.tooltip).toBe(
-      `OpenCode CLI: ${readMaximumTestedOpenCodeVersion()}\nOpenCode Server: 1.16.0\nServer port: 4096\n\nCLI updated to OpenCode ${readMaximumTestedOpenCodeVersion()}; server 1.16.0 is stale.\n\nVarro extension: 0.26.4\nVerified w/ OpenCode ${readMaximumTestedOpenCodeVersion()}`
+      `OpenCode CLI: ${readMaximumTestedOpenCodeVersion()}\nOpenCode Server: 1.16.0\nServer port: 4096\n\nCLI updated to OpenCode ${readMaximumTestedOpenCodeVersion()}; server 1.16.0 is stale.\n\nLoomery extension: 0.26.4\nVerified w/ OpenCode ${readMaximumTestedOpenCodeVersion()}`
     );
   });
 
@@ -769,7 +769,7 @@ describe('SidebarProvider permission replay', () => {
     const statusHandler = server.on.mock.calls.findLast(([event]) => event === 'status')?.[1];
     const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
     const itemIndex = createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     const item = createStatusBarItem.mock.results[itemIndex]?.value;
 
@@ -806,7 +806,7 @@ describe('SidebarProvider permission replay', () => {
     const statusHandler = server.on.mock.calls.findLast(([event]) => event === 'status')?.[1];
     const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
     const itemIndex = createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     const item = createStatusBarItem.mock.results[itemIndex]?.value;
     expect(item.text).toBe('$(robot) OpenCode');
@@ -840,12 +840,12 @@ describe('SidebarProvider permission replay', () => {
 
     const createStatusBarItem = getVscodeMock().window.createStatusBarItem;
     const itemIndex = createStatusBarItem.mock.calls.findIndex(
-      ([id]) => id === 'varro.opencode-version'
+      ([id]) => id === 'loomery.opencode-version'
     );
     const item = createStatusBarItem.mock.results[itemIndex]?.value;
     await vi.waitFor(() => expect(item.text).toBe(`$(robot) OpenCode ${installedVersion}*`));
     expect(item.tooltip).toBe(
-      `OpenCode CLI: ${installedVersion}\nOpenCode Server: ${installedVersion}\nServer port: 4096\n\nNew CLI version: OpenCode ${maximumTestedVersion} is not installed yet.\nAuto-updates are off.\n\nVarro extension: 0.26.4`
+      `OpenCode CLI: ${installedVersion}\nOpenCode Server: ${installedVersion}\nServer port: 4096\n\nNew CLI version: OpenCode ${maximumTestedVersion} is not installed yet.\nAuto-updates are off.\n\nLoomery extension: 0.26.4`
     );
   });
 
@@ -892,9 +892,9 @@ describe('SidebarProvider permission replay', () => {
 
     expect(provider.getStatusBarClickAction()).toBe('attention');
     const statusItem = getVscodeMock().window.createStatusBarItem.mock.results.find(
-      (result) => result.value.name === 'Varro Attention'
+      (result) => result.value.name === 'Loomery Attention'
     )?.value;
-    expect(statusItem?.text).toBe('$(bell-dot) Varro: 1 needs attention');
+    expect(statusItem?.text).toBe('$(bell-dot) Loomery: 1 needs attention');
     expect(statusItem?.tooltip).toContain('Review plan: Plan ready');
   });
 
@@ -914,7 +914,7 @@ describe('SidebarProvider permission replay', () => {
 
     expect(provider.getStatusBarClickAction()).toBe('attention');
     const statusItem = getVscodeMock().window.createStatusBarItem.mock.results.find(
-      (result) => result.value.name === 'Varro Attention'
+      (result) => result.value.name === 'Loomery Attention'
     )?.value;
     expect(statusItem?.tooltip).toContain('Failed work: Error');
   });

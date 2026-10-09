@@ -4,7 +4,7 @@ import type { MessageEntry } from '../../src/webview/types';
 import { getScrollMetrics, waitForAnimationFrames } from './helpers';
 
 type ModelChangeHarness = Window & {
-  __varroE2E?: {
+  __loomeryE2E?: {
     getSessionMessages(sessionId: string): MessageEntry[];
     replayServerEvent(event: ServerEvent): void;
   };
@@ -17,7 +17,7 @@ for (const width of [486, 900]) {
     await expect(page.locator('[data-msg-id="message-rendering-assistant"]')).toBeVisible();
     await page.evaluate(() => {
       // SAFETY: The local E2E harness installs these fixture-only methods.
-      const harness = (window as ModelChangeHarness).__varroE2E!;
+      const harness = (window as ModelChangeHarness).__loomeryE2E!;
       const info = harness.getSessionMessages('session-message-rendering').at(-1)!.info;
       if (info.role !== 'assistant') throw new Error('Expected an assistant fixture');
       harness.replayServerEvent({

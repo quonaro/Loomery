@@ -3,48 +3,51 @@ import { lstat, mkdir, realpath, symlink } from 'node:fs/promises';
 import { homedir } from 'os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { asRecord } from '../shared/type-utils';
-import { getVarroTestStateDirectory, type VarroStateKind } from './varro-test-state';
+import { getLoomeryTestStateDirectory, type LoomeryStateKind } from './loomery-test-state';
 
 /** Shared across editor distributions, profiles, workspaces, and extension versions. */
-export function getVarroStateDirectory(kind: VarroStateKind): string {
-  const isolated = getVarroTestStateDirectory(kind);
+export function getLoomeryStateDirectory(kind: LoomeryStateKind): string {
+  const isolated = getLoomeryTestStateDirectory(kind);
   if (isolated) return isolated;
   const home = homedir();
   const root =
     process.platform === 'win32'
-      ? join(absoluteEnvironmentPath('LOCALAPPDATA') || join(home, 'AppData', 'Local'), 'Varro')
+      ? join(absoluteEnvironmentPath('LOCALAPPDATA') || join(home, 'AppData', 'Local'), 'Loomery')
       : process.platform === 'darwin'
-        ? join(home, 'Library', 'Application Support', 'Varro')
-        : join(absoluteEnvironmentPath('XDG_STATE_HOME') || join(home, '.local', 'state'), 'varro');
+        ? join(home, 'Library', 'Application Support', 'Loomery')
+        : join(
+            absoluteEnvironmentPath('XDG_STATE_HOME') || join(home, '.local', 'state'),
+            'loomery'
+          );
   return join(root, kind);
 }
 
 /** Persistent no-project files are separate from server records and credentials. */
-export async function prepareVarroScratchDirectory(): Promise<void> {
-  const directory = getVarroStateDirectory('scratch');
+export async function prepareLoomeryScratchDirectory(): Promise<void> {
+  const directory = getLoomeryStateDirectory('scratch');
   await mkdir(directory, { recursive: true, mode: 0o700 });
   if (!(await lstat(directory)).isDirectory()) {
-    throw new Error(`Expected a real Varro scratch directory: ${directory}`);
+    throw new Error(`Expected a real Loomery scratch directory: ${directory}`);
   }
 }
 
-export function getLegacyVarroStateDirectory(
+export function getLegacyLoomeryStateDirectory(
   kind: 'opencode-v2' | 'provider-quota-v2'
 ): string | undefined {
-  if (getVarroTestStateDirectory(kind)) return undefined;
+  if (getLoomeryTestStateDirectory(kind)) return undefined;
   const home = homedir();
   // Preserve the old interpretation of XDG_STATE_HOME for compatibility, even if relative.
   const legacy =
     kind === 'opencode-v2'
-      ? join(process.env.XDG_STATE_HOME || join(home, '.local', 'state'), 'varro', kind)
-      : join(home, '.varro-provider-quota-v2');
-  return legacy === getVarroStateDirectory(kind) ? undefined : legacy;
+      ? join(process.env.XDG_STATE_HOME || join(home, '.local', 'state'), 'loomery', kind)
+      : join(home, '.loomery-provider-quota-v2');
+  return legacy === getLoomeryStateDirectory(kind) ? undefined : legacy;
 }
 
 /** Usage workers remain read-only, including before a compatibility link exists. */
-export function getVarroStateReadDirectory(kind: 'opencode-v2'): string {
-  const directory = getVarroStateDirectory(kind);
-  const legacy = getLegacyVarroStateDirectory(kind);
+export function getLoomeryStateReadDirectory(kind: 'opencode-v2'): string {
+  const directory = getLoomeryStateDirectory(kind);
+  const legacy = getLegacyLoomeryStateDirectory(kind);
   if (!legacy || !pathExistsSync(legacy)) return directory;
   if (!pathExistsSync(directory)) return legacy;
   if (realpathSync(directory) !== realpathSync(legacy))
@@ -53,7 +56,7 @@ export function getVarroStateReadDirectory(kind: 'opencode-v2'): string {
 }
 
 /** Keep legacy writers on the same files, including locks and atomic replacements. */
-export async function prepareVarroStateDirectory(
+export async function prepareLoomeryStateDirectory(
   directory: string,
   legacyDirectory?: string
 ): Promise<string> {
@@ -67,7 +70,7 @@ export async function prepareVarroStateDirectory(
         (await realpath(directory)) === (await realpath(legacyDirectory))
       )
         return realpath(directory);
-      throw new Error(`Expected a real Varro state directory: ${legacyDirectory}`);
+      throw new Error(`Expected a real Loomery state directory: ${legacyDirectory}`);
     }
     await mkdir(dirname(directory), { recursive: true, mode: 0o700 });
     try {
@@ -92,7 +95,7 @@ export async function prepareVarroStateDirectory(
 
 function conflictingDirectories(directory: string, legacyDirectory: string): Error {
   return new Error(
-    `Conflicting Varro state directories: ${directory} and ${legacyDirectory}. Close all editors and reconcile them before continuing.`
+    `Conflicting Loomery state directories: ${directory} and ${legacyDirectory}. Close all editors and reconcile them before continuing.`
   );
 }
 

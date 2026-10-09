@@ -5,14 +5,14 @@ export type SessionPauseBoundary = { messageId: string; pausedAt: number };
 
 // Persist the action marker with the prompt so it stays hidden after history reloads.
 export const SESSION_RESUME_PROMPT =
-  '[Varro session resume]\nContinue where you left off. Do not repeat completed work.';
+  '[Loomery session resume]\nContinue where you left off. Do not repeat completed work.';
 
 export function isSessionResumeMessage(parts: readonly { type: string; text?: string }[]): boolean {
   return parts.some((part) => part.type === 'text' && part.text === SESSION_RESUME_PROMPT);
 }
 
 export function readSessionPauses(metadata: unknown): SessionPauseBoundary[] {
-  const entries = asRecord(asRecord(metadata)?.varro)?.pauses;
+  const entries = asRecord(asRecord(metadata)?.loomery)?.pauses;
   if (!Array.isArray(entries)) return [];
   return entries.flatMap((entry) => {
     const record = asRecord(entry);

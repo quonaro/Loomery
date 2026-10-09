@@ -70,11 +70,11 @@ describe('renderWebviewHtml', () => {
     expect(html).toContain("window.addEventListener('error', handleFailure);");
     expect(html).toContain("window.addEventListener('unhandledrejection', handleFailure);");
     expect(html).toContain("if (event && 'reason' in event) failure = event.reason;");
-    expect(html).toContain("console.error('Varro webview bootstrap failed', failure);");
-    expect(html).toContain("console.error('Varro webview bridge cleanup failed', error);");
-    expect(html).toContain('window.__clearVarroBootstrapFailureHandlers = clearHandlers;');
-    expect(html).toContain("typeof window.__cleanupVarroBridge === 'function'");
-    expect(html.indexOf('window.__clearVarroBootstrapFailureHandlers')).toBeLessThan(
+    expect(html).toContain("console.error('Loomery webview bootstrap failed', failure);");
+    expect(html).toContain("console.error('Loomery webview bridge cleanup failed', error);");
+    expect(html).toContain('window.__clearLoomeryBootstrapFailureHandlers = clearHandlers;');
+    expect(html).toContain("typeof window.__cleanupLoomeryBridge === 'function'");
+    expect(html.indexOf('window.__clearLoomeryBootstrapFailureHandlers')).toBeLessThan(
       html.indexOf('src="webview://assets/webview.js?v=fixed-cache-key"')
     );
     expect(html.indexOf('role="status" aria-label="Loading workspace"')).toBeLessThan(
@@ -97,7 +97,7 @@ describe('renderWebviewHtml', () => {
     );
 
     expect(html).toContain(
-      '<html lang="en" class="varro-editor-surface varro-editor-layout-pending">'
+      '<html lang="en" class="loomery-editor-surface loomery-editor-layout-pending">'
     );
     expect(html).toContain('body { background: var(--vscode-editor-background, #1e1e1e); }');
   });
@@ -140,7 +140,7 @@ describe('renderWebviewHtml', () => {
     );
 
     expect(html).toContain('<html lang="en">');
-    expect(html).not.toContain('class="varro-editor-surface"');
+    expect(html).not.toContain('class="loomery-editor-surface"');
   });
 
   it('renders a standalone loading screen before the webview assets are available', () => {
@@ -174,11 +174,11 @@ describe('renderWebviewHtml', () => {
         cspSource: 'vscode-webview-resource:',
       });
 
-      expect(html).toContain('class="varro-startup-logo"');
+      expect(html).toContain('class="loomery-startup-logo"');
       expect(html).toContain('src="webview://assets/icon.png?value=&quot;&lt;unsafe>&amp;"');
-      expect(html).toContain('animation: varro-startup-logo-pulse 1.5s ease-in-out infinite;');
+      expect(html).toContain('animation: loomery-startup-logo-pulse 1.5s ease-in-out infinite;');
       expect(html).toContain('img-src vscode-webview-resource: data:;');
-      expect(html).not.toContain('class="varro-startup-dots"');
+      expect(html).not.toContain('class="loomery-startup-dots"');
       expect(html).not.toContain('<script');
     }
   );
@@ -190,8 +190,8 @@ describe('renderWebviewHtml', () => {
       version: 'fixed-cache-key',
     });
 
-    expect(html).toContain('class="varro-startup-logo"');
-    expect(html).not.toContain('class="varro-startup-dots"');
+    expect(html).toContain('class="loomery-startup-logo"');
+    expect(html).not.toContain('class="loomery-startup-dots"');
   });
 
   it('blocks remote HTTPS images without narrowing local image sources', () => {

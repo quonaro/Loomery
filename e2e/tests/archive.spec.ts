@@ -15,8 +15,8 @@ test('archives an overflow completed session', async ({ page }) => {
 
   const deleteCount = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
-    }).__varroE2E;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
+    }).__loomeryE2E;
     return value?.requests.filter((request) => request.method === 'DELETE' && request.path.startsWith('/session/')).length || 0;
   });
 
@@ -44,19 +44,19 @@ test('restores a recycle-bin session back into the list', async ({ page }) => {
 
   const restoreRequest = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
-    }).__varroE2E;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
+    }).__loomeryE2E;
     return (
       value?.requests.find(
         (request) =>
-          request.method === 'POST' && request.path === '/varro/session-trash/session-row-archive-a/restore'
+          request.method === 'POST' && request.path === '/loomery/session-trash/session-row-archive-a/restore'
       ) || null
     );
   });
 
   expect(restoreRequest).toMatchObject({
     method: 'POST',
-    path: '/varro/session-trash/session-row-archive-a/restore',
+    path: '/loomery/session-trash/session-row-archive-a/restore',
   });
 });
 
@@ -77,19 +77,19 @@ test('permanently deletes a recycle-bin session', async ({ page }) => {
 
   const deleteRequest = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
-    }).__varroE2E;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
+    }).__loomeryE2E;
     return (
       value?.requests.find(
         (request) =>
-          request.method === 'DELETE' && request.path === '/varro/session-trash/session-row-archive-a/delete'
+          request.method === 'DELETE' && request.path === '/loomery/session-trash/session-row-archive-a/delete'
       ) || null
     );
   });
 
   expect(deleteRequest).toMatchObject({
     method: 'DELETE',
-    path: '/varro/session-trash/session-row-archive-a/delete',
+    path: '/loomery/session-trash/session-row-archive-a/delete',
   });
 });
 
@@ -107,13 +107,13 @@ test('empties the recycle bin from the grouped sessions view', async ({ page }) 
 
   const emptyRequest = await getE2EState(page, () => {
     const value = (window as Window & {
-      __varroE2E?: { requests: Array<{ method: string; path: string }> };
-    }).__varroE2E;
-    return value?.requests.find((request) => request.method === 'DELETE' && request.path === '/varro/session-trash') || null;
+      __loomeryE2E?: { requests: Array<{ method: string; path: string }> };
+    }).__loomeryE2E;
+    return value?.requests.find((request) => request.method === 'DELETE' && request.path === '/loomery/session-trash') || null;
   });
 
   expect(emptyRequest).toMatchObject({
     method: 'DELETE',
-    path: '/varro/session-trash',
+    path: '/loomery/session-trash',
   });
 });

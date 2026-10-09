@@ -7,12 +7,12 @@ describe('isSessionInWorkspace', () => {
     const session: Session = {
       id: 'session-1',
       projectID: 'project-1',
-      directory: '\\\\BuildServer\\Projects\\Varro',
+      directory: '\\\\BuildServer\\Projects\\Loomery',
       title: 'Session',
       version: '1',
       time: { created: 1, updated: 1 },
     };
 
-    expect(isSessionInWorkspace(session, '//buildserver/PROJECTS/varro/')).toBe(true);
+    expect(isSessionInWorkspace(session, '//buildserver/PROJECTS/loomery/')).toBe(true);
   });
 });

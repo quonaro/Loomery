@@ -30,11 +30,11 @@ const mocks = vi.hoisted(() => ({
     mcpDisconnect: vi.fn(),
     questionList: vi.fn(),
     permissionList: vi.fn(),
-    varroOpenPlan: vi.fn(),
-    varroJudgePermission: vi.fn(),
-    varroResolveJudgeModel: vi.fn(),
-    varroSessionRenameIfUntitled: vi.fn(),
-    varroSessionUpdatePermissionMode: vi.fn(),
+    loomeryOpenPlan: vi.fn(),
+    loomeryJudgePermission: vi.fn(),
+    loomeryResolveJudgeModel: vi.fn(),
+    loomerySessionRenameIfUntitled: vi.fn(),
+    loomerySessionUpdatePermissionMode: vi.fn(),
     recycleBinList: vi.fn(),
     recycleBinRestore: vi.fn(),
     recycleBinDelete: vi.fn(),
@@ -99,13 +99,13 @@ vi.mock('../lib/client', () => ({
       providers: clientMocks.providerList,
       providerLimit: clientMocks.providerLimit,
     },
-    varro: {
-      openPlan: clientMocks.varroOpenPlan,
-      judgePermission: clientMocks.varroJudgePermission,
-      resolveJudgeModel: clientMocks.varroResolveJudgeModel,
+    loomery: {
+      openPlan: clientMocks.loomeryOpenPlan,
+      judgePermission: clientMocks.loomeryJudgePermission,
+      resolveJudgeModel: clientMocks.loomeryResolveJudgeModel,
       session: {
-        renameIfUntitled: clientMocks.varroSessionRenameIfUntitled,
-        updatePermissionMode: clientMocks.varroSessionUpdatePermissionMode,
+        renameIfUntitled: clientMocks.loomerySessionRenameIfUntitled,
+        updatePermissionMode: clientMocks.loomerySessionUpdatePermissionMode,
       },
       recycleBin: {
         list: clientMocks.recycleBinList,
@@ -251,11 +251,11 @@ beforeEach(() => {
   clientMocks.mcpDisconnect.mockReset();
   clientMocks.questionList.mockReset();
   clientMocks.permissionList.mockReset();
-  clientMocks.varroOpenPlan.mockReset();
-  clientMocks.varroJudgePermission.mockReset();
-  clientMocks.varroResolveJudgeModel.mockReset();
-  clientMocks.varroSessionRenameIfUntitled.mockReset();
-  clientMocks.varroSessionUpdatePermissionMode.mockReset();
+  clientMocks.loomeryOpenPlan.mockReset();
+  clientMocks.loomeryJudgePermission.mockReset();
+  clientMocks.loomeryResolveJudgeModel.mockReset();
+  clientMocks.loomerySessionRenameIfUntitled.mockReset();
+  clientMocks.loomerySessionUpdatePermissionMode.mockReset();
   clientMocks.recycleBinList.mockReset();
   clientMocks.recycleBinRestore.mockReset();
   clientMocks.recycleBinDelete.mockReset();
@@ -286,11 +286,11 @@ beforeEach(() => {
   clientMocks.mcpConnect.mockResolvedValue(true);
   clientMocks.mcpAuthenticate.mockResolvedValue(undefined);
   clientMocks.mcpDisconnect.mockResolvedValue(true);
-  clientMocks.varroOpenPlan.mockResolvedValue({ path: '/tmp/plan.md' });
-  clientMocks.varroJudgePermission.mockResolvedValue({ decision: 'ask', reason: 'test' });
-  clientMocks.varroResolveJudgeModel.mockResolvedValue(null);
-  clientMocks.varroSessionRenameIfUntitled.mockResolvedValue(null);
-  clientMocks.varroSessionUpdatePermissionMode.mockImplementation(async (sessionId: string) =>
+  clientMocks.loomeryOpenPlan.mockResolvedValue({ path: '/tmp/plan.md' });
+  clientMocks.loomeryJudgePermission.mockResolvedValue({ decision: 'ask', reason: 'test' });
+  clientMocks.loomeryResolveJudgeModel.mockResolvedValue(null);
+  clientMocks.loomerySessionRenameIfUntitled.mockResolvedValue(null);
+  clientMocks.loomerySessionUpdatePermissionMode.mockImplementation(async (sessionId: string) =>
     session(sessionId)
   );
   clientMocks.recycleBinList.mockResolvedValue([]);

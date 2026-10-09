@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProviderMetadata } from '../../util/provider-limit';
 import { createOpenCodeGoAdapter } from './opencode-go';
-import { VARRO_USER_AGENT } from '../adapter-utils';
+import { LOOMERY_USER_AGENT } from '../adapter-utils';
 
 const adapter = createOpenCodeGoAdapter();
 const provider: ProviderMetadata = {
@@ -59,7 +59,7 @@ describe('createOpenCodeGoAdapter', () => {
         headers: {
           Accept: 'application/json',
           Authorization: 'Bearer go-api-key',
-          'User-Agent': VARRO_USER_AGENT,
+          'User-Agent': LOOMERY_USER_AGENT,
         },
       })
     );

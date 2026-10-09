@@ -120,7 +120,7 @@ export const VALID_WEBVIEW_MESSAGES = {
   'model-preferences/migrate': { type: 'model-preferences/migrate', payload: MODEL_PREFERENCES },
   'session/export': { type: 'session/export', payload: { sessionId: 'session-1' } },
   'usage/report': { type: 'usage/report', payload: { includeAllTime: true } },
-  'vscode/open-settings': { type: 'vscode/open-settings', payload: { query: 'varro.server' } },
+  'vscode/open-settings': { type: 'vscode/open-settings', payload: { query: 'loomery.server' } },
   'vscode/mermaid-preview': { type: 'vscode/mermaid-preview', payload: { open: true } },
   'server/restart': { type: 'server/restart', payload: { force: true } },
   'server/restart/check': { type: 'server/restart/check', payload: { checkId: 3 } },

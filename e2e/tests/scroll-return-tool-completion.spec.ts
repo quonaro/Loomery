@@ -16,9 +16,9 @@ for (const distance of [540, 1768]) {
       // SAFETY: The isolated E2E page installs the typed fixture event transport.
       const harness = (
         window as typeof window & {
-          __varroE2E: { replayServerEvent(event: ServerEvent): void };
+          __loomeryE2E: { replayServerEvent(event: ServerEvent): void };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       harness.replayServerEvent({
         type: 'session.status',
         properties: { sessionID: 'session-large-transcript', status: { type: 'busy' } },
@@ -60,12 +60,12 @@ for (const distance of [540, 1768]) {
       // SAFETY: The isolated E2E page installs the typed fixture event transport and message store.
       const harness = (
         window as typeof window & {
-          __varroE2E: {
+          __loomeryE2E: {
             replayServerEvent(event: ServerEvent): void;
             getSessionMessages(id: string): MessageEntry[];
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const initialTop = element.scrollTop;
       let completed = false;
       let settledFrames = 0;

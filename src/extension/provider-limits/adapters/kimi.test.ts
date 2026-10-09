@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProviderMetadata } from '../../util/provider-limit';
 import { createKimiAdapter } from './kimi';
-import { VARRO_USER_AGENT } from '../adapter-utils';
+import { LOOMERY_USER_AGENT } from '../adapter-utils';
 
 const adapter = createKimiAdapter();
 
@@ -40,7 +40,7 @@ describe('createKimiAdapter', () => {
       expect(init?.headers).toMatchObject({
         Accept: 'application/json',
         Authorization: 'Bearer kimi_test_key_12345',
-        'User-Agent': VARRO_USER_AGENT,
+        'User-Agent': LOOMERY_USER_AGENT,
       });
 
       return new Response(

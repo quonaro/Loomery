@@ -63,12 +63,12 @@ let started = false;
 /** Register before importing the app. Registration is fixed for one mounted webview. */
 export function registerHostExtension(value: HostExtension): () => void {
   if (started || extension)
-    throw new Error('Register the host extension once, before loading Varro');
+    throw new Error('Register the host extension once, before loading Loomery');
   if (value.apiVersion !== HOST_API_VERSION)
-    throw new Error(`Unsupported Varro host API ${value.apiVersion}`);
+    throw new Error(`Unsupported Loomery host API ${value.apiVersion}`);
   if (!EXTENSION_ID_PATTERN.test(value.id)) throw new Error(`Invalid extension ID: ${value.id}`);
   for (const feature of value.requires ?? []) {
-    if (!FEATURES.has(feature)) throw new Error(`Unsupported Varro host feature: ${feature}`);
+    if (!FEATURES.has(feature)) throw new Error(`Unsupported Loomery host feature: ${feature}`);
   }
   const ids = new Set<string>();
   for (const item of [...(value.contexts ?? []), ...(value.actions ?? [])]) {
@@ -94,7 +94,7 @@ export function registerHostExtension(value: HostExtension): () => void {
   const registered = extension;
   return () => {
     if (extension !== registered) return;
-    if (started) throw new Error('Unmount Varro before disposing its host extension');
+    if (started) throw new Error('Unmount Loomery before disposing its host extension');
     extension = undefined;
     registered.dispose?.();
   };
@@ -115,7 +115,7 @@ export function hostMetadata() {
   const metadata: { version?: string; repository: string } = packageJson;
   return (
     extension?.metadata ?? {
-      name: 'Varro',
+      name: 'Loomery',
       version: metadata.version ?? '0.0.0',
       repository: packageJson.repository,
       ideName: 'VS Code',

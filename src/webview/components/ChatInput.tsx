@@ -468,7 +468,7 @@ function canEditQueuedMessage() {
 
 function isInternalDrag(event: DragEvent) {
   return Array.from(event.dataTransfer?.types ?? []).some(
-    (type) => type === QUEUED_MESSAGE_DRAG_TYPE || type.startsWith('application/x-varro-')
+    (type) => type === QUEUED_MESSAGE_DRAG_TYPE || type.startsWith('application/x-loomery-')
   );
 }
 
@@ -529,7 +529,7 @@ function captureEditDraftBackup(): MessageEditContext & { text: string } {
   };
 }
 
-function applyEditContext(context: MessageEditContext, mergeWholeFileIntoActiveContext = false) {
+function applyEditContext(context: MessageEditContext) {
   setState('attachedDiagnostics', context.attachedDiagnostics ?? null);
   setState('inlineProblems', cloneInlineProblems(context.inlineProblems));
   const activeFile = state.editorContext.activeFile;
@@ -550,7 +550,6 @@ function applyEditContext(context: MessageEditContext, mergeWholeFileIntoActiveC
             );
           }));
       if (!matchesActiveFile) return [file];
-      if (mergeWholeFileIntoActiveContext && !file.lineRanges?.length) return [];
       return [{ ...file, path: activeFile.path, relativePath: activeFile.relativePath }];
     })
   );
@@ -2140,6 +2139,9 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const selectedLines = editorText
       ? [editorText.range]
       : getSelectionRangesFromEditorContext(composerSelection());
+    // A bare open file is no longer auto-attached. Only an explicit range (a
+    // text selection or unsaved editor text) shows the current-context chip.
+    if (!editorText && selectedLines.length === 0) return null;
     const explicitFile = file && !editorText ? explicitContextForActiveFile() : null;
     if (
       explicitFile &&
@@ -2302,7 +2304,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       onPauseSession: requestPauseSession,
       onConnectProvider: () => requestProviderConnection(),
       onOpenSettings: () =>
-        postMessage({ type: 'vscode/open-settings', payload: { query: 'Varro >' } }),
+        postMessage({ type: 'vscode/open-settings', payload: { query: 'Loomery >' } }),
       onExportSession: () => {
         const sessionId = composerSessionId();
         if (!sessionId) return;
@@ -2839,7 +2841,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
 
     e.preventDefault();
     e.stopPropagation();
-    Object.assign(e, { varroHandled: true });
+    Object.assign(e, { loomeryHandled: true });
     closePopups();
   }
 
@@ -2932,7 +2934,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       generation === getNewChatDraftGeneration() &&
       state.enableProblemsContext;
     try {
-      const snapshot = await client.varro.workspaceProblems({ signal: controller.signal });
+      const snapshot = await client.loomery.workspaceProblems({ signal: controller.signal });
       if (!isCurrent()) return false;
       setWorkspaceProblems(snapshot);
       return true;
@@ -3428,8 +3430,12 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
           isSamePath(file.path, activeFile.path)
         );
         if (existingIndex === -1) {
-          queuedDroppedFiles.push(activeFileContext);
-          autoAttachedFilePath = activeFile.path;
+          // Only an explicit range (text selection) is auto-attached; a bare
+          // open file is left out of the queued context.
+          if (activeFileContext.lineRanges.length > 0) {
+            queuedDroppedFiles.push(activeFileContext);
+            autoAttachedFilePath = activeFile.path;
+          }
         } else {
           queuedDroppedFiles[existingIndex] = mergeContextFile(
             queuedDroppedFiles[existingIndex],
@@ -4010,12 +4016,8 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
    * attachments the snapshot's text still references, so the markers for those
    * are blanked here rather than left pointing at nothing.
    */
-  function applyComposerEditState(
-    context: MessageEditContext,
-    text: string,
-    mergeWholeFileIntoActiveContext = false
-  ) {
-    const droppedImages = applyEditContext(context, mergeWholeFileIntoActiveContext);
+  function applyComposerEditState(context: MessageEditContext, text: string) {
+    const droppedImages = applyEditContext(context);
     setComposerValue(stripClipboardImagePlaceholders(text, droppedImages));
   }
 
@@ -4461,7 +4463,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       pastedContextFiles.length > 0 && pastedPromptText.trim().length === 0;
     if (pastedContextFiles.length > 0) {
       // SAFETY: The surrounding shape or discriminator check establishes the ClipboardEvent contract used below.
-      (e as ClipboardEvent & { __varroPasteText?: string }).__varroPasteText = pastedPromptText;
+      (e as ClipboardEvent & { __loomeryPasteText?: string }).__loomeryPasteText = pastedPromptText;
     }
 
     const imageItems = Array.from(clipboardData.items).filter(
@@ -4486,8 +4488,9 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     ) {
       // SAFETY: handlePasteInsertion reads this flag from the same paste event
       // after RichComposerArea inserts the text synchronously.
-      (e as ClipboardEvent & { varroCopiedSelectionPaste?: boolean }).varroCopiedSelectionPaste =
-        true;
+      (
+        e as ClipboardEvent & { loomeryCopiedSelectionPaste?: boolean }
+      ).loomeryCopiedSelectionPaste = true;
       composerHistory.breakCoalescing();
       return;
     }
@@ -4594,7 +4597,9 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       return;
     }
     // SAFETY: handlePaste marks this same clipboard event for source matching.
-    if ((e as ClipboardEvent & { varroCopiedSelectionPaste?: boolean }).varroCopiedSelectionPaste) {
+    if (
+      (e as ClipboardEvent & { loomeryCopiedSelectionPaste?: boolean }).loomeryCopiedSelectionPaste
+    ) {
       if (!insertion) return;
       const pastedText = e.clipboardData?.getData('text/plain') ?? '';
       // VS Code's terminal copies plain text only; editors and browsers add rich formats.
@@ -4606,7 +4611,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     }
     if (!insertion) return;
     // SAFETY: handlePaste assigns this optional marker on clipboard events containing context files.
-    if ((e as ClipboardEvent & { __varroPasteText?: string }).__varroPasteText === '') return;
+    if ((e as ClipboardEvent & { __loomeryPasteText?: string }).__loomeryPasteText === '') return;
     const pastedText = e.clipboardData?.getData('text/plain') ?? '';
     if (!pastedText) return;
 
@@ -4630,7 +4635,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     };
     setPendingCopiedSelectionPaste(owner);
     let settled = false;
-    const settle = (match: Awaited<ReturnType<typeof client.varro.matchCopiedSelection>>) => {
+    const settle = (match: Awaited<ReturnType<typeof client.loomery.matchCopiedSelection>>) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
@@ -4657,14 +4662,14 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       if (!match) attachLargePaste(pastedText, insertion);
     };
     const timeout = setTimeout(() => settle(null), COPIED_SELECTION_MATCH_TIMEOUT_MS);
-    void client.varro.matchCopiedSelection(pastedText, plainTextOnly).then(settle, (err) => {
+    void client.loomery.matchCopiedSelection(pastedText, plainTextOnly).then(settle, (err) => {
       logError('chat-input:matchCopiedSelection', err);
       settle(null);
     });
 
     /** Returns false when the paste should stay plain text. */
     function insertCopiedSelectionChip(
-      match: NonNullable<Awaited<ReturnType<typeof client.varro.matchCopiedSelection>>>
+      match: NonNullable<Awaited<ReturnType<typeof client.loomery.matchCopiedSelection>>>
     ) {
       const before = insertion.value.slice(0, insertion.start);
       const after = insertion.value.slice(insertion.end);
@@ -4740,7 +4745,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   }
 
   async function readContextLines(file: DroppedFile) {
-    const content = await client.varro.readWorkspaceFile(file.path);
+    const content = await client.loomery.readWorkspaceFile(file.path);
     if (content === null) return null;
     const lines = content.split(/\r?\n/);
     return (file.lineRanges ?? [])
@@ -5120,7 +5125,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     }
     activeEditMessageId = editing.messageId;
     setEditSelectedModel(editing.model ? { ...editing.model } : null);
-    applyComposerEditState(editing.context, editing.text, activeContextEnabled(editing.sessionId));
+    applyComposerEditState(editing.context, editing.text);
     queueMicrotask(() => {
       if (richEditorRef) {
         richEditorRef.focus();
@@ -5518,7 +5523,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const requestId = ++tokenBreakdownRequestId;
     try {
       const directory = sessionsById().get(rootId)?.directory;
-      const summary = await client.varro.session.diffSummary(rootId, undefined, { directory });
+      const summary = await client.loomery.session.diffSummary(rootId, undefined, { directory });
       if (
         requestId !== tokenBreakdownRequestId ||
         (getSessionTreeRootId(composerSessionId()) || composerSessionId()) !== rootId ||
@@ -5720,7 +5725,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
 
   const activePermissionMode = createMemo(() => getPermissionModeForSession(composerSessionId()));
   const [resolvedAutoApproveJudgeModel, setResolvedAutoApproveJudgeModel] =
-    createSignal<Awaited<ReturnType<typeof client.varro.resolveJudgeModel>>>(null);
+    createSignal<Awaited<ReturnType<typeof client.loomery.resolveJudgeModel>>>(null);
   const autoPermissionActivity = createMemo(() => {
     const sessionId = composerSessionId();
     if (!sessionId) return undefined;
@@ -5756,7 +5761,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         : undefined;
     void state.providerRefreshPending;
     const requestId = ++judgeModelRequestId;
-    void client.varro
+    void client.loomery
       .resolveJudgeModel(fallback)
       .then((model) => {
         if (requestId === judgeModelRequestId) setResolvedAutoApproveJudgeModel(model);

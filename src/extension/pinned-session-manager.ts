@@ -1,7 +1,7 @@
 /* oxlint-disable anti-slop/no-runtime-typeof -- Persisted pin values are checked before restoring manager state. */
 import type { Persistence } from '../shared/persistence';
 
-const PINNED_SESSION_IDS_KEY = 'varro.pinnedSessionIds';
+const PINNED_SESSION_IDS_KEY = 'loomery.pinnedSessionIds';
 
 export class PinnedSessionManager {
   private ids: string[];

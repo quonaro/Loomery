@@ -7,7 +7,7 @@ Windows for the same extension installation/build and OS account reuse that proc
 extension hosts and sessions are separate. Remote hosts have their own helper on the remote machine.
 Extension hosts neither load WASM nor decode base64 originals for thumbnail requests.
 The same wasm32 binary runs in supported desktop and remote Node extension hosts. The upstream `x86`
-directory names the WASM memory model, not a host CPU requirement. Varro does not use the wasm64 build,
+directory names the WASM memory model, not a host CPU requirement. Loomery does not use the wasm64 build,
 native addons, external ImageMagick executables, runtime downloads or browser-only APIs.
 
 The worker accepts embedded PNG, JPEG, WebP, GIF and AVIF bytes. It generates a WebP poster frame with
@@ -35,7 +35,7 @@ the persisted original, regardless of which OpenCode client created the session.
 Any future disk cache must have fixed read-enforced expiry, automatic startup and periodic garbage
 collection, a byte limit and stale temporary-file cleanup; cache availability must not affect correctness.
 
-The helper listens only on loopback. A private credential under Varro's `thumbnails` state directory
+The helper listens only on loopback. A private credential under Loomery's `thumbnails` state directory
 authenticates both peers, with build-specific HMAC keys. Each upload waits for a signed `100 Continue`
 on the same connection before sending image bytes. Deterministic candidate ports and exclusive bind
 arbitrate simultaneous starts; losing helpers exit before loading WASM. There are no PID locks to
@@ -67,7 +67,7 @@ reject uploads, and publisher accounts and agreements still apply. This implemen
 ## Third-party licensing and source
 
 The WASM includes ImageMagick and delegates with their own licenses, including LGPL libraries.
-Varro's MIT license does not replace those licenses. Every VSIX includes:
+Loomery's MIT license does not replace those licenses. Every VSIX includes:
 
 - `dist/extension/thumbnail-LICENSE.txt`: magick-wasm's Apache-2.0 license.
 - `dist/extension/thumbnail-NOTICE.txt`: the complete upstream attribution and license file,
@@ -92,13 +92,13 @@ For library changes, follow the pinned Magick.Native workflow's `wasm` job, usin
 Q8 and Emscripten 6.0.6. Build modified delegates using the dependency release's WASM recipes instead
 of downloading its prebuilt static archive, then build ImageMagick and Magick.Native against them.
 The upstream build instructions and workflow are included in the linked source tree. Keep the exported
-API compatible with magick-wasm 0.0.44, or rebuild the wrapper and Varro worker together.
+API compatible with magick-wasm 0.0.44, or rebuild the wrapper and Loomery worker together.
 
 To use a compatible modified library, replace `dist/extension/thumbnail-codec.wasm` in an unpacked
-extension and reload the extension host. Varro does not impose signatures, checksums or account checks
+extension and reload the extension host. Loomery does not impose signatures, checksums or account checks
 on library replacements. Modification for personal use and reverse engineering to debug modifications
-to LGPL-covered components are not restricted by Varro. Varro's worker and integration source are
-available in [the Varro repository](https://github.com/koltyakov/varro).
+to LGPL-covered components are not restricted by Loomery. Loomery's worker and integration source are
+available in [the Loomery repository](https://github.com/quonaro/loomery).
 
 On a dependency update, recheck the source revisions, delegate terms and replacement procedure; retain
 source availability for distributed versions. Do not describe the whole WASM binary as Apache-only.

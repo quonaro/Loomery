@@ -58,7 +58,7 @@ function siblingWorkspaceAlerts() {
   return state.siblingWorkspaceAlerts;
 }
 
-function NewChatButton(props: { onCreateSession: () => void }) {
+export function NewChatButton(props: { onCreateSession: () => void }) {
   const [menuPosition, setMenuPosition] = createSignal<{ x: number; y: number } | null>(null);
   let buttonRef: HTMLButtonElement | undefined;
   let menuRef: HTMLDivElement | undefined;
@@ -362,7 +362,7 @@ function SiblingWorkspaceAlertsButton() {
 async function toggleSessionPinned(sessionId: string) {
   const pinned = !state.pinnedSessionIds.includes(sessionId);
   try {
-    const pinnedSessionIds = await client.varro.session.setPinned(sessionId, pinned, {
+    const pinnedSessionIds = await client.loomery.session.setPinned(sessionId, pinned, {
       directory: state.sessions.find((session) => session.id === sessionId)?.directory,
     });
     setState('pinnedSessionIds', pinnedSessionIds);
@@ -526,7 +526,6 @@ export function ActiveChatHeader(props: {
   onOpenCompletedSessions: () => void;
   onOpenRunningSessions: () => void;
   onOpenPendingSessions: () => void;
-  onCreateSession: () => void;
 }) {
   const [workSummary, setWorkSummary] = createSignal<Pick<
     SessionDiffSummary,
@@ -560,7 +559,7 @@ export function ActiveChatHeader(props: {
     const session = state.sessions.find((entry) => entry.id === sessionId);
     const directory = session?.directory;
     const pausedAt = readSessionPauses(session?.metadata).at(-1)?.pausedAt;
-    client.varro.session
+    client.loomery.session
       .diffSummary(
         sessionId,
         pausedAt === undefined ? undefined : Math.max(pausedAt, session?.time.updated ?? 0),
@@ -710,7 +709,6 @@ export function ActiveChatHeader(props: {
             count={props.pendingCount ?? 0}
             onClick={props.onOpenPendingSessions}
           />
-          <NewChatButton onCreateSession={props.onCreateSession} />
         </div>
       </Show>
       <Show when={actionsSession()}>

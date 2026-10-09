@@ -15,9 +15,9 @@ test('context bar keeps a selected line range on one line beside another attachm
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/veryLongProductStatusesConfigurationFilename.ts',
+            path: '/workspace/loomery/src/veryLongProductStatusesConfigurationFilename.ts',
             relativePath: 'src/veryLongProductStatusesConfigurationFilename.ts',
             language: 'typescript',
           },
@@ -34,7 +34,7 @@ test('context bar keeps a selected line range on one line beside another attachm
       {
         type: 'files/dropped',
         payload: [
-          { path: '/workspace/varro/image.png', relativePath: 'image.png', type: 'file' },
+          { path: '/workspace/loomery/image.png', relativePath: 'image.png', type: 'file' },
         ],
       },
       '*'
@@ -64,9 +64,9 @@ test('prompt body includes selection reference from active editor', async ({ pag
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/shared/context-files.ts',
+            path: '/workspace/loomery/src/shared/context-files.ts',
             relativePath: 'src/shared/context-files.ts',
             language: 'typescript',
           },
@@ -90,9 +90,9 @@ test('prompt body includes selection reference from active editor', async ({ pag
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );
@@ -137,9 +137,9 @@ test('prompt body includes terminal selection context', async ({ page }) => {
       getE2EState(page, () => {
         const value = (
           window as Window & {
-            __varroE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
+            __loomeryE2E?: { requests: Array<{ method: string; path: string; body?: unknown }> };
           }
-        ).__varroE2E;
+        ).__loomeryE2E;
         const promptReq = value?.requests.find(
           (req) => req.method === 'POST' && req.path.includes('prompt_async')
         );
@@ -166,9 +166,9 @@ test('updating selection range updates the context bar display', async ({ page }
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/webview/lib/state.ts',
+            path: '/workspace/loomery/src/webview/lib/state.ts',
             relativePath: 'src/webview/lib/state.ts',
             language: 'typescript',
           },
@@ -187,9 +187,9 @@ test('updating selection range updates the context bar display', async ({ page }
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/webview/lib/state.ts',
+            path: '/workspace/loomery/src/webview/lib/state.ts',
             relativePath: 'src/webview/lib/state.ts',
             language: 'typescript',
           },
@@ -205,7 +205,9 @@ test('updating selection range updates the context bar display', async ({ page }
   await expect(page.locator('[title*="L5-8"]')).toHaveCount(0);
 });
 
-test('clearing selection shows active file without line range', async ({ page }) => {
+test('clearing selection removes the context chip instead of attaching the bare file', async ({
+  page,
+}) => {
   await page.goto('/e2e/harness/index.html?scenario=plan-ready');
   await page.locator('[role="textbox"][aria-multiline="true"]').first().waitFor();
 
@@ -214,9 +216,9 @@ test('clearing selection shows active file without line range', async ({ page })
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/webview/lib/state.ts',
+            path: '/workspace/loomery/src/webview/lib/state.ts',
             relativePath: 'src/webview/lib/state.ts',
             language: 'typescript',
           },
@@ -235,9 +237,9 @@ test('clearing selection shows active file without line range', async ({ page })
       {
         type: 'context/update',
         payload: {
-          workspacePath: '/workspace/varro',
+          workspacePath: '/workspace/loomery',
           activeFile: {
-            path: '/workspace/varro/src/webview/lib/state.ts',
+            path: '/workspace/loomery/src/webview/lib/state.ts',
             relativePath: 'src/webview/lib/state.ts',
             language: 'typescript',
           },
@@ -249,6 +251,6 @@ test('clearing selection shows active file without line range', async ({ page })
     );
   });
 
-  await expect(page.getByText('state.ts')).toBeVisible();
+  await expect(page.getByText('state.ts')).toHaveCount(0);
   await expect(page.locator('[title*="L10-15"]')).toHaveCount(0);
 });

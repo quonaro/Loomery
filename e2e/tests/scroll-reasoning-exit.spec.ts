@@ -24,12 +24,12 @@ for (const fraction of [0.1, 0.3, 0.6]) {
       // SAFETY: The isolated harness installs typed production-event replay and fixture readers.
       const harness = (
         window as Window & {
-          __varroE2E?: {
+          __loomeryE2E?: {
             getSessionMessages(id: string): MessageEntry[];
             replayServerEvent(event: ServerEvent): void;
           };
         }
-      ).__varroE2E;
+      ).__loomeryE2E;
       const list = document.querySelector<HTMLElement>('.interactive-list');
       const listBox = list?.getBoundingClientRect();
       const marker = [

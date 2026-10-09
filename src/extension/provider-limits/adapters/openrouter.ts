@@ -10,7 +10,7 @@ import {
   readBoundedResponseJson,
   unsupportedProviderStatus,
   providerErrorStatus,
-  VARRO_USER_AGENT,
+  LOOMERY_USER_AGENT,
 } from '../adapter-utils';
 
 const OPENROUTER_AUTH_KEY_ENDPOINT = 'https://openrouter.ai/api/v1/auth/key';
@@ -47,7 +47,7 @@ export function createOpenRouterAdapter(): ProviderLimitAdapter {
             headers: {
               Accept: 'application/json',
               Authorization: `Bearer ${token}`,
-              'User-Agent': VARRO_USER_AGENT,
+              'User-Agent': LOOMERY_USER_AGENT,
             },
             signal: AbortSignal.timeout(10_000),
           });
