@@ -160,6 +160,34 @@ export async function revertToMessageWithDependencies(
   }
 }
 
+export async function deleteMessageWithDependencies(
+  deps: {
+    startLoading(): () => boolean;
+    deleteMessage(sessionId: string, messageId: string): Promise<void | boolean | object>;
+    syncSession(sessionId: string): Promise<void | boolean | object>;
+    syncSessionMessages(sessionId: string): Promise<void | boolean | object>;
+    stopLoading(): void;
+    setError(message: string): void;
+  },
+  sessionId: string,
+  messageId: string
+): Promise<boolean> {
+  const isCurrent = deps.startLoading();
+  try {
+    // Single-message deletion is permanent: no file restore, no redo.
+    await deps.deleteMessage(sessionId, messageId);
+    await Promise.all([deps.syncSession(sessionId), deps.syncSessionMessages(sessionId)]);
+    if (isCurrent()) deps.stopLoading();
+    return true;
+  } catch (err) {
+    if (isCurrent()) {
+      deps.stopLoading();
+      deps.setError(err instanceof Error ? err.message : 'Failed to delete message');
+    }
+    return false;
+  }
+}
+
 export async function editMessageWithDependencies(
   deps: {
     getActiveSessionId(): string | null;
@@ -664,6 +692,21 @@ export class SessionControlOperations {
       {
         startLoading: this.deps.startLoading,
         revertSession: this.deps.revertSession,
+        syncSession: this.deps.syncSession,
+        syncSessionMessages: this.deps.syncSessionMessages,
+        stopLoading: this.deps.stopLoading,
+        setError: this.deps.setError,
+      },
+      sessionId,
+      messageId
+    );
+  };
+
+  readonly deleteMessage = async (sessionId: string, messageId: string) => {
+    return await deleteMessageWithDependencies(
+      {
+        startLoading: this.deps.startLoading,
+        deleteMessage: this.deps.deleteMessage,
         syncSession: this.deps.syncSession,
         syncSessionMessages: this.deps.syncSessionMessages,
         stopLoading: this.deps.stopLoading,

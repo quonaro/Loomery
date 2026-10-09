@@ -1,12 +1,12 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { isAbortedAssistantError } from '../../../shared/error-classification';
-import { forkSession, implementPlan, openPlan } from '../../hooks/useOpenCode';
+import { deleteMessage, forkSession, implementPlan, openPlan } from '../../hooks/useOpenCode';
 import {
   editingMessage,
   registerInlineEditMount,
   unregisterInlineEditMount,
 } from '../../lib/message-edit-state';
-import { isLoading, skipPlanSession, state } from '../../lib/state';
+import { isActiveSessionWorking, isLoading, skipPlanSession, state } from '../../lib/state';
 import { prepareMeasuredEntrance } from '../../lib/measured-entrance';
 import type { AssistantActivityGroupInfo } from '../../lib/assistant-activity';
 import {
@@ -23,12 +23,14 @@ import {
   copyIcon,
   dashboardDotsIcon,
   dollarCircleIcon,
+  trashIcon,
   xmarkCircleIcon,
 } from '../../lib/ui-icons';
 import { writeClipboard } from '../../lib/write-clipboard';
 import type { ToolCallPermissionMatch } from '../../lib/tool-call-matching';
 import type { MessageEntry, QuestionRequest, ToolPart } from '../../types';
 import { ForkIcon } from '../ForkIcon';
+import { DeleteMessageConfirmDialog } from '../DeleteMessageConfirmDialog';
 import { Message as MessageComponent } from '../Message';
 import { projectAutomaticActionMessage } from '../message/UserMessageContent';
 import { SessionPauseDivider, SessionResumeButton } from '../message/SessionPauseDivider';
@@ -367,11 +369,20 @@ export function AssistantDialogSummaryForMessage(
     'hasBuildAgent' | 'latestPlanImplementationMessageId' | 'onWorkedSummaryHoverChange'
   >
 ) {
+  const canDeleteMessage = () =>
+    props.msg.info.sessionID === state.activeSessionId &&
+    !state.sessions.some(
+      (session) => session.id === state.activeSessionId && Boolean(session.parentID)
+    ) &&
+    !isActiveSessionWorking();
+  const handleDeleteMessage = () => deleteMessage(props.msg.info.sessionID, props.msg.info.id);
   return (
     <AssistantDialogSummary
       summary={props.summary}
       pause={props.pause}
       messageId={props.msg.info.id}
+      canDelete={canDeleteMessage}
+      onDelete={() => void handleDeleteMessage()}
       showImplementPlanAction={shouldShowPlanImplementationAction({
         hasBuildAgent: props.hasBuildAgent,
         info: props.msg.info,
@@ -428,6 +439,8 @@ function AssistantDialogSummary(props: {
   summary: AssistantDialogSummaryInfo;
   pause?: SessionPause;
   messageId: string;
+  canDelete: () => boolean;
+  onDelete: () => void;
   showImplementPlanAction?: boolean;
   showPlanSkippedNotice?: boolean;
   hasBuildAgent?: boolean;
@@ -470,6 +483,7 @@ function AssistantDialogSummary(props: {
   let copiedTimer: ReturnType<typeof setTimeout> | undefined;
   const [isHoverIntentActive, setIsHoverIntentActive] = createSignal(false);
   const [copied, setCopied] = createSignal(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const copyFinalResponse = async () => {
     if (!props.copyText || !(await writeClipboard(props.copyText))) return;
     setCopied(true);
@@ -673,8 +687,30 @@ function AssistantDialogSummary(props: {
               <ForkIcon />
             </button>
           </Tooltip>
+          <Show when={props.canDelete()}>
+            <Tooltip content="Delete this response permanently" delay={500}>
+              <button
+                type="button"
+                class="assistant-dialog-summary-turn-action assistant-dialog-summary-delete"
+                aria-label="Delete this response permanently"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <UiIcon source={trashIcon} width="16" height="16" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </Show>
         </div>
       </div>
+      <Show when={showDeleteConfirm()}>
+        <DeleteMessageConfirmDialog
+          role="assistant"
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={() => {
+            setShowDeleteConfirm(false);
+            props.onDelete();
+          }}
+        />
+      </Show>
       <Show when={props.showImplementPlanAction}>
         <div class="assistant-dialog-summary-actions">
           <button

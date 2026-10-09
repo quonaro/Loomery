@@ -31,12 +31,14 @@ import { buildPlanImplementationPrompt } from './message-list/plan-actions';
 
 const retryMessageMock = vi.hoisted(() => vi.fn());
 const revertToMessageMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>(async () => true));
+const deleteMessageMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>(async () => true));
 const selectSessionMock = vi.hoisted(() => vi.fn());
 
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise Message actions through the useOpenCode module boundary. */
 vi.mock('../hooks/useOpenCode', () => ({
   retryMessage: retryMessageMock,
   revertToMessage: revertToMessageMock,
+  deleteMessage: deleteMessageMock,
   selectSession: selectSessionMock,
 }));
 
@@ -74,6 +76,7 @@ afterEach(() => {
   document.body.classList.remove('chat-image-preview-open');
   retryMessageMock.mockReset();
   revertToMessageMock.mockReset();
+  deleteMessageMock.mockReset();
   selectSessionMock.mockReset();
   consumeRevertedMessageDraft();
   resetProviderConnectionState();
@@ -3631,5 +3634,95 @@ describe('Message revert action', () => {
     );
 
     expect(container?.querySelector('.message-revert-button')).toBeNull();
+  });
+
+  it('shows the delete button on user messages only', () => {
+    setAppState('activeSessionId', 'session-1');
+    // NOTE: setState merges, so `{}` would not clear the busy status set above.
+    setAppState('sessionStatus', 'session-1', { type: 'idle' });
+    cleanup = render(
+      () => [
+        Message({
+          info: userMessage('message-user-delete'),
+          parts: [textPart('text-user', 'Build the thing')],
+        }),
+        Message({
+          info: assistantMessage('message-assistant-delete'),
+          parts: [textPart('text-assistant', 'Done.')],
+        }),
+      ],
+      container!
+    );
+
+    const turns = container?.querySelectorAll<HTMLElement>('.chat-turn');
+    expect(turns?.[0]?.querySelector('.message-delete-button')).toBeInstanceOf(HTMLButtonElement);
+    // Assistant responses expose deletion in the summary row next to copy/fork instead.
+    expect(turns?.[1]?.querySelector('.message-delete-button')).toBeNull();
+  });
+
+  it('deletes only after the delete confirmation is accepted', async () => {
+    deleteMessageMock.mockResolvedValue(true);
+    setAppState('activeSessionId', 'session-1');
+    // NOTE: setState merges, so `{}` would not clear the busy status set above.
+    setAppState('sessionStatus', 'session-1', { type: 'idle' });
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-delete-confirm'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-delete-button')?.click();
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-submit')).not.toBeNull();
+    });
+    expect(document.body.textContent).toContain('cannot be undone');
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-submit') as HTMLButtonElement).click();
+
+    await vi.waitFor(() => {
+      expect(deleteMessageMock).toHaveBeenCalledWith('session-1', 'message-delete-confirm');
+    });
+  });
+
+  it('does not delete when the delete confirmation is cancelled', async () => {
+    setAppState('activeSessionId', 'session-1');
+    // NOTE: setState merges, so `{}` would not clear the busy status set above.
+    setAppState('sessionStatus', 'session-1', { type: 'idle' });
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-delete-cancel'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-delete-button')?.click();
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-cancel')).not.toBeNull();
+    });
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-cancel') as HTMLButtonElement).click();
+
+    expect(deleteMessageMock).not.toHaveBeenCalled();
+    expect(document.body.querySelector('.revert-confirm-dialog')).toBeNull();
+  });
+
+  it('hides the delete button while the session is working', () => {
+    setAppState('activeSessionId', 'session-1');
+    setAppState('sessionStatus', { 'session-1': { type: 'busy' } });
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-delete-busy'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    expect(container?.querySelector('.message-delete-button')).toBeNull();
   });
 });

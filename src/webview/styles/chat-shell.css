@@ -817,10 +817,12 @@ input:focus-visible {
 }
 
 .chat-turn {
+  position: relative;
   width: 100%;
 }
 
-.message-revert-button {
+.message-revert-button,
+.message-delete-button {
   position: absolute;
   top: 2px;
   right: 2px;
@@ -838,21 +840,28 @@ input:focus-visible {
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 120ms ease,
     color 120ms ease,
     background-color 120ms ease;
 }
 
 .chat-turn:hover > .message-revert-button,
 .chat-turn:focus-within > .message-revert-button,
-.message-revert-button:focus-visible {
+.message-revert-button:focus-visible,
+.chat-turn:hover > .message-delete-button,
+.chat-turn:focus-within > .message-delete-button,
+.message-delete-button:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
 
-.message-revert-button:hover:not(:disabled) {
+.message-revert-button:hover:not(:disabled),
+.message-delete-button:hover:not(:disabled) {
   color: var(--color-vscode-fg);
   background: var(--color-vscode-hover);
+}
+
+.chat-turn:has(.message-revert-button) > .message-delete-button {
+  right: 30px;
 }
 
 .revert-confirm-overlay {

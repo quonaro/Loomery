@@ -9,6 +9,7 @@ export {
   createSession,
   startNewSession,
   deleteSession,
+  deleteMessage,
   deleteSessionImmediately,
   deleteSessionPermanently,
   editMessage,

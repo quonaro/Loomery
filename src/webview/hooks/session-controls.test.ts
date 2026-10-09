@@ -4,6 +4,7 @@ import { setSessionHistoryPrompts } from '../lib/message-window';
 import {
   abortSessionWithDependencies,
   compactSessionWithDependencies,
+  deleteMessageWithDependencies,
   editMessageWithDependencies,
   redoSessionWithDependencies,
   revertToMessageWithDependencies,
@@ -279,6 +280,63 @@ describe('session-controls helpers', () => {
     expect(syncSessionMessages).not.toHaveBeenCalled();
     expect(stopLoading).toHaveBeenCalledTimes(1);
     expect(setError).toHaveBeenCalledWith('revert failed');
+  });
+
+  it('deletes a single message and resyncs the session', async () => {
+    const deleteMessage = vi.fn(async () => {});
+    const syncSession = vi.fn(async () => {});
+    const syncSessionMessages = vi.fn(async () => {});
+    const stopLoading = vi.fn();
+    const setError = vi.fn();
+
+    const deleted = await deleteMessageWithDependencies(
+      {
+        startLoading: vi.fn(() => () => true),
+        deleteMessage,
+        syncSession,
+        syncSessionMessages,
+        stopLoading,
+        setError,
+      },
+      'session-1',
+      'message-1'
+    );
+
+    expect(deleted).toBe(true);
+    expect(deleteMessage).toHaveBeenCalledWith('session-1', 'message-1');
+    expect(syncSession).toHaveBeenCalledWith('session-1');
+    expect(syncSessionMessages).toHaveBeenCalledWith('session-1');
+    expect(stopLoading).toHaveBeenCalledTimes(1);
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  it('reports delete failures without resyncing', async () => {
+    const deleteMessage = vi.fn(async () => {
+      throw new Error('delete failed');
+    });
+    const syncSession = vi.fn(async () => {});
+    const syncSessionMessages = vi.fn(async () => {});
+    const stopLoading = vi.fn();
+    const setError = vi.fn();
+
+    const deleted = await deleteMessageWithDependencies(
+      {
+        startLoading: vi.fn(() => () => true),
+        deleteMessage,
+        syncSession,
+        syncSessionMessages,
+        stopLoading,
+        setError,
+      },
+      'session-1',
+      'message-1'
+    );
+
+    expect(deleted).toBe(false);
+    expect(syncSession).not.toHaveBeenCalled();
+    expect(syncSessionMessages).not.toHaveBeenCalled();
+    expect(stopLoading).toHaveBeenCalledTimes(1);
+    expect(setError).toHaveBeenCalledWith('delete failed');
   });
 
   it('edits a user message by deleting its history tail and resending the new text', async () => {

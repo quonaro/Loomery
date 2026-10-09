@@ -16,7 +16,7 @@ import {
   isProviderAuthFailure,
 } from '../../shared/error-classification';
 import { normalizeSessionTitle } from '../../shared/session-title';
-import { retryMessage, revertToMessage } from '../hooks/useOpenCode';
+import { deleteMessage, retryMessage, revertToMessage } from '../hooks/useOpenCode';
 import { publishRevertedMessageDraft } from '../lib/reverted-message-draft';
 import {
   getAssistantActivityPartKey,
@@ -74,7 +74,8 @@ import {
   parseUserMessageContent,
 } from './message/UserMessageContent';
 import { isString } from '../lib/runtime-values';
-import { playIcon, undoIcon } from '../lib/ui-icons';
+import { playIcon, trashIcon, undoIcon } from '../lib/ui-icons';
+import { DeleteMessageConfirmDialog } from './DeleteMessageConfirmDialog';
 import { RevertConfirmDialog } from './RevertConfirmDialog';
 import { Tooltip } from './Tooltip';
 import { UiIcon } from './UiIcon';
@@ -606,6 +607,7 @@ export function Message(props: {
   const [editContentLoading, setEditContentLoading] = createSignal(false);
   const [editContentError, setEditContentError] = createSignal('');
   const [showRevertConfirm, setShowRevertConfirm] = createSignal(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const canRevertToMessage = () =>
     isUser() &&
     hasUserContent() &&
@@ -615,6 +617,15 @@ export function Message(props: {
     !isSteeringMessage() &&
     !isPlanImplementation();
   const handleRevertToMessage = () => revertToMessage(props.info.sessionID, props.info.id);
+  const canDeleteMessage = () =>
+    isUser() &&
+    hasUserContent() &&
+    props.info.sessionID === state.activeSessionId &&
+    !isManagedSubagentSession() &&
+    !isActiveSessionWorking() &&
+    !isSteeringMessage() &&
+    !isPlanImplementation();
+  const handleDeleteMessage = () => deleteMessage(props.info.sessionID, props.info.id);
   let editContentController: AbortController | undefined;
   createEffect(
     on(
@@ -736,6 +747,32 @@ export function Message(props: {
                 <UiIcon source={undoIcon} width={13} height={13} aria-hidden="true" />
               </button>
             </Tooltip>
+          </Show>
+          <Show when={canDeleteMessage()}>
+            <Tooltip content="Delete this message permanently" delay={500}>
+              <button
+                type="button"
+                class="message-delete-button"
+                aria-label="Delete this message permanently. Only this message is removed and files are not restored."
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowDeleteConfirm(true);
+                }}
+              >
+                <UiIcon source={trashIcon} width={13} height={13} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </Show>
+
+          <Show when={showDeleteConfirm()}>
+            <DeleteMessageConfirmDialog
+              role="user"
+              onCancel={() => setShowDeleteConfirm(false)}
+              onConfirm={async () => {
+                setShowDeleteConfirm(false);
+                await handleDeleteMessage();
+              }}
+            />
           </Show>
 
           <Show when={showRevertConfirm()}>

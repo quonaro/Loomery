@@ -177,6 +177,10 @@ export async function revertToMessage(sessionId: string, messageId: string) {
   return await getCurrentOpenCodeRuntime().revertToMessage(sessionId, messageId);
 }
 
+export async function deleteMessage(sessionId: string, messageId: string) {
+  return await getCurrentOpenCodeRuntime().deleteMessage(sessionId, messageId);
+}
+
 export async function redoSession() {
   await getCurrentOpenCodeRuntime().redoSession();
 }

@@ -1617,24 +1617,19 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  filter: blur(2px);
   pointer-events: none;
   transition:
-    opacity 120ms ease,
-    filter 120ms ease,
     color 120ms ease,
     background-color 120ms ease;
 }
 
 .assistant-dialog-summary.is-hover-intent-active .assistant-dialog-summary-turn-action {
   opacity: 1;
-  filter: blur(0);
   pointer-events: auto;
 }
 
 .assistant-dialog-summary-turn-action:focus-visible {
   opacity: 1;
-  filter: blur(0);
   pointer-events: auto;
 }
 
@@ -1656,7 +1651,6 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
 @media (hover: none) {
   .assistant-dialog-summary-turn-action:not(:disabled) {
     opacity: 1;
-    filter: blur(0);
     pointer-events: auto;
   }
 }

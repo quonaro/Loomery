@@ -4,7 +4,7 @@ import { createSignal } from 'solid-js';
 import type * as UseOpenCodeModule from '../../hooks/useOpenCode';
 import { formatClockTime } from '../../lib/message-time';
 import { setState, skipPlanSession, startLoading, stopLoading } from '../../lib/state';
-import { copyIcon, gitForkIcon, xmarkCircleIcon } from '../../lib/ui-icons';
+import { copyIcon, gitForkIcon, trashIcon, xmarkCircleIcon } from '../../lib/ui-icons';
 import { assistantMessage, textPart, userMessage } from '../MessageList.test-utils';
 import { toCssUrl } from '../UiIcon';
 import {
@@ -15,11 +15,12 @@ import {
 } from './MessageRows';
 
 const forkSessionMock = vi.hoisted(() => vi.fn(async () => 'forked-session'));
+const deleteMessageMock = vi.hoisted(() => vi.fn(async () => true));
 
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise MessageRows integration with useOpenCode actions. */
 vi.mock('../../hooks/useOpenCode', async () => {
   const actual = await vi.importActual<typeof UseOpenCodeModule>('../../hooks/useOpenCode');
-  return { ...actual, forkSession: forkSessionMock };
+  return { ...actual, forkSession: forkSessionMock, deleteMessage: deleteMessageMock };
 });
 
 let container: HTMLDivElement;
@@ -29,6 +30,7 @@ beforeEach(() => {
   container = document.createElement('div');
   document.body.appendChild(container);
   forkSessionMock.mockClear();
+  deleteMessageMock.mockClear();
 });
 
 afterEach(() => {
@@ -642,6 +644,114 @@ describe('AssistantDialogSummaryForMessage', () => {
     container.querySelector<HTMLButtonElement>('button[aria-label="Fork chat from here"]')?.click();
 
     expect(forkSessionMock).toHaveBeenCalledWith('session-1', 'user-2');
+  });
+
+  it('shows the assistant delete action next to copy and fork', () => {
+    setState('activeSessionId', 'session-1');
+    cleanup = render(
+      () => (
+        <AssistantDialogSummaryForMessage
+          summary={{ durationMs: 1_000, inputTokens: 0, outputTokens: 0, agentCount: 0 }}
+          msg={{
+            info: assistantMessage('assistant-1', { sessionID: 'session-1' }),
+            parts: [textPart('text-1', 'Done')],
+          }}
+          hasBuildAgent={false}
+          latestPlanImplementationMessageId={null}
+        />
+      ),
+      container
+    );
+
+    expect(
+      Array.from(
+        container.querySelectorAll<HTMLButtonElement>('.assistant-dialog-summary-turn-action')
+      ).map((action) => action.getAttribute('aria-label'))
+    ).toEqual(['Copy final response', 'Fork chat from here', 'Delete this response permanently']);
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Delete this response permanently"]'
+    );
+    expect(
+      button?.querySelector<HTMLElement>('.ui-icon')?.style.getPropertyValue('--ui-icon-mask')
+    ).toBe(toCssUrl(trashIcon));
+  });
+
+  it('deletes the summarized assistant message after confirmation', async () => {
+    deleteMessageMock.mockResolvedValue(true);
+    setState('activeSessionId', 'session-1');
+    cleanup = render(
+      () => (
+        <AssistantDialogSummaryForMessage
+          summary={{ durationMs: 1_000, inputTokens: 0, outputTokens: 0, agentCount: 0 }}
+          msg={{ info: assistantMessage('assistant-1', { sessionID: 'session-1' }), parts: [] }}
+          hasBuildAgent={false}
+          latestPlanImplementationMessageId={null}
+        />
+      ),
+      container
+    );
+
+    container
+      .querySelector<HTMLButtonElement>('button[aria-label="Delete this response permanently"]')
+      ?.click();
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-dialog')).not.toBeNull();
+    });
+    expect(document.body.textContent).toContain('cannot be undone');
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-submit') as HTMLButtonElement).click();
+
+    await vi.waitFor(() => {
+      expect(deleteMessageMock).toHaveBeenCalledWith('session-1', 'assistant-1');
+    });
+  });
+
+  it('does not delete the summarized message when the confirmation is cancelled', async () => {
+    setState('activeSessionId', 'session-1');
+    cleanup = render(
+      () => (
+        <AssistantDialogSummaryForMessage
+          summary={{ durationMs: 1_000, inputTokens: 0, outputTokens: 0, agentCount: 0 }}
+          msg={{ info: assistantMessage('assistant-1', { sessionID: 'session-1' }), parts: [] }}
+          hasBuildAgent={false}
+          latestPlanImplementationMessageId={null}
+        />
+      ),
+      container
+    );
+
+    container
+      .querySelector<HTMLButtonElement>('button[aria-label="Delete this response permanently"]')
+      ?.click();
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-cancel')).not.toBeNull();
+    });
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-cancel') as HTMLButtonElement).click();
+
+    expect(deleteMessageMock).not.toHaveBeenCalled();
+    expect(document.body.querySelector('.revert-confirm-dialog')).toBeNull();
+  });
+
+  it('hides the assistant delete action while the session is working', () => {
+    setState('activeSessionId', 'session-1');
+    setState('sessionStatus', { 'session-1': { type: 'busy' } });
+    cleanup = render(
+      () => (
+        <AssistantDialogSummaryForMessage
+          summary={{ durationMs: 1_000, inputTokens: 0, outputTokens: 0, agentCount: 0 }}
+          msg={{ info: assistantMessage('assistant-1', { sessionID: 'session-1' }), parts: [] }}
+          hasBuildAgent={false}
+          latestPlanImplementationMessageId={null}
+        />
+      ),
+      container
+    );
+
+    expect(container.querySelector('[aria-label="Delete this response permanently"]')).toBeNull();
+    setState('sessionStatus', 'session-1', { type: 'idle' });
   });
 });
 
