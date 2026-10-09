@@ -549,7 +549,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       () => this.contextProvider.context.workspacePath || undefined,
       () => this.activeChatModel,
       isOpenAIPro,
-      () => vscode.workspace.getConfiguration('loomery').get<string>('commitMessage.model', '')
+      () => vscode.workspace.getConfiguration('loomery').get<string>('commitMessage.model', ''),
+      () => vscode.workspace.getConfiguration('loomery').get<string>('commitMessage.rules', '')
     );
 
     this.serverEventBridge = new ServerEventBridge(

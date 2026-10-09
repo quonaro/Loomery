@@ -525,6 +525,11 @@
           "patternErrorMessage": "Use provider/model, or leave the setting empty.",
           "markdownDescription": "Provider/model used to generate commit messages. Leave empty to let Loomery select a suitable model automatically. Select a configured model from Loomery's Models view."
         },
+        "loomery.commitMessage.rules": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Custom rules for generated commit messages, written as one string (for example `\"Use Conventional Commits with a scope. Write the subject in imperative mood.\"`). Leave empty to use the default style."
+        },
         "loomery.decisions.jev.autoApprove": {
           "type": "boolean",
           "scope": "application",

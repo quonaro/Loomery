@@ -655,6 +655,8 @@ The model is selected in this order:
 
 When no explicit route is available, the helper request omits its model and OpenCode uses its default. Right-click a model in the Models view to update the VS Code user setting.
 
+Custom style rules from the `loomery.commitMessage.rules` setting are appended to the generation system prompt. They refine style and format only; grounding in the actual diff still applies.
+
 All paths, up to the first 100,000 characters of the selected patch, and up to ten recent commit subjects are treated as untrusted input in a temporary tool-disabled session. Untracked file content has separate per-file and total size limits. On native Windows, Loomery includes each untracked path with a `content unavailable` marker but omits its contents because Windows does not provide the atomic no-follow file read used to prevent path replacement during generation. Tracked unstaged diffs are unaffected. Split larger changes into smaller commits for the most accurate result. Loomery never logs the patch, stages files, or executes the commit. It also rechecks the selected changes and commit input before applying a result, so a slow generation cannot silently overwrite newer work.
 
 ## Output In The Chat
@@ -741,6 +743,7 @@ Chat view:
 Commit messages:
 
 - `loomery.commitMessage.model` - provider/model used to generate commit messages; stored in VS Code user settings and selected from Loomery's Models view
+- `loomery.commitMessage.rules` - custom rules for generated commit messages, written as one string in `settings.json` (for example `"loomery.commitMessage.rules": "Use Conventional Commits with a scope. Write the subject in imperative mood."`); leave empty to use the default style
 
 There are also deprecated debug-only settings used for development and recovery testing:
 

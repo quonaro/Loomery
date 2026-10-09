@@ -281,7 +281,8 @@ function createService(
   workspacePath?: string,
   activeModel: { providerID: string; modelID: string; variant?: string } | null = null,
   openAIPro = false,
-  configuredModel: unknown = null
+  configuredModel: unknown = null,
+  commitRules = ''
 ) {
   const ensureServerStarted = vi.fn(() => Promise.resolve());
   const isOpenAIPro = vi.fn(() => Promise.resolve(openAIPro));
@@ -292,7 +293,8 @@ function createService(
     () => workspacePath,
     () => activeModel,
     isOpenAIPro,
-    () => configuredModel
+    () => configuredModel,
+    () => commitRules
   );
   return { service, request, hiddenSessions, ensureServerStarted, isOpenAIPro };
 }
@@ -564,6 +566,49 @@ describe('CommitMessageService', () => {
 
     expect(requestBody(request, '/message?')).not.toHaveProperty('model');
     expect(repository.inputBox.value).toContain('feat: generated message');
+  });
+
+  it('includes configured commit rules in the system prompt', async () => {
+    const repository = createRepository();
+    setGitRepositories([repository]);
+    const request = createRequest();
+    const { service } = createService(
+      request,
+      createHiddenSessions(),
+      undefined,
+      null,
+      false,
+      null,
+      'Use Conventional Commits with a scope. Write the subject in imperative mood.'
+    );
+
+    await service.generate();
+
+    const messageBody = requestBody(request, '/message?');
+    const system = messageBody?.system as string;
+    expect(system).toContain('untrusted evidence');
+    expect(system).toContain('Use Conventional Commits with a scope');
+    expect(system).toContain('imperative mood');
+  });
+
+  it('omits commit rules from the system prompt when none are configured', async () => {
+    const repository = createRepository();
+    setGitRepositories([repository]);
+    const request = createRequest();
+    const { service } = createService(
+      request,
+      createHiddenSessions(),
+      undefined,
+      null,
+      false,
+      null,
+      '   '
+    );
+
+    await service.generate();
+
+    const messageBody = requestBody(request, '/message?');
+    expect(messageBody?.system as string).not.toContain('Additional user commit rules');
   });
 
   it('prefers GPT Luna from a connected provider when small_model is absent', async () => {
