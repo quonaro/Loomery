@@ -88,8 +88,6 @@ const UNSEQUENCED_TRANSCRIPT_DELTA_EVENT_TYPES = new Set<ServerEvent['type']>([
 import { AutoApproveJudge } from './auto-approve-judge';
 import { AttentionNotifications } from './attention-notifications';
 import { NativeNotifications } from './native-notifications';
-import { MacOSTray, projectTraySessions } from './macos-tray';
-import type { TrayProject, TraySession } from './macos-tray';
 import { DecisionProviders } from './decision-providers';
 import { JevClient, JevDecisions } from './jev-decisions';
 import { CommitMessageService } from './commit-message-service';
@@ -239,7 +237,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private readonly fileSearch: FileSearchService;
   private readonly sessionState: SessionStateManager;
   private readonly attentionNotifications: AttentionNotifications;
-  private readonly macOSTray: MacOSTray | undefined;
   private readonly notificationUriHandler: vscode.Disposable;
   private nativeNotificationErrorShown = false;
   private readonly sessionTrash: SessionTrashManager;
@@ -522,19 +519,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     this.notificationUriHandler = vscode.window.registerUriHandler({
       handleUri: (uri) => this.openNotificationUri(uri),
     });
-    if (
-      process.platform === 'darwin' &&
-      !vscode.env.remoteName &&
-      !process.env.LOOMERY_TEST_STATE_ROOT &&
-      !process.env.VITEST
-    ) {
-      this.macOSTray = new MacOSTray(
-        () => this.traySessions(),
-        undefined,
-        () => this.serverEventBridge.getStatus().state === 'running',
-        () => this.trayProjects()
-      );
-    }
     for (const [sessionId, agent] of Object.entries(this.sessionPlanState.listAgents())) {
       this.sessionState.setSessionAgent(sessionId, agent);
     }
@@ -1033,7 +1017,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           this.sessionState.acknowledgeCompletedSession(sessionId, seenAt);
           this.sessionState.acknowledgePlanSession(sessionId, seenAt);
           await this.sessionReadState.set(sessionId, seenAt);
-          this.macOSTray?.update();
         },
         setWebviewFocus: (focused) => {
           if (focused) this.lastFocusedContextViewId = webviewContext.viewId;
@@ -1327,7 +1310,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         updateDraftImages: ({ images }) => this.draftImages.update(images, webviewContext.viewId),
         setMermaidPreviewOpen: (open) => this.setMermaidPreviewOpen(open),
         setActiveRoute: (sessionId) => {
-          this.macOSTray?.update();
           const endpoint = endpointRef.endpoint;
           if (!endpoint || sessionId === undefined) return;
           if (endpoint.surface === 'editor') {
@@ -1396,58 +1378,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private async notificationWindowUrl(): Promise<string> {
     return this.projectWindowUrl(this.contextProvider.context.workspacePath ?? undefined);
-  }
-
-  private traySessions(): TraySession[] {
-    return projectTraySessions({
-      state: this.sessionState,
-      serverIdentity: this.server.url,
-      readState: this.sessionReadState.list(),
-      // A restored webview can know a turn is running before the host sees a busy SSE event.
-      // Use the same working indicator as its Stop button, including between-step settling.
-      runningSessionIDs: [...this.endpoints].flatMap((endpoint) =>
-        endpoint.ready &&
-        endpoint.route.type === 'session' &&
-        endpoint.webviewSession.isActiveSessionWorking
-          ? [endpoint.route.sessionId]
-          : []
-      ),
-      includes: (sessionID) => {
-        const directory = this.sessionState.directoryFor(sessionID);
-        return (
-          Boolean(directory && this.contextProvider.getOpenWorkspaceRoot(directory)) &&
-          !this.sessionTrash.isHidden(sessionID) &&
-          !this.hiddenSessions.isHidden(sessionID)
-        );
-      },
-      projectFor: (sessionID) => {
-        const directory =
-          this.sessionState.directoryFor(sessionID) ?? this.contextProvider.context.workspacePath;
-        const root = directory
-          ? (this.contextProvider.getOpenWorkspaceRoot(directory) ?? directory)
-          : '';
-        return this.trayProject(root);
-      },
-    });
-  }
-
-  private trayProject(root: string): TrayProject {
-    return {
-      id: normalizeWorkspaceIdentity(root) ?? root,
-      name: (
-        vscode.workspace.workspaceFolders?.find((folder) => folder.uri.fsPath === root)?.name ??
-        basename(root)
-      ).slice(0, 180),
-      url: this.projectWindowUrl(root),
-    };
-  }
-
-  private trayProjects(): TrayProject[] {
-    // The editor owns the project catalog, independently of chat context and backend readiness.
-    const roots = (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
-    return [...new Set(roots)]
-      .map((root) => this.trayProject(root))
-      .filter((project) => Boolean(project.url));
   }
 
   private projectWindowUrl(directory?: string): string {
@@ -1889,7 +1819,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       this.updateEditorPanelTitles();
     }
     if (msg.type === 'context/update' && workspaceStructureChanged) {
-      this.macOSTray?.update();
       this.postSiblingWorkspaceAlerts();
     }
   }
@@ -3189,7 +3118,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   async dispose() {
-    this.macOSTray?.dispose();
     this.notificationUriHandler.dispose();
     this.attentionNotifications.dispose();
     this.providerLimitService.dispose();
@@ -3627,7 +3555,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private updateStatusBarItem() {
-    this.macOSTray?.update();
     this.postSiblingWorkspaceAlerts();
     this.updateSessionReconcileTimer();
     this.refreshOpenCodeVersionStatus();

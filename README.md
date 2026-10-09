@@ -84,10 +84,6 @@ Notifications show `Project: <name>`, the chat title, and event details. Clickin
 
 Requires a local desktop host; remote SSH, WSL, and containers are unsupported. macOS uses `osascript` for banners and `afplay` for sound. Linux needs `notify-send` for banners and `paplay`, `aplay`, or `canberra-gtk-play` for sound. OS permissions and Focus/Do Not Disturb settings apply.
 
-### Experimental macOS menu-bar app
-
-The optional [native companion app](native/macos-tray/README.md) lists active sessions, events needing attention, and unread completions across local VS Code windows. Its badge includes unread completions, which disappear when marked read in VS Code. Clicking a row opens its project window without switching chats. On macOS 13+, build and install it with `make build` and `make install` from `native/macos-tray/`. The extension works as usual without it.
-
 ![Workspace sessions with status, token, and change summaries](https://raw.githubusercontent.com/quonaro/loomery/main/assets/sessions.png)
 
 ## Chat and context

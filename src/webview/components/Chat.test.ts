@@ -1115,23 +1115,32 @@ describe('header status badges', () => {
       working: { type: 'busy' },
     });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
     cleanup = render(() => Chat(), container!);
 
-    container?.querySelector<HTMLButtonElement>('.chat-header-pending-badge')?.click();
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe('Pending');
+    const sidebarHeader = () => container?.querySelector('.chat-session-sidebar-header');
+
+    sidebarHeader()?.querySelector<HTMLButtonElement>('.chat-header-pending-badge')?.click();
+    expect(sidebarHeader()?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
+      'Pending'
+    );
     expect(container?.querySelector('[data-session-id="waiting"]')).not.toBeNull();
     expect(container?.querySelector('[data-session-id="working"]')).toBeNull();
-    expect(container?.querySelector('.chat-header-pending-badge')).toBeNull();
+    expect(sidebarHeader()?.querySelector('.chat-header-pending-badge')).toBeNull();
 
-    container?.querySelector<HTMLButtonElement>('.chat-header-running-badge')?.click();
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe('Running');
+    sidebarHeader()?.querySelector<HTMLButtonElement>('.chat-header-running-badge')?.click();
+    expect(sidebarHeader()?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
+      'Running'
+    );
     expect(container?.querySelector('[data-session-id="waiting"]')).toBeNull();
     expect(container?.querySelector('[data-session-id="working"]')).not.toBeNull();
-    expect(container?.querySelector('.chat-header-pending-badge')).not.toBeNull();
+    expect(sidebarHeader()?.querySelector('.chat-header-pending-badge')).not.toBeNull();
 
-    container?.querySelector<HTMLButtonElement>('.chat-header-pending-badge')?.click();
+    sidebarHeader()?.querySelector<HTMLButtonElement>('.chat-header-pending-badge')?.click();
     setState('sessionStatus', 'waiting', { type: 'busy', background: false });
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe('Pending');
+    expect(sidebarHeader()?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
+      'Pending'
+    );
     expect(container?.querySelector('[data-session-id="waiting"]')).toBeNull();
   });
   it('removes long background waits from the running count and shows a counter-free pending badge', () => {
@@ -1143,20 +1152,22 @@ describe('header status badges', () => {
       working: { type: 'busy' },
     });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
     cleanup = render(() => Chat(), container!);
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('2');
-    expect(container?.querySelector('.chat-header-pending-badge')).toBeNull();
+    const sidebarHeader = () => container?.querySelector('.chat-session-sidebar-header');
+    expect(sidebarHeader()?.querySelector('.chat-header-running-count')?.textContent).toBe('2');
+    expect(sidebarHeader()?.querySelector('.chat-header-pending-badge')).toBeNull();
 
     vi.advanceTimersByTime(60_000);
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
-    const pending = container?.querySelector('.chat-header-pending-badge');
+    expect(sidebarHeader()?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
+    const pending = sidebarHeader()?.querySelector('.chat-header-pending-badge');
     expect(pending).toBeInstanceOf(HTMLButtonElement);
     expect(pending?.textContent).toBe('');
     expect(container?.querySelector('[data-session-id="waiting"] .is-pending')).not.toBeNull();
 
     setState('sessionStatus', 'waiting', { type: 'busy', background: false });
-    expect(container?.querySelector('.chat-header-pending-badge')).toBeNull();
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('2');
+    expect(sidebarHeader()?.querySelector('.chat-header-pending-badge')).toBeNull();
+    expect(sidebarHeader()?.querySelector('.chat-header-running-count')?.textContent).toBe('2');
   });
 
   it('shows an hourglass beside the active title even when desktop header actions are hidden', () => {
@@ -1209,16 +1220,22 @@ describe('header status badges', () => {
       },
     ]);
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
-    expect(container?.querySelector('.chat-header-attention-badge')).toBeInstanceOf(
+    const sidebarHeader = () => container?.querySelector('.chat-session-sidebar-header');
+    expect(sidebarHeader()?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
+    expect(sidebarHeader()?.querySelector('.chat-header-attention-badge')).toBeInstanceOf(
       HTMLButtonElement
     );
-    expect(container?.querySelector('.chat-header-failed-badge')).toBeInstanceOf(HTMLButtonElement);
-    expect(container?.querySelector('.chat-header-plan-badge')).toBeInstanceOf(HTMLButtonElement);
-    expect(container?.querySelector('.chat-header-completed-badge')).toBeInstanceOf(
+    expect(sidebarHeader()?.querySelector('.chat-header-failed-badge')).toBeInstanceOf(
+      HTMLButtonElement
+    );
+    expect(sidebarHeader()?.querySelector('.chat-header-plan-badge')).toBeInstanceOf(
+      HTMLButtonElement
+    );
+    expect(sidebarHeader()?.querySelector('.chat-header-completed-badge')).toBeInstanceOf(
       HTMLButtonElement
     );
 
@@ -1410,10 +1427,14 @@ describe('header status badges', () => {
       'other-child-running': { type: 'busy' },
     });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('1');
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-running-count')
+        ?.textContent
+    ).toBe('1');
   });
 
   it('hides the failed badge after all failed sessions have been read', () => {
@@ -1445,6 +1466,7 @@ describe('header status badges', () => {
     });
     startLoading();
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
@@ -1452,7 +1474,10 @@ describe('header status badges', () => {
       (row) => row.querySelector('.session-item-title-text')?.textContent === 'active-loading'
     );
     expect(activeRow?.querySelector('.session-item-indicator.is-running')).not.toBeNull();
-    expect(container?.querySelector('.chat-header-running-count')?.textContent).toBe('2');
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-running-count')
+        ?.textContent
+    ).toBe('2');
 
     setShowSessionPicker(false);
     await Promise.resolve();
@@ -2186,9 +2211,6 @@ describe('header status badges', () => {
     subagentsButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Sub-agents for parent'
-    );
     const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(
       (item) => item.textContent?.trim()
     );
@@ -2344,9 +2366,6 @@ describe('header status badges', () => {
     await Promise.resolve();
 
     expect(selectSessionSpy).not.toHaveBeenCalled();
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Sub-agents for parent'
-    );
     expect(
       container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
     ).toBeInstanceOf(HTMLDivElement);
@@ -2513,46 +2532,10 @@ describe('header status badges', () => {
     await Promise.resolve();
 
     expect(selectSessionSpy).not.toHaveBeenCalled();
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Sub-agents for top'
-    );
     const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(
       (item) => item.textContent?.trim()
     );
     expect(titles).toEqual(['child', 'grandchild']);
-  });
-
-  it('returns from the sub-agent list to the parent session', async () => {
-    // SAFETY: The fixture provides the never fields read by this statement.
-    const selectSessionSpy = vi
-      .spyOn(openCodeModule, 'selectSession')
-      .mockResolvedValue(undefined as never);
-
-    setState('sessions', [session('parent', 500), session('child', 400, { parentID: 'parent' })]);
-    setState('activeSessionId', 'parent');
-
-    cleanup = render(() => Chat(), container!);
-
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const subagentsButton = container?.querySelector(
-      '.chat-header-subagents'
-    ) as HTMLButtonElement | null;
-    subagentsButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await Promise.resolve();
-
-    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
-    const backButton = container?.querySelector(
-      '.chat-header .chat-header-btn[aria-label="Back to parent session"]'
-    ) as HTMLButtonElement | null;
-    expect(backButton).toBeInstanceOf(HTMLButtonElement);
-
-    backButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await Promise.resolve();
-
-    expect(selectSessionSpy).toHaveBeenCalledWith('parent');
-    expect(
-      container?.querySelector('.session-list-view:not(.session-list-view-sidebar)')
-    ).toBeNull();
   });
 
   it('shows session status badges in the desktop session sidebar header', () => {
@@ -2851,9 +2834,6 @@ describe('header status badges', () => {
     completedBadge?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Completed'
-    );
     const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(
       (item) => item.textContent?.trim()
     );
@@ -2881,97 +2861,99 @@ describe('header status badges', () => {
     expect(activeIndicator?.classList.contains('is-completed')).toBe(true);
   });
 
-  it.each([false, true])(
-    'marks only filtered completed sessions as read with desktop layout %s',
-    async (desktopLayout) => {
-      const warn = vi.spyOn(console, 'warn');
-      desktopMediaQueryMatches = desktopLayout;
-      const future = Date.now() + 10_000;
-      const send = vi.fn<(message: WebviewMessage) => void>();
-      // SAFETY: The fixture provides the bridge callback used by postMessage.
-      const bridgeWindow = window as {
-        __sendToExtension?: (message: WebviewMessage) => void;
-      };
-      const previousSend = bridgeWindow.__sendToExtension;
-      bridgeWindow.__sendToExtension = send;
-      try {
-        setState('sessions', [
-          session('completed-1', future),
-          session('completed-2', 300),
-          session('running', 250),
-          session('plan', 200),
-          session('child', 150, { parentID: 'completed-1' }),
-        ]);
-        setState('sessionStatus', { running: { type: 'busy' } });
-        setState('sessionSelectedAgents', { plan: 'plan' });
-        setState('completedSessionResponses', {
-          'completed-1': future + 500,
-          'completed-2': 300,
-          running: 250,
-          child: 150,
-        });
-        setShowSessionPicker(true);
-        cleanup = render(() => Chat(), container!);
-        expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
+  it('marks only filtered completed sessions as read from the desktop sidebar', async () => {
+    const warn = vi.spyOn(console, 'warn');
+    desktopMediaQueryMatches = true;
+    const future = Date.now() + 10_000;
+    const send = vi.fn<(message: WebviewMessage) => void>();
+    // SAFETY: The fixture provides the bridge callback used by postMessage.
+    const bridgeWindow = window as {
+      __sendToExtension?: (message: WebviewMessage) => void;
+    };
+    const previousSend = bridgeWindow.__sendToExtension;
+    bridgeWindow.__sendToExtension = send;
+    try {
+      setState('sessions', [
+        session('completed-1', future),
+        session('completed-2', 300),
+        session('running', 250),
+        session('plan', 200),
+        session('child', 150, { parentID: 'completed-1' }),
+      ]);
+      setState('sessionStatus', { running: { type: 'busy' } });
+      setState('sessionSelectedAgents', { plan: 'plan' });
+      setState('completedSessionResponses', {
+        'completed-1': future + 500,
+        'completed-2': 300,
+        running: 250,
+        child: 150,
+      });
+      setShowSessionPicker(true);
+      cleanup = render(() => Chat(), container!);
+      expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
 
-        requestOpenCompletedSessions();
-        await Promise.resolve();
-        const header = container?.querySelector(
-          desktopLayout ? '.chat-session-sidebar-header' : '.interactive-session > .chat-header'
-        );
-        const markAllRead = header?.querySelector<HTMLButtonElement>(
-          '[aria-label="Mark all as read"]'
-        );
-        expect(markAllRead).toBeInstanceOf(HTMLButtonElement);
-        expect(markAllRead!.textContent?.trim()).toBe('Mark all as read');
-        expect(header?.querySelector('.chat-header-filter-chip')?.nextElementSibling).toBe(
-          markAllRead
-        );
-        expect(markAllRead!.closest('.chat-header-left')).not.toBeNull();
-        expect(markAllRead!.querySelector('.ui-icon')).toBeNull();
-        markAllRead!.click();
+      requestOpenCompletedSessions();
+      await Promise.resolve();
+      const header = container?.querySelector('.chat-session-sidebar-header');
+      const markAllRead = header?.querySelector<HTMLButtonElement>(
+        '[aria-label="Mark all as read"]'
+      );
+      expect(markAllRead).toBeInstanceOf(HTMLButtonElement);
+      expect(markAllRead!.textContent?.trim()).toBe('Mark all as read');
+      expect(header?.querySelector('.chat-header-filter-chip')?.nextElementSibling).toBe(
+        markAllRead
+      );
+      expect(markAllRead!.closest('.chat-header-left')).not.toBeNull();
+      expect(markAllRead!.querySelector('.ui-icon')).toBeNull();
+      markAllRead!.click();
 
-        expect(state.lastSeenSessions['completed-1']).toBeGreaterThanOrEqual(future + 500);
-        expect(state.lastSeenSessions['completed-2']).toBeGreaterThanOrEqual(300);
-        for (const id of ['running', 'plan', 'child']) {
-          expect(state.lastSeenSessions[id]).toBeUndefined();
-        }
-        expect(state.activeSessionId).toBeNull();
-        expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-          'Completed'
-        );
-        expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
-        expect(container?.querySelector('.session-item')).toBeNull();
-        for (const id of ['completed-1', 'completed-2']) {
-          expect(send).toHaveBeenCalledWith({
-            type: 'session-read-state/update',
-            payload: { sessionId: id, seenAt: state.lastSeenSessions[id] },
-          });
-        }
-
-        setState('completedSessionResponses', 'completed-1', future + 1_000);
-        expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
-        setState('completedSessionResponses', 'completed-2', future + 1_000);
-        expect(container?.querySelector('[aria-label="Mark all as read"]')).not.toBeNull();
-        sessionStore.markSessionSeen('completed-1', future + 1_000);
-        expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
-        expect(warn).not.toHaveBeenCalled();
-      } finally {
-        bridgeWindow.__sendToExtension = previousSend;
+      expect(state.lastSeenSessions['completed-1']).toBeGreaterThanOrEqual(future + 500);
+      expect(state.lastSeenSessions['completed-2']).toBeGreaterThanOrEqual(300);
+      for (const id of ['running', 'plan', 'child']) {
+        expect(state.lastSeenSessions[id]).toBeUndefined();
       }
+      expect(state.activeSessionId).toBeNull();
+      expect(header?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
+        'Completed'
+      );
+      expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
+      expect(container?.querySelector('.session-item')).toBeNull();
+      for (const id of ['completed-1', 'completed-2']) {
+        expect(send).toHaveBeenCalledWith({
+          type: 'session-read-state/update',
+          payload: { sessionId: id, seenAt: state.lastSeenSessions[id] },
+        });
+      }
+
+      setState('completedSessionResponses', 'completed-1', future + 1_000);
+      expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
+      setState('completedSessionResponses', 'completed-2', future + 1_000);
+      expect(container?.querySelector('[aria-label="Mark all as read"]')).not.toBeNull();
+      sessionStore.markSessionSeen('completed-1', future + 1_000);
+      expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      bridgeWindow.__sendToExtension = previousSend;
     }
-  );
+  });
 
   it('marks plans as read without skipping them', async () => {
     const warn = vi.spyOn(console, 'warn');
     setState('sessions', [session('plan-1', 400), session('plan-2', 300), session('other', 200)]);
     setState('sessionSelectedAgents', { 'plan-1': 'plan', 'plan-2': 'plan' });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
     cleanup = render(() => Chat(), container!);
-    container?.querySelector<HTMLButtonElement>('.chat-header-plan-badge')!.click();
+    container
+      ?.querySelector<HTMLButtonElement>('.chat-session-sidebar-header .chat-header-plan-badge')!
+      .click();
     await Promise.resolve();
 
-    container?.querySelector<HTMLButtonElement>('[aria-label="Mark all as read"]')!.click();
+    container
+      ?.querySelector<HTMLButtonElement>(
+        '.chat-session-sidebar-header [aria-label="Mark all as read"]'
+      )!
+      .click();
 
     expect(state.lastSeenSessions['plan-1']).toBeGreaterThanOrEqual(400);
     expect(state.lastSeenSessions['plan-2']).toBeGreaterThanOrEqual(300);
@@ -2995,11 +2977,18 @@ describe('header status badges', () => {
     setState('failedSessionIds', ['child', 'failed']);
     setState('failedSessionUpdatedAt', { child: failedAt, failed: 300 });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
     cleanup = render(() => Chat(), container!);
-    container?.querySelector<HTMLButtonElement>('.chat-header-failed-badge')!.click();
+    container
+      ?.querySelector<HTMLButtonElement>('.chat-session-sidebar-header .chat-header-failed-badge')!
+      .click();
     await Promise.resolve();
 
-    container?.querySelector<HTMLButtonElement>('[aria-label="Mark all as read"]')!.click();
+    container
+      ?.querySelector<HTMLButtonElement>(
+        '.chat-session-sidebar-header [aria-label="Mark all as read"]'
+      )!
+      .click();
 
     expect(state.lastSeenSessions.root).toBeGreaterThanOrEqual(failedAt);
     expect(state.lastSeenSessions.failed).toBeGreaterThanOrEqual(300);
@@ -3018,13 +3007,19 @@ describe('header status badges', () => {
     ];
     setState('questions', questions);
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
     cleanup = render(() => Chat(), container!);
-    container?.querySelector<HTMLButtonElement>('.chat-header-attention-badge')!.click();
+    container
+      ?.querySelector<HTMLButtonElement>(
+        '.chat-session-sidebar-header .chat-header-attention-badge'
+      )!
+      .click();
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Needs attention'
-    );
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-filter-chip-label')
+        ?.textContent
+    ).toBe('Needs attention');
     expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
     expect(state.questions).toEqual(questions);
   });
@@ -3040,19 +3035,26 @@ describe('header status badges', () => {
         setState('failedSessionUpdatedAt', { first: 400, second: 300 });
       }
       setShowSessionPicker(true);
+      desktopMediaQueryMatches = true;
       cleanup = render(() => Chat(), container!);
       container
         ?.querySelector<HTMLButtonElement>(
-          filter === 'plan-ready' ? '.chat-header-plan-badge' : '.chat-header-failed-badge'
+          filter === 'plan-ready'
+            ? '.chat-session-sidebar-header .chat-header-plan-badge'
+            : '.chat-session-sidebar-header .chat-header-failed-badge'
         )!
         .click();
       await Promise.resolve();
-      expect(container?.querySelector('[aria-label="Mark all as read"]')).not.toBeNull();
+      expect(
+        container?.querySelector('.chat-session-sidebar-header [aria-label="Mark all as read"]')
+      ).not.toBeNull();
 
       sessionStore.markSessionSeen('first');
 
       expect(container?.querySelectorAll('.session-item')).toHaveLength(2);
-      expect(container?.querySelector('[aria-label="Mark all as read"]')).toBeNull();
+      expect(
+        container?.querySelector('.chat-session-sidebar-header [aria-label="Mark all as read"]')
+      ).toBeNull();
     }
   );
 
@@ -3061,6 +3063,7 @@ describe('header status badges', () => {
     setState('activeSessionId', 'active-completed');
     setState('lastSeenSessions', { other: 400 });
     setState('completedSessionResponses', { 'active-completed': 500 });
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
@@ -3072,9 +3075,10 @@ describe('header status badges', () => {
     completedBadge?.click();
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Completed'
-    );
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-filter-chip-label')
+        ?.textContent
+    ).toBe('Completed');
     expect(container?.querySelector('.session-item-title')?.textContent?.trim()).toBe(
       'active-completed'
     );
@@ -3142,12 +3146,13 @@ describe('header status badges', () => {
     setState('sessions', [session('session-1', 500)]);
     setState('sessionStatus', { 'session-1': { type: 'busy' } });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const headerSpinner = container?.querySelector(
-      '.chat-header-running-spinner'
+      '.chat-session-sidebar-header .chat-header-running-spinner'
     ) as HTMLElement | null;
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const indicator = container?.querySelector(
@@ -3268,9 +3273,6 @@ describe('header status badges', () => {
     requestOpenCompletedSessions();
     await Promise.resolve();
 
-    expect(container?.querySelector('.chat-header-filter-chip-label')?.textContent).toBe(
-      'Completed'
-    );
     const titles = Array.from(container?.querySelectorAll('.session-item-title') ?? []).map(
       (item) => item.textContent?.trim()
     );
@@ -4287,6 +4289,7 @@ describe('usage-limit session status precedence', () => {
     setState('sessionSelectedAgents', { 'plan-1': 'plan' });
     setState('lastSeenSessions', { active: 600, 'plan-1': 0 });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
@@ -4299,7 +4302,9 @@ describe('usage-limit session status precedence', () => {
     expect(indicator?.classList.contains('is-plan-completed')).toBe(true);
     expect(indicator?.getAttribute('aria-label')).toBe('Plan ready');
     expect(planRow?.querySelector('.session-item-plan-tag')?.textContent?.trim()).toBe('Plan');
-    expect(container?.querySelector('.chat-header-plan-badge')).toBeInstanceOf(HTMLButtonElement);
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-plan-badge')
+    ).toBeInstanceOf(HTMLButtonElement);
   });
 
   it('restores the plan-ready indicator when a seen plan receives a newer update', () => {
@@ -4308,6 +4313,7 @@ describe('usage-limit session status precedence', () => {
     setState('sessionSelectedAgents', { 'plan-1': 'plan' });
     setState('lastSeenSessions', { active: 600, 'plan-1': 500 });
     setShowSessionPicker(true);
+    desktopMediaQueryMatches = true;
 
     cleanup = render(() => Chat(), container!);
 
@@ -4324,7 +4330,9 @@ describe('usage-limit session status precedence', () => {
     expect(indicator?.classList.contains('is-plan-completed')).toBe(true);
     expect(indicator?.getAttribute('aria-label')).toBe('Plan ready');
     expect(getPlanRow()?.querySelector('.session-item-plan-tag')?.textContent?.trim()).toBe('Plan');
-    expect(container?.querySelector('.chat-header-plan-badge')).toBeInstanceOf(HTMLButtonElement);
+    expect(
+      container?.querySelector('.chat-session-sidebar-header .chat-header-plan-badge')
+    ).toBeInstanceOf(HTMLButtonElement);
   });
 
   it('returns to running once the 429 notice is cleared', () => {

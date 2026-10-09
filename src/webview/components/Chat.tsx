@@ -725,12 +725,6 @@ export function Chat() {
     });
   });
 
-  const openSubagentListParentSession = () => {
-    const parentSessionId = subagentParentId();
-    if (!parentSessionId) return;
-    void openParentSession(parentSessionId);
-  };
-
   const openRunningSessions = () => {
     void openSessionFilter('running');
   };
@@ -853,11 +847,6 @@ export function Chat() {
     return `Show ${count} sub-agent session${count === 1 ? '' : 's'}`;
   });
 
-  const clearSessionListView = () => {
-    setSessionFilter(null);
-    setSubagentParentId(null);
-  };
-
   const activeSubagentParent = createMemo(() => {
     const parentId = subagentParentId();
     if (!parentId) return null;
@@ -946,12 +935,10 @@ export function Chat() {
         activeSubagentLabel={activeSubagentLabel()}
         managedSubagentParentId={activeSession()?.parentID || null}
         managedSubagentParentTitle={managedSubagentParentTitle()}
-        onClearSessionListView={clearSessionListView}
         onOpenAllSessions={() => {
           void openAllSessions();
         }}
         onReturnToManagedSubagentParent={returnToManagedSubagentParent}
-        onOpenParentSession={openSubagentListParentSession}
         onOpenSubagentSessions={openSubagentSessions}
         onOpenSidebarSubagentSessions={openSidebarSubagentSessions}
         onOpenTopLevelSidebarSessions={openTopLevelSidebarSessions}

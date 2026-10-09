@@ -106,10 +106,8 @@ export function ChatWorkspace(props: {
   activeSubagentLabel: string;
   managedSubagentParentId: string | null;
   managedSubagentParentTitle: string | null;
-  onClearSessionListView: () => void;
   onOpenAllSessions: () => void;
   onReturnToManagedSubagentParent: () => void;
-  onOpenParentSession: () => void;
   onOpenSubagentSessions: (parentSessionId: string) => void;
   onOpenSidebarSubagentSessions: (parentSessionId: string) => void;
   onOpenTopLevelSidebarSessions: () => void;
