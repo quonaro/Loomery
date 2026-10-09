@@ -63,6 +63,21 @@ export function closeSessionTab(sessionId: string): string | null {
   return next[index] ?? next[index - 1] ?? null;
 }
 
+/** Closes every tab except `keepId`, leaving it as the only open tab. */
+export function closeOtherSessionTabs(keepId: string): void {
+  const current = openSessionTabs();
+  if (!current.includes(keepId) || current.length === 1) return;
+  commit([keepId]);
+}
+
+/** Closes tabs positioned after `id`, keeping it and everything to its left. */
+export function closeSessionTabsToTheRight(id: string): void {
+  const current = openSessionTabs();
+  const index = current.indexOf(id);
+  if (index === -1 || index >= current.length - 1) return;
+  commit(current.slice(0, index + 1));
+}
+
 /** Moves `sourceId` to the position of `targetId`, preserving the rest. */
 export function reorderSessionTabs(sourceId: string, targetId: string): void {
   const current = openSessionTabs();

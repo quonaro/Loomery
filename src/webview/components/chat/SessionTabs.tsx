@@ -1,10 +1,14 @@
-import { For, createEffect, createMemo, untrack } from 'solid-js';
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, untrack } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { selectSession } from '../../hooks/useOpenCode';
 import { isPlaceholderSessionTitle, normalizeSessionTitle } from '../../../shared/session-title';
+import { clampPopupToViewport } from '../../lib/popup-position';
 import { isSessionUnread, state } from '../../lib/state';
 import {
   NEW_SESSION_TAB_ID,
+  closeOtherSessionTabs,
   closeSessionTab,
+  closeSessionTabsToTheRight,
   getOpenSessionTabs,
   openSessionTab,
   reorderSessionTabs,
@@ -108,6 +112,65 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
     if (wasActive && neighbor) activate(neighbor);
   };
 
+  const activeTabId = () => state.activeSessionId ?? NEW_SESSION_TAB_ID;
+
+  const [menuState, setMenuState] = createSignal<{ id: string; x: number; y: number } | null>(null);
+  let menuRef: HTMLDivElement | undefined;
+
+  const closeMenu = () => setMenuState(null);
+
+  const openMenu = (event: MouseEvent, id: string) => {
+    event.preventDefault();
+    setMenuState({ id, x: event.clientX, y: event.clientY });
+  };
+
+  createEffect(() => {
+    if (!menuState()) return;
+    const closeIfOutside = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && menuRef?.contains(target)) return;
+      closeMenu();
+    };
+    window.addEventListener('contextmenu', closeIfOutside, true);
+    window.addEventListener('pointerdown', closeIfOutside, true);
+    window.addEventListener('focusin', closeIfOutside);
+    onCleanup(() => {
+      window.removeEventListener('contextmenu', closeIfOutside, true);
+      window.removeEventListener('pointerdown', closeIfOutside, true);
+      window.removeEventListener('focusin', closeIfOutside);
+    });
+  });
+
+  createEffect(() => {
+    if (!menuState()) return;
+    queueMicrotask(() => {
+      if (!menuRef) return;
+      clampPopupToViewport(menuRef);
+      menuRef.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+    });
+  });
+
+  const closeOtherTabs = (id: string) => {
+    const closing = tabs().filter((tabId) => tabId !== id);
+    closeOtherSessionTabs(id);
+    if (closing.includes(activeTabId())) activate(id);
+  };
+
+  const closeTabsToTheRight = (id: string) => {
+    const current = tabs();
+    const index = current.indexOf(id);
+    const closing = index === -1 ? [] : current.slice(index + 1);
+    closeSessionTabsToTheRight(id);
+    if (closing.includes(activeTabId())) activate(id);
+  };
+
+  const isLastVisibleTab = () => {
+    const menu = menuState();
+    if (!menu) return true;
+    const current = tabs();
+    return current.indexOf(menu.id) === current.length - 1;
+  };
+
   const onDragStart = (event: DragEvent, id: string) => {
     draggedId = id;
     event.dataTransfer?.setData(DRAG_MIME, id);
@@ -139,6 +202,7 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
               title={`${tabTitle(id)} - ${statusLabel(kind())}`}
               draggable="true"
               onClick={() => activate(id)}
+              onContextMenu={(event) => openMenu(event, id)}
               onAuxClick={(event) => {
                 if (event.button === 1) close(id);
               }}
@@ -167,6 +231,61 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
       <div class="session-tabs-new">
         <NewChatButton onCreateSession={props.onCreateSession} />
       </div>
+      <Show when={menuState()}>
+        {(menu) => (
+          <Portal>
+            <div
+              ref={(element) => {
+                menuRef = element;
+              }}
+              class="session-item-actions-menu"
+              role="menu"
+              aria-label="Session tab actions"
+              style={{ left: `${menu().x}px`, top: `${menu().y}px` }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Escape') return;
+                event.preventDefault();
+                closeMenu();
+              }}
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  const id = menu().id;
+                  closeMenu();
+                  close(id);
+                }}
+              >
+                Close tab
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  const id = menu().id;
+                  closeMenu();
+                  closeOtherTabs(id);
+                }}
+              >
+                Close other tabs
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={isLastVisibleTab()}
+                onClick={() => {
+                  const id = menu().id;
+                  closeMenu();
+                  closeTabsToTheRight(id);
+                }}
+              >
+                Close tabs to the right
+              </button>
+            </div>
+          </Portal>
+        )}
+      </Show>
     </div>
   );
 }

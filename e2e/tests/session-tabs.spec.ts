@@ -56,3 +56,37 @@ test('keeps the new-session button pinned to the right of a scrolling tab strip'
   expect(scrolled.buttonLeft).toBeGreaterThanOrEqual(scrolled.stripLeft);
   await expect(button.getByRole('button', { name: 'New chat' })).toBeInViewport();
 });
+
+test('closes other session tabs from the tab context menu', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 720 });
+  await page.goto('/e2e/harness/index.html?scenario=session-search');
+  await expect(page.locator('.session-item').first()).toBeVisible();
+
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      'loomery.openSessionTabs',
+      JSON.stringify(['session-search-alpha', 'session-search-beta', 'session-search-gamma'])
+    );
+  });
+  await page.reload();
+  await page.locator('.session-item').filter({ hasText: 'Alpha release checklist' }).click();
+  await expect(page.locator('.session-tab')).toHaveCount(3);
+
+  await page
+    .locator('.session-tab')
+    .filter({ hasText: 'Beta rollout notes' })
+    .click({ button: 'right' });
+
+  const menu = page.getByRole('menu', { name: 'Session tab actions' });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('menuitem')).toHaveText([
+    'Close tab',
+    'Close other tabs',
+    'Close tabs to the right',
+  ]);
+
+  await menu.getByRole('menuitem', { name: 'Close other tabs' }).click();
+  await expect(page.locator('.session-tab')).toHaveCount(1);
+  await expect(page.locator('.session-tab')).toContainText('Beta rollout notes');
+  await expect(menu).toHaveCount(0);
+});

@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { STORAGE_KEYS } from './state-storage';
 import { isString } from './runtime-values';
 import {
+  closeOtherSessionTabs,
   closeSessionTab,
+  closeSessionTabsToTheRight,
   getOpenSessionTabs,
   openSessionTab,
   reorderSessionTabs,
@@ -50,6 +52,29 @@ describe('session tabs', () => {
     expect(closeSessionTab('c')).toBe('a');
     expect(closeSessionTab('a')).toBeNull();
     expect(closeSessionTab('missing')).toBeNull();
+  });
+
+  it('closes every tab except the kept one', () => {
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    closeOtherSessionTabs('b');
+    expect(getOpenSessionTabs()).toEqual(['b']);
+
+    closeOtherSessionTabs('missing');
+    expect(getOpenSessionTabs()).toEqual(['b']);
+  });
+
+  it('closes tabs to the right of the target', () => {
+    setOpenSessionTabsForTest(['a', 'b', 'c', 'd']);
+
+    closeSessionTabsToTheRight('b');
+    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+
+    closeSessionTabsToTheRight('b');
+    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+
+    closeSessionTabsToTheRight('missing');
+    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
   });
 
   it('reorders a tab to the position of its target', () => {

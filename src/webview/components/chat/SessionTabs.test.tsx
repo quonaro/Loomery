@@ -185,4 +185,76 @@ describe('SessionTabs', () => {
       HTMLButtonElement
     );
   });
+
+  function openTabMenu(tab: HTMLElement): HTMLDivElement {
+    const notCanceled = tab.dispatchEvent(
+      new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 12, clientY: 24 })
+    );
+    expect(notCanceled).toBe(false);
+    const menu = document.querySelector<HTMLDivElement>('.session-item-actions-menu');
+    expect(menu).toBeInstanceOf(HTMLDivElement);
+    return menu!;
+  }
+
+  function menuItem(menu: HTMLElement, label: string): HTMLButtonElement {
+    const item = [...menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (entry) => entry.textContent === label
+    );
+    expect(item, `missing menu item: ${label}`).toBeInstanceOf(HTMLButtonElement);
+    return item!;
+  }
+
+  it('opens a browser-style tab context menu on right-click', () => {
+    setSessions([session('a', 3), session('b', 2), session('c', 1)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const menu = openTabMenu(container.querySelectorAll<HTMLElement>('.session-tab')[1]!);
+
+    expect([...menu.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent)).toEqual(
+      ['Close tab', 'Close other tabs', 'Close tabs to the right']
+    );
+  });
+
+  it('closes other tabs and switches to the kept tab', () => {
+    setSessions([session('a', 3), session('b', 2), session('c', 1)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const menu = openTabMenu(container.querySelectorAll<HTMLElement>('.session-tab')[1]!);
+    menuItem(menu, 'Close other tabs').click();
+
+    expect(getOpenSessionTabs()).toEqual(['b']);
+    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo/b' });
+  });
+
+  it('closes tabs to the right of the target without switching', () => {
+    setSessions([session('a', 3), session('b', 2), session('c', 1)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const menu = openTabMenu(container.querySelectorAll<HTMLElement>('.session-tab')[0]!);
+    menuItem(menu, 'Close tabs to the right').click();
+
+    expect(getOpenSessionTabs()).toEqual(['a']);
+    expect(selectSession).not.toHaveBeenCalled();
+  });
+
+  it('disables closing tabs to the right when the target is the last tab', () => {
+    setSessions([session('a', 3), session('b', 2)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const menu = openTabMenu(container.querySelectorAll<HTMLElement>('.session-tab')[1]!);
+
+    expect(menuItem(menu, 'Close tabs to the right').disabled).toBe(true);
+  });
 });

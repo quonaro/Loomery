@@ -717,6 +717,15 @@ body:not(.vscode-light):not(.vscode-high-contrast):not(.vscode-high-contrast-lig
   color: var(--color-vscode-error);
 }
 
+.session-item-actions-menu > button:disabled {
+  color: var(--color-vscode-muted);
+  cursor: default;
+}
+
+.session-item-actions-menu > button:disabled:hover {
+  background: none;
+}
+
 .session-item-actions-separator {
   height: 1px;
   margin: 4px 2px;
