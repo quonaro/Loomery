@@ -1203,7 +1203,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     frame.append(overlay);
     setSendAnimationActive(true);
     for (const source of frame.querySelectorAll<HTMLElement>(
-      ':scope > .chat-attachments-container, :scope > .chat-editor-container'
+      ':scope > .chat-attachments-container, :scope > .chat-editor-container, :scope > .chat-input-main-box > .chat-editor-container'
     )) {
       const sourceBounds = source.getBoundingClientRect();
       const clone = source.cloneNode(true);
@@ -6273,210 +6273,437 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             }}
           </Show>
 
-          <RichComposerArea
-            editorRef={(el) => {
-              richEditorRef = el;
-            }}
-            placeholder={
-              sendAnimationActive()
-                ? ''
-                : composerEditingMessage()
-                  ? 'Edit your message'
-                  : composerHasActiveQuestion() || composerHasActivePermission()
-                    ? 'Respond to the prompt above to continue...'
-                    : workspaceSendPending() || isComposerDisplayBusy()
-                      ? 'Queue a follow-up or steer'
-                      : 'Describe what to build'
-            }
-            value={inputText()}
-            pendingPaste={pendingPasteInsertion()}
-            cursorOffset={caretPosition()}
-            chips={inlineChips()}
-            onCompressImage={(id, event) => openImageCompression(id.slice(4), event)}
-            isFocused={isFocused()}
-            showCompletionMenu={showCompletionMenu()}
-            completionItems={composerCompletions()}
-            completionSelectedIndex={completionIndex()}
-            completionHeader={completionHeader()}
-            completionEmptyMessage={completionEmptyMessage()}
-            onInput={(text, cursorOffset) => {
-              batch(() => {
-                setState('inlineProblems', (references) =>
-                  references.filter((reference) => text.includes(problemReferenceMarker(reference)))
-                );
-                if (
-                  state.attachedDiagnostics?.inline &&
-                  inputText().includes(PROBLEMS_REFERENCE) &&
-                  !text.includes(PROBLEMS_REFERENCE)
-                ) {
+          <div class="chat-input-main-box">
+            <RichComposerArea
+              editorRef={(el) => {
+                richEditorRef = el;
+              }}
+              placeholder={
+                sendAnimationActive()
+                  ? ''
+                  : composerEditingMessage()
+                    ? 'Edit your message'
+                    : composerHasActiveQuestion() || composerHasActivePermission()
+                      ? 'Respond to the prompt above to continue...'
+                      : workspaceSendPending() || isComposerDisplayBusy()
+                        ? 'Queue a follow-up or steer'
+                        : 'Tip: Type @ to bring in context from another chat'
+              }
+              value={inputText()}
+              pendingPaste={pendingPasteInsertion()}
+              cursorOffset={caretPosition()}
+              chips={inlineChips()}
+              onCompressImage={(id, event) => openImageCompression(id.slice(4), event)}
+              isFocused={isFocused()}
+              showCompletionMenu={showCompletionMenu()}
+              completionItems={composerCompletions()}
+              completionSelectedIndex={completionIndex()}
+              completionHeader={completionHeader()}
+              completionEmptyMessage={completionEmptyMessage()}
+              onInput={(text, cursorOffset) => {
+                batch(() => {
+                  setState('inlineProblems', (references) =>
+                    references.filter((reference) =>
+                      text.includes(problemReferenceMarker(reference))
+                    )
+                  );
+                  if (
+                    state.attachedDiagnostics?.inline &&
+                    inputText().includes(PROBLEMS_REFERENCE) &&
+                    !text.includes(PROBLEMS_REFERENCE)
+                  ) {
+                    setState('attachedDiagnostics', null);
+                  }
+                  closePopups();
+                  dismissComposerOverlays();
+                  setHistoryIndex(null);
+                  setHistoryDraft('');
+                  setInputText(text);
+                  setCaretPosition(cursorOffset);
+                  setCompletionIndex(0);
+                  setSuppressCompletion(false);
+                });
+              }}
+              onKeyDown={handleKeydown}
+              onHistory={applyComposerHistoryAction}
+              onPaste={handlePaste}
+              onPasteInsertion={handlePasteInsertion}
+              onFocus={() => {
+                setIsFocused(true);
+              }}
+              onBlur={() => setIsFocused(false)}
+              onClick={(cursorOffset, selectionEnd) => {
+                if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
+                setShowAgentPicker(false);
+                setShowModelPicker(false);
+                setShowMcpPicker(false);
+                setShowLspPicker(false);
+                setShowVariantPicker(false);
+                setShowPermissionModePicker(false);
+                setShowBusyMenu(false);
+              }}
+              onKeyUp={(cursorOffset, selectionEnd) => {
+                if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
+              }}
+              onSelect={(cursorOffset, selectionEnd) => {
+                if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
+              }}
+              isChipExpandable={isChipExpandable}
+              onExpandChip={(chipId) => void expandChip(chipId)}
+              onRemoveChip={(chipId) => {
+                if (chipId.startsWith('problem:')) {
+                  setState('inlineProblems', (references) =>
+                    references.filter(
+                      (reference) =>
+                        reference.id !== chipId.slice(8) ||
+                        inputText().includes(problemReferenceMarker(reference))
+                    )
+                  );
+                }
+                if (chipId === 'problems' && !inputText().includes(PROBLEMS_REFERENCE)) {
                   setState('attachedDiagnostics', null);
                 }
-                closePopups();
-                dismissComposerOverlays();
-                setHistoryIndex(null);
-                setHistoryDraft('');
-                setInputText(text);
-                setCaretPosition(cursorOffset);
-                setCompletionIndex(0);
-                setSuppressCompletion(false);
-              });
-            }}
-            onKeyDown={handleKeydown}
-            onHistory={applyComposerHistoryAction}
-            onPaste={handlePaste}
-            onPasteInsertion={handlePasteInsertion}
-            onFocus={() => {
-              setIsFocused(true);
-            }}
-            onBlur={() => setIsFocused(false)}
-            onClick={(cursorOffset, selectionEnd) => {
-              if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
-              setShowAgentPicker(false);
-              setShowModelPicker(false);
-              setShowMcpPicker(false);
-              setShowLspPicker(false);
-              setShowVariantPicker(false);
-              setShowPermissionModePicker(false);
-              setShowBusyMenu(false);
-            }}
-            onKeyUp={(cursorOffset, selectionEnd) => {
-              if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
-            }}
-            onSelect={(cursorOffset, selectionEnd) => {
-              if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
-            }}
-            isChipExpandable={isChipExpandable}
-            onExpandChip={(chipId) => void expandChip(chipId)}
-            onRemoveChip={(chipId) => {
-              if (chipId.startsWith('problem:')) {
-                setState('inlineProblems', (references) =>
-                  references.filter(
-                    (reference) =>
-                      reference.id !== chipId.slice(8) ||
-                      inputText().includes(problemReferenceMarker(reference))
-                  )
-                );
-              }
-              if (chipId === 'problems' && !inputText().includes(PROBLEMS_REFERENCE)) {
-                setState('attachedDiagnostics', null);
-              }
-              if (
-                chipId === 'terminal-selection' &&
-                !inputText().includes(TERMINAL_SELECTION_MARKER)
-              ) {
-                setState('terminalSelection', null);
-                postMessage({ type: 'terminal-selection/clear' });
-              }
-              if (chipId.startsWith('file:')) {
-                const path = chipId.slice(5);
-                removeContextFile(path);
-                postMessage({ type: 'files/remove', payload: { path } });
-              } else if (chipId.startsWith('img:')) {
-                const id = chipId.slice(4);
-                removeClipboardImageWithCleanup(id);
-              }
-            }}
-            onChipClick={(chipId) => {
-              if (chipId.startsWith('problem:')) {
-                const reference = state.inlineProblems.find((item) => item.id === chipId.slice(8));
-                if (reference?.group) {
-                  postMessage({
-                    type: 'vscode/open-text',
-                    payload: {
-                      content: problemReferenceDetails(
-                        reference,
-                        state.editorContext.workspacePath
-                      ),
-                      title: `Problems ${reference.group.length}`,
-                      language: 'plaintext',
-                    },
-                  });
+                if (
+                  chipId === 'terminal-selection' &&
+                  !inputText().includes(TERMINAL_SELECTION_MARKER)
+                ) {
+                  setState('terminalSelection', null);
+                  postMessage({ type: 'terminal-selection/clear' });
+                }
+                if (chipId.startsWith('file:')) {
+                  const path = chipId.slice(5);
+                  removeContextFile(path);
+                  postMessage({ type: 'files/remove', payload: { path } });
+                } else if (chipId.startsWith('img:')) {
+                  const id = chipId.slice(4);
+                  removeClipboardImageWithCleanup(id);
+                }
+              }}
+              onChipClick={(chipId) => {
+                if (chipId.startsWith('problem:')) {
+                  const reference = state.inlineProblems.find(
+                    (item) => item.id === chipId.slice(8)
+                  );
+                  if (reference?.group) {
+                    postMessage({
+                      type: 'vscode/open-text',
+                      payload: {
+                        content: problemReferenceDetails(
+                          reference,
+                          state.editorContext.workspacePath
+                        ),
+                        title: `Problems ${reference.group.length}`,
+                        language: 'plaintext',
+                      },
+                    });
+                    return;
+                  }
+                  if (reference)
+                    postMessage({
+                      type: 'vscode/open',
+                      payload: {
+                        path: reference.diagnostic.path,
+                        line: reference.diagnostic.line,
+                        kind: 'file',
+                      },
+                    });
                   return;
                 }
-                if (reference)
-                  postMessage({
-                    type: 'vscode/open',
-                    payload: {
-                      path: reference.diagnostic.path,
-                      line: reference.diagnostic.line,
-                      kind: 'file',
-                    },
-                  });
-                return;
-              }
-              if (chipId === 'problems') {
-                const problems = explicitProblemAttachment();
-                if (problems)
-                  postMessage({
-                    type: 'vscode/open-text',
-                    payload: {
-                      content: problems.text,
-                      title: `Problems ${problems.count}`,
-                      language: 'plaintext',
-                    },
-                  });
-                return;
-              }
-              if (chipId.startsWith('file:')) {
-                const path = chipId.slice(5);
-                const file = composerFiles().find((f) => f.path === path);
-                if (file) openContextFileInEditor(file);
-              } else if (chipId.startsWith('img:')) {
-                const id = chipId.slice(4);
-                if (previewableImages().some((image) => image.id === id)) {
-                  setPreviewImageId(id);
+                if (chipId === 'problems') {
+                  const problems = explicitProblemAttachment();
+                  if (problems)
+                    postMessage({
+                      type: 'vscode/open-text',
+                      payload: {
+                        content: problems.text,
+                        title: `Problems ${problems.count}`,
+                        language: 'plaintext',
+                      },
+                    });
+                  return;
                 }
-              }
-            }}
-            onSelectCompletion={(item) => {
-              const completion = activeCompletion();
-              const completionSelection = getCompletionSelection(completion, item, true);
-              if (!completionSelection) return;
-              if (completionSelection.type === 'attach-problems') {
-                attachPickedProblems(completionSelection.diagnostic);
-                return;
-              }
+                if (chipId.startsWith('file:')) {
+                  const path = chipId.slice(5);
+                  const file = composerFiles().find((f) => f.path === path);
+                  if (file) openContextFileInEditor(file);
+                } else if (chipId.startsWith('img:')) {
+                  const id = chipId.slice(4);
+                  if (previewableImages().some((image) => image.id === id)) {
+                    setPreviewImageId(id);
+                  }
+                }
+              }}
+              onSelectCompletion={(item) => {
+                const completion = activeCompletion();
+                const completionSelection = getCompletionSelection(completion, item, true);
+                if (!completionSelection) return;
+                if (completionSelection.type === 'attach-problems') {
+                  attachPickedProblems(completionSelection.diagnostic);
+                  return;
+                }
 
-              if (completionSelection.type === 'run-slash') {
-                void runSlashCommand(completionSelection.value);
-                return;
-              }
+                if (completionSelection.type === 'run-slash') {
+                  void runSlashCommand(completionSelection.value);
+                  return;
+                }
 
-              if (completionSelection.type === 'set-slash') {
-                if (completion?.type !== 'slash') return;
-                applySlashCompletionValue(completion, completionSelection.value);
-                return;
-              }
+                if (completionSelection.type === 'set-slash') {
+                  if (completion?.type !== 'slash') return;
+                  applySlashCompletionValue(completion, completionSelection.value);
+                  return;
+                }
 
-              if (completionSelection.file) addContextFile(completionSelection.file);
-              if (completionSelection.table) requestTableAttachment(completionSelection.table);
-              if (completionSelection.session)
-                rememberSessionReference(completionSelection.session);
-              if (
-                completion?.type !== 'mention' &&
-                completion?.type !== 'session' &&
-                completion?.type !== 'skill'
-              )
-                return;
-              applyCompletionValue(completion, completionSelection.value);
-            }}
-          />
+                if (completionSelection.file) addContextFile(completionSelection.file);
+                if (completionSelection.table) requestTableAttachment(completionSelection.table);
+                if (completionSelection.session)
+                  rememberSessionReference(completionSelection.session);
+                if (
+                  completion?.type !== 'mention' &&
+                  completion?.type !== 'session' &&
+                  completion?.type !== 'skill'
+                )
+                  return;
+                applyCompletionValue(completion, completionSelection.value);
+              }}
+            />
 
-          <div class="chat-input-toolbar-divider" aria-hidden="true" />
+            <div class="chat-input-toolbar-divider" aria-hidden="true" />
 
-          <ChatInputMainToolbar
-            toolbarRef={(el) => {
-              toolbarRef = el;
-            }}
-            toolbarLeftRef={(el) => {
-              toolbarLeftRef = el;
-            }}
-            toolbarRightRef={(el) => {
-              toolbarRightRef = el;
-            }}
+            <ChatInputMainToolbar
+              toolbarRef={(el) => {
+                toolbarRef = el;
+              }}
+              toolbarLeftRef={(el) => {
+                toolbarLeftRef = el;
+              }}
+              toolbarRightRef={(el) => {
+                toolbarRightRef = el;
+              }}
+              compactTight={toolbarCompactMode() === 'tight'}
+              showLeftPopupState={showAgentPicker() || showVariantPicker()}
+              showPermissionControl={true}
+              permissionButtonRef={(el) => {
+                permissionPickerRef = el;
+              }}
+              permissionPopoverRef={(el) => {
+                permissionPopoverRef = el;
+              }}
+              permissionMode={activePermissionMode()}
+              autoPermissionActivity={autoPermissionActivity()}
+              autoApproveJudgeModel={autoApproveJudgeModel()}
+              showPermissionPicker={showPermissionModePicker()}
+              onTogglePermissionPicker={() => {
+                const next = !showPermissionModePicker();
+                closePopups(next ? 'permission' : undefined);
+                setShowPermissionModePicker(next);
+              }}
+              onSelectPermissionMode={(mode) => {
+                void updatePermissionModeForSession(mode, composerSessionId());
+                setShowPermissionModePicker(false);
+              }}
+              onOpenPermissionSettings={() => {
+                setShowPermissionModePicker(false);
+                setShowPermissionSettings(true);
+              }}
+              agents={state.agents}
+              selectedAgent={state.selectedAgent}
+              selectedAgentLabel={selectedAgentLabel() ?? ''}
+              agentCompacted={isToolbarControlCompacted(toolbarCompactMode(), 'agent')}
+              agentFocusIndex={agentFocusIndex()}
+              showAgentPicker={showAgentPicker()}
+              showAgentControl={isToolbarControlVisible('agent')}
+              agentButtonRef={(el) => {
+                agentPickerRef = el;
+              }}
+              agentPopoverRef={(el) => {
+                agentPopoverRef = el;
+              }}
+              getAgentLabel={(agent) => formatAgentLabel(agent.name)}
+              getAgentDetail={(agent) => agent.description || getAgentBadgeLine(agent)}
+              onToggleAgentPicker={() => {
+                const next = !showAgentPicker();
+                closePopups(next ? 'agent' : undefined);
+                setShowAgentPicker(next);
+                if (next) setAgentFocusIndex(0);
+              }}
+              onSelectAgent={(agent) => {
+                setSelectedAgent(agent.name, { sessionId: composerSessionId() });
+                setShowAgentPicker(false);
+              }}
+              onAgentFocusIndex={setAgentFocusIndex}
+              modelButtonRef={(el) => {
+                modelPickerRef = el;
+              }}
+              currentModel={currentModel()}
+              providers={state.providers}
+              modelCanEllipsize={modelCanEllipsize()}
+              queueOnly={queueOnlySelection()}
+              showModelPicker={showModelPicker()}
+              onToggleModelPicker={() => {
+                const next = !showModelPicker();
+                closePopups(next ? 'model' : undefined);
+                setShowModelPicker(next);
+              }}
+              providerLimitBadges={currentProviderLimitBadges()}
+              providerLimitTitle={currentProviderLimitTitle()}
+              providerLimit={showCurrentProviderLimit() ? currentCompactProviderLimit() : null}
+              showProviderLimitPopup={showCurrentProviderLimit() && showProviderLimitPopup()}
+              providerLimitButtonRef={(el) => {
+                providerLimitButtonRef = el;
+              }}
+              providerLimitPopupRef={(el) => {
+                providerLimitPopupRef = el;
+              }}
+              onToggleProviderLimitPopup={() => {
+                if (!showCurrentProviderLimit()) return;
+                const next = !showProviderLimitPopup();
+                closePopups(next ? 'providerLimit' : undefined);
+                setShowProviderLimitPopup(next);
+              }}
+              onCloseProviderLimitPopup={() => setShowProviderLimitPopup(false)}
+              availableVariants={availableVariants()}
+              selectedVariant={effectiveVariant() ?? null}
+              selectedVariantLabel={selectedVariantLabel() ?? ''}
+              showVariantPicker={showVariantPicker()}
+              showReasoningControl={isToolbarControlVisible('reasoning')}
+              selectionCostWarning={selectionCostWarning()}
+              variantButtonRef={(el) => {
+                variantPickerRef = el;
+              }}
+              variantPopoverRef={(el) => {
+                variantPopoverRef = el;
+              }}
+              getVariantLabel={formatVariantLabel}
+              onToggleVariantPicker={() => {
+                const next = !showVariantPicker();
+                closePopups(next ? 'variant' : undefined);
+                setShowVariantPicker(next);
+              }}
+              onSelectVariant={(variant) => {
+                const m = currentModel();
+                void handleSelectedModelChange(
+                  {
+                    providerID: m.providerID!,
+                    modelID: m.modelID!,
+                    variant: variant || undefined,
+                  },
+                  variant
+                );
+                setShowVariantPicker(false);
+              }}
+              contextUsage={contextUsage()}
+              contextBreakdown={contextBreakdown()}
+              nestedContextBreakdown={nestedContextBreakdown()}
+              showContextControl={!!contextUsage()}
+              contextButtonRef={(el) => {
+                contextButtonRef = el;
+              }}
+              contextPopupRef={(el) => {
+                contextPopupRef = el;
+              }}
+              showContextPopup={showContextPopup()}
+              sessionTokens={sessionTokenBreakdown().session}
+              sessionCost={sessionCost()}
+              subagentTokens={sessionTokenBreakdown().subagents}
+              subagentCount={sessionTokenBreakdown().subagentCount}
+              contextCompactDisabled={isComposerBusy() || isSessionCompacting()}
+              onToggleContextPopup={toggleContextPopup}
+              onCloseContextPopup={() => setShowContextPopup(false)}
+              onCompactSession={() => {
+                void compactSession();
+              }}
+              showAttachmentsControl={isToolbarControlVisible('attachments')}
+              onAttach={() => postMessage({ type: 'files/pick' })}
+              showStopButton={showStopButton()}
+              onStop={requestAbortSession}
+              showSendControl={showSendControl()}
+              showBusySendControls={showBusySendControls()}
+              showBusySendOptions={showBusySendOptions()}
+              canSend={canSend()}
+              busyToggleRef={(el) => {
+                busyToggleRef = el;
+              }}
+              showBusyMenu={showBusyMenu()}
+              onSend={() => sendFromUi()}
+              onToggleBusyMenu={() => {
+                const next = !showBusyMenu();
+                closePopups(next ? 'busy' : undefined);
+                setShowBusyMenu(next);
+              }}
+              busyMenuRef={(el) => {
+                busyMenuRef = el;
+              }}
+              onQueue={() => {
+                sendFromUi('queue');
+                setShowBusyMenu(false);
+              }}
+              onSteer={() => {
+                sendFromUi('steer');
+                setShowBusyMenu(false);
+              }}
+              onStopAndSend={() => void handleStopAndSend()}
+            />
+          </div>
+
+          <ChatInputMetaToolbar
             compactTight={toolbarCompactMode() === 'tight'}
-            showLeftPopupState={showAgentPicker() || showVariantPicker()}
-            showPermissionControl={true}
+            inputFrameRef={inputFrameRef}
+            allowRepositoryLink={!composerEditingMessage()}
+            showWorkspaceControl={!composerEditingMessage()}
+            workspaceFolders={state.editorContext.workspaceFolders ?? []}
+            selectedWorkspacePath={selectedWorkspacePath()}
+            canSelectWorkspace={canSelectWorkspace()}
+            showWorkspacePicker={showWorkspacePicker()}
+            workspaceButtonRef={(el) => {
+              workspacePickerRef = el;
+            }}
+            workspacePopoverRef={(el) => {
+              workspacePopoverRef = el;
+            }}
+            onToggleWorkspacePicker={() => {
+              const next = !showWorkspacePicker();
+              closePopups(next ? 'workspace' : undefined);
+              setShowWorkspacePicker(next);
+            }}
+            onSelectWorkspace={(path) => {
+              if (!canSelectWorkspace()) return;
+              detachBlankSessionForWorkspace(path);
+              setManualWorkspaceSelection(true);
+              requestWorkspaceSelection(path);
+              setShowWorkspacePicker(false);
+            }}
+            onSelectWorkspaceScope={() => {
+              if (!canSelectWorkspace()) return;
+              detachBlankSessionForWorkspace(null);
+              setManualWorkspaceSelection(false);
+              requestWorkspaceSelection(null);
+              setShowWorkspacePicker(false);
+            }}
+            showMcpControl={!composerEditingMessage() && showMcpControl()}
+            showMcpPicker={showMcpPicker()}
+            enabledMcpCount={enabledMcpCount()}
+            availableMcpCount={availableMcpNames().length}
+            activeLspNames={composerEditingMessage() ? [] : activeLspNames()}
+            activeTurnStartedAt={composerEditingMessage() ? null : activeTurnStartedAt()}
+            activeTurnLastActivityAt={loadingLastActivityAt()}
+            showLspPicker={showLspPicker()}
+            lspButtonRef={(el) => {
+              lspPickerRef = el;
+            }}
+            onToggleLsps={() => {
+              const next = !showLspPicker();
+              closePopups(next ? 'lsp' : undefined);
+              setShowLspPicker(next);
+            }}
+            mcpButtonRef={(el) => {
+              mcpPickerRef = el;
+            }}
+            onToggleMcps={() => {
+              const next = !showMcpPicker();
+              closePopups(next ? 'mcp' : undefined);
+              setShowMcpPicker(next);
+            }}
+            showPermissionControl={!composerEditingMessage()}
             permissionButtonRef={(el) => {
               permissionPickerRef = el;
             }}
@@ -6503,7 +6730,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             agents={state.agents}
             selectedAgent={state.selectedAgent}
             selectedAgentLabel={selectedAgentLabel() ?? ''}
-            agentCompacted={isToolbarControlCompacted(toolbarCompactMode(), 'agent')}
             agentFocusIndex={agentFocusIndex()}
             showAgentPicker={showAgentPicker()}
             showAgentControl={isToolbarControlVisible('agent')}
@@ -6530,16 +6756,13 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
               modelPickerRef = el;
             }}
             currentModel={currentModel()}
-            providers={state.providers}
             modelCanEllipsize={modelCanEllipsize()}
-            queueOnly={queueOnlySelection()}
-            showModelPicker={showModelPicker()}
             onToggleModelPicker={() => {
               const next = !showModelPicker();
               closePopups(next ? 'model' : undefined);
               setShowModelPicker(next);
             }}
-            providerLimitBadges={currentProviderLimitBadges()}
+            providerLimitBadges={composerEditingMessage() ? [] : currentProviderLimitBadges()}
             providerLimitTitle={currentProviderLimitTitle()}
             providerLimit={showCurrentProviderLimit() ? currentCompactProviderLimit() : null}
             showProviderLimitPopup={showCurrentProviderLimit() && showProviderLimitPopup()}
@@ -6561,7 +6784,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             selectedVariantLabel={selectedVariantLabel() ?? ''}
             showVariantPicker={showVariantPicker()}
             showReasoningControl={isToolbarControlVisible('reasoning')}
-            selectionCostWarning={selectionCostWarning()}
             variantButtonRef={(el) => {
               variantPickerRef = el;
             }}
@@ -6589,7 +6811,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             contextUsage={contextUsage()}
             contextBreakdown={contextBreakdown()}
             nestedContextBreakdown={nestedContextBreakdown()}
-            showContextControl={!!contextUsage()}
+            showContextControl={!!contextUsage() && !composerEditingMessage()}
             contextButtonRef={(el) => {
               contextButtonRef = el;
             }}
@@ -6639,222 +6861,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             onStopAndSend={() => void handleStopAndSend()}
           />
         </div>
-
-        <ChatInputMetaToolbar
-          compactTight={toolbarCompactMode() === 'tight'}
-          inputFrameRef={inputFrameRef}
-          allowRepositoryLink={!composerEditingMessage()}
-          showWorkspaceControl={!composerEditingMessage()}
-          workspaceFolders={state.editorContext.workspaceFolders ?? []}
-          selectedWorkspacePath={selectedWorkspacePath()}
-          canSelectWorkspace={canSelectWorkspace()}
-          showWorkspacePicker={showWorkspacePicker()}
-          workspaceButtonRef={(el) => {
-            workspacePickerRef = el;
-          }}
-          workspacePopoverRef={(el) => {
-            workspacePopoverRef = el;
-          }}
-          onToggleWorkspacePicker={() => {
-            const next = !showWorkspacePicker();
-            closePopups(next ? 'workspace' : undefined);
-            setShowWorkspacePicker(next);
-          }}
-          onSelectWorkspace={(path) => {
-            if (!canSelectWorkspace()) return;
-            detachBlankSessionForWorkspace(path);
-            setManualWorkspaceSelection(true);
-            requestWorkspaceSelection(path);
-            setShowWorkspacePicker(false);
-          }}
-          onSelectWorkspaceScope={() => {
-            if (!canSelectWorkspace()) return;
-            detachBlankSessionForWorkspace(null);
-            setManualWorkspaceSelection(false);
-            requestWorkspaceSelection(null);
-            setShowWorkspacePicker(false);
-          }}
-          showMcpControl={!composerEditingMessage() && showMcpControl()}
-          showMcpPicker={showMcpPicker()}
-          enabledMcpCount={enabledMcpCount()}
-          availableMcpCount={availableMcpNames().length}
-          activeLspNames={composerEditingMessage() ? [] : activeLspNames()}
-          activeTurnStartedAt={composerEditingMessage() ? null : activeTurnStartedAt()}
-          activeTurnLastActivityAt={loadingLastActivityAt()}
-          showLspPicker={showLspPicker()}
-          lspButtonRef={(el) => {
-            lspPickerRef = el;
-          }}
-          onToggleLsps={() => {
-            const next = !showLspPicker();
-            closePopups(next ? 'lsp' : undefined);
-            setShowLspPicker(next);
-          }}
-          mcpButtonRef={(el) => {
-            mcpPickerRef = el;
-          }}
-          onToggleMcps={() => {
-            const next = !showMcpPicker();
-            closePopups(next ? 'mcp' : undefined);
-            setShowMcpPicker(next);
-          }}
-          showPermissionControl={!composerEditingMessage()}
-          permissionButtonRef={(el) => {
-            permissionPickerRef = el;
-          }}
-          permissionPopoverRef={(el) => {
-            permissionPopoverRef = el;
-          }}
-          permissionMode={activePermissionMode()}
-          autoPermissionActivity={autoPermissionActivity()}
-          autoApproveJudgeModel={autoApproveJudgeModel()}
-          showPermissionPicker={showPermissionModePicker()}
-          onTogglePermissionPicker={() => {
-            const next = !showPermissionModePicker();
-            closePopups(next ? 'permission' : undefined);
-            setShowPermissionModePicker(next);
-          }}
-          onSelectPermissionMode={(mode) => {
-            void updatePermissionModeForSession(mode, composerSessionId());
-            setShowPermissionModePicker(false);
-          }}
-          onOpenPermissionSettings={() => {
-            setShowPermissionModePicker(false);
-            setShowPermissionSettings(true);
-          }}
-          agents={state.agents}
-          selectedAgent={state.selectedAgent}
-          selectedAgentLabel={selectedAgentLabel() ?? ''}
-          agentFocusIndex={agentFocusIndex()}
-          showAgentPicker={showAgentPicker()}
-          showAgentControl={isToolbarControlVisible('agent')}
-          agentButtonRef={(el) => {
-            agentPickerRef = el;
-          }}
-          agentPopoverRef={(el) => {
-            agentPopoverRef = el;
-          }}
-          getAgentLabel={(agent) => formatAgentLabel(agent.name)}
-          getAgentDetail={(agent) => agent.description || getAgentBadgeLine(agent)}
-          onToggleAgentPicker={() => {
-            const next = !showAgentPicker();
-            closePopups(next ? 'agent' : undefined);
-            setShowAgentPicker(next);
-            if (next) setAgentFocusIndex(0);
-          }}
-          onSelectAgent={(agent) => {
-            setSelectedAgent(agent.name, { sessionId: composerSessionId() });
-            setShowAgentPicker(false);
-          }}
-          onAgentFocusIndex={setAgentFocusIndex}
-          modelButtonRef={(el) => {
-            modelPickerRef = el;
-          }}
-          currentModel={currentModel()}
-          modelCanEllipsize={modelCanEllipsize()}
-          onToggleModelPicker={() => {
-            const next = !showModelPicker();
-            closePopups(next ? 'model' : undefined);
-            setShowModelPicker(next);
-          }}
-          providerLimitBadges={composerEditingMessage() ? [] : currentProviderLimitBadges()}
-          providerLimitTitle={currentProviderLimitTitle()}
-          providerLimit={showCurrentProviderLimit() ? currentCompactProviderLimit() : null}
-          showProviderLimitPopup={showCurrentProviderLimit() && showProviderLimitPopup()}
-          providerLimitButtonRef={(el) => {
-            providerLimitButtonRef = el;
-          }}
-          providerLimitPopupRef={(el) => {
-            providerLimitPopupRef = el;
-          }}
-          onToggleProviderLimitPopup={() => {
-            if (!showCurrentProviderLimit()) return;
-            const next = !showProviderLimitPopup();
-            closePopups(next ? 'providerLimit' : undefined);
-            setShowProviderLimitPopup(next);
-          }}
-          onCloseProviderLimitPopup={() => setShowProviderLimitPopup(false)}
-          availableVariants={availableVariants()}
-          selectedVariant={effectiveVariant() ?? null}
-          selectedVariantLabel={selectedVariantLabel() ?? ''}
-          showVariantPicker={showVariantPicker()}
-          showReasoningControl={isToolbarControlVisible('reasoning')}
-          variantButtonRef={(el) => {
-            variantPickerRef = el;
-          }}
-          variantPopoverRef={(el) => {
-            variantPopoverRef = el;
-          }}
-          getVariantLabel={formatVariantLabel}
-          onToggleVariantPicker={() => {
-            const next = !showVariantPicker();
-            closePopups(next ? 'variant' : undefined);
-            setShowVariantPicker(next);
-          }}
-          onSelectVariant={(variant) => {
-            const m = currentModel();
-            void handleSelectedModelChange(
-              {
-                providerID: m.providerID!,
-                modelID: m.modelID!,
-                variant: variant || undefined,
-              },
-              variant
-            );
-            setShowVariantPicker(false);
-          }}
-          contextUsage={contextUsage()}
-          contextBreakdown={contextBreakdown()}
-          nestedContextBreakdown={nestedContextBreakdown()}
-          showContextControl={!!contextUsage() && !composerEditingMessage()}
-          contextButtonRef={(el) => {
-            contextButtonRef = el;
-          }}
-          contextPopupRef={(el) => {
-            contextPopupRef = el;
-          }}
-          showContextPopup={showContextPopup()}
-          sessionTokens={sessionTokenBreakdown().session}
-          sessionCost={sessionCost()}
-          subagentTokens={sessionTokenBreakdown().subagents}
-          subagentCount={sessionTokenBreakdown().subagentCount}
-          contextCompactDisabled={isComposerBusy() || isSessionCompacting()}
-          onToggleContextPopup={toggleContextPopup}
-          onCloseContextPopup={() => setShowContextPopup(false)}
-          onCompactSession={() => {
-            void compactSession();
-          }}
-          showAttachmentsControl={isToolbarControlVisible('attachments')}
-          onAttach={() => postMessage({ type: 'files/pick' })}
-          showStopButton={showStopButton()}
-          onStop={requestAbortSession}
-          showSendControl={showSendControl()}
-          showBusySendControls={showBusySendControls()}
-          showBusySendOptions={showBusySendOptions()}
-          canSend={canSend()}
-          busyToggleRef={(el) => {
-            busyToggleRef = el;
-          }}
-          showBusyMenu={showBusyMenu()}
-          onSend={() => sendFromUi()}
-          onToggleBusyMenu={() => {
-            const next = !showBusyMenu();
-            closePopups(next ? 'busy' : undefined);
-            setShowBusyMenu(next);
-          }}
-          busyMenuRef={(el) => {
-            busyMenuRef = el;
-          }}
-          onQueue={() => {
-            sendFromUi('queue');
-            setShowBusyMenu(false);
-          }}
-          onSteer={() => {
-            sendFromUi('steer');
-            setShowBusyMenu(false);
-          }}
-          onStopAndSend={() => void handleStopAndSend()}
-        />
       </div>
 
       <Show when={previewImage()}>

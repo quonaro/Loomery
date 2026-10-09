@@ -243,6 +243,10 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
         ref={props.toolbarLeftRef}
         class={`toolbar-left${props.showLeftPopupState ? ' showing-context-popup' : ''}`}
       >
+        <Show when={props.showAttachmentsControl}>
+          <AttachButton onAttach={props.onAttach} />
+        </Show>
+
         <Show when={props.agents.length > 0 && props.showAgentControl}>
           <AgentPicker
             buttonRef={props.agentButtonRef}
@@ -296,10 +300,6 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
       </div>
 
       <div ref={props.toolbarRightRef} class="toolbar-right">
-        <Show when={props.showAttachmentsControl}>
-          <AttachButton onAttach={props.onAttach} />
-        </Show>
-
         <Show when={props.showStopButton}>
           <StopButton onStop={props.onStop} />
         </Show>

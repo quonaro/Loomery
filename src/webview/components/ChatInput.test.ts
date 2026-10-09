@@ -1599,7 +1599,7 @@ describe('ChatInput', () => {
     await Promise.resolve();
 
     expect(container?.querySelector('.rich-composer')?.getAttribute('data-placeholder')).toBe(
-      'Describe what to build'
+      'Tip: Type @ to bring in context from another chat'
     );
   });
 
@@ -2965,7 +2965,7 @@ describe('ChatInput', () => {
     const metaRow = container?.querySelector('.toolbar-meta');
 
     expect(frame?.contains(mainRow ?? null)).toBe(true);
-    expect(frame?.contains(metaRow ?? null)).toBe(false);
+    expect(frame?.contains(metaRow ?? null)).toBe(true);
     expect(shell?.contains(metaRow ?? null)).toBe(true);
     expect(mainRow?.querySelector('.chat-context-usage')).toBeNull();
     expect(mainRow?.querySelector('.toolbar-limit-chip')).toBeNull();

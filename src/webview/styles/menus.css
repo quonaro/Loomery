@@ -282,15 +282,30 @@
   align-items: center;
   gap: 8px;
   margin-left: auto;
-  flex-shrink: 0;
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
 }
 
 .dropdown-hint {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 10px;
   font-family: var(--font-mono);
   color: var(--color-vscode-muted);
+}
+
+/* MCP error text must not squeeze the server name: cap the hint so the
+   name keeps room, full text stays available via tooltip. */
+.dropdown-meta .dropdown-hint {
+  max-width: 30ch;
+}
+
+.dropdown-menu .model-picker-list {
+  overflow-x: hidden;
 }
 
 .lsp-workspace-root {

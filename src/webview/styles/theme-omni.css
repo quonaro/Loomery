@@ -124,3 +124,34 @@
 .session-item.keyboard-focus {
   background: color-mix(in srgb, var(--color-vscode-fg) 7%, transparent);
 }
+
+/* --------------------------------------------------------------------------
+   Devin-like composer contrast (dark theme only): the page behind the
+   composer stays near-black, while the input card and its idle tools sit
+   visibly lighter on top of it. Unlayered, so it wins over base surfaces.
+   -------------------------------------------------------------------------- */
+body.vscode-dark,
+body.vscode-dark #root,
+body.vscode-dark .interactive-session,
+body.vscode-dark .chat-main-shell,
+body.vscode-dark .chat-main-column-shell,
+body.vscode-dark .chat-workspace,
+body.vscode-dark .chat-session-sidebar,
+body.vscode-dark .session-list-view-sidebar,
+body.vscode-dark .interactive-input-part {
+  background-color: #1b1b1b;
+}
+
+body.vscode-dark .interactive-session .chat-input-container {
+  background: #161616;
+  border-color: #2b2b2b;
+}
+
+body.vscode-dark .interactive-session .chat-input-main-box {
+  background: #242424;
+  border-color: #33353a;
+}
+
+body.vscode-dark .interactive-session .chat-input-container.focused {
+  border-color: var(--color-vscode-accent);
+}

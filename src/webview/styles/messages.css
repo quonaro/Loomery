@@ -2718,6 +2718,7 @@ body:is(.vscode-light, .vscode-high-contrast-light) .chat-empty-logo {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  gap: 6px;
   cursor: text;
   background: linear-gradient(
     to bottom,
@@ -2725,8 +2726,8 @@ body:is(.vscode-light, .vscode-high-contrast-light) .chat-empty-logo {
     var(--color-vscode-input-bg)
   );
   border: 1px solid var(--color-vscode-border-default);
-  border-radius: var(--radius-control);
-  padding: 8px 8px 7px 8px;
+  border-radius: 12px;
+  padding: 12px 12px 8px 12px;
   width: 100%;
   position: relative;
   /* No rounded overflow clip and no overlay above the composer: either one makes Chromium
@@ -2887,6 +2888,27 @@ body.vscode-dark[data-vscode-theme-id='Dark 2026'] .interactive-session .chat-in
   );
 }
 
+/* Reference look: page behind the composer is darker, the input card and
+   its tools sit lighter on top of it. Dark theme only; light stays native. */
+body.vscode-dark .chat-main-shell {
+  background-color: #0e0e0e;
+}
+
+body.vscode-dark .interactive-session .chat-input-container {
+  background: #161616;
+  border-color: #2b2b2b;
+}
+
+body.vscode-dark .interactive-session .chat-input-toolbars.toolbar-main .toolbar-picker:hover,
+body.vscode-dark
+  .interactive-session
+  .chat-input-toolbars.toolbar-main
+  .toolbar-picker[aria-expanded='true'],
+body.vscode-dark .interactive-session .toolbar-attach-button:hover {
+  /* Hovered tools read lighter than the card itself. */
+  background: #2c2c2c;
+}
+
 .interactive-session .chat-input-container.showing-context-popup {
   z-index: var(--z-chrome-raised);
 }
@@ -2909,7 +2931,7 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   --chat-input-part-gap: 6px;
   box-sizing: border-box;
   width: 100%;
-  margin: 0 0 2px;
+  margin: 0 0 12px;
   padding: 8px var(--chat-horizontal-padding) 0;
   display: flex;
   flex-direction: column;
@@ -2955,9 +2977,7 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
 }
 
 .interactive-session .chat-input-toolbar-divider {
-  height: 1px;
-  background: var(--color-vscode-border-default);
-  margin: auto -8px 0;
+  display: none;
 }
 
 .interactive-session .chat-input-toolbars.toolbar-main {
@@ -2965,18 +2985,75 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin: 0 -8px -7px;
+  margin: 0;
   min-width: 0;
-  padding: 6px 8px 7px;
-  background: var(--color-vscode-chat-input-toolbar-surface);
-  border-radius: 0 0 var(--radius-control) var(--radius-control);
-  /* The toolbar background covers the container's focus ring along the bottom edges. */
-  box-shadow:
-    inset 1px 0 0 var(--chat-input-focus-ring-color),
-    inset -1px 0 0 var(--chat-input-focus-ring-color),
-    inset 0 -1px 0 var(--chat-input-focus-ring-color);
+  padding: 2px 0 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   flex-wrap: nowrap;
   overflow: visible;
+}
+
+/* Devin-like ghost controls in the main row: + | agent | model, no boxes. */
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-picker {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  height: 26px;
+  padding: 0 6px;
+  color: var(--color-vscode-fg-soft);
+}
+
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-picker:hover,
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-picker[aria-expanded='true'] {
+  background: var(--color-vscode-toolbar-hover);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-left {
+  gap: 2px;
+}
+
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-right {
+  gap: 6px;
+}
+
+/* Circular Devin-like send button. */
+.interactive-session .chat-input-toolbars.toolbar-main .chat-send-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.interactive-session .chat-input-toolbars.toolbar-main .send-button-group .send-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+  width: 26px;
+}
+
+.interactive-session .chat-input-toolbars.toolbar-main .send-mode-options {
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+
+/* Meta row lives inside the same card, like Local / DataMart in the reference. */
+.interactive-session .chat-input-container > .chat-input-toolbars.toolbar-meta {
+  padding: 0;
+  min-height: 22px;
+}
+
+/* Single inner box around the editor and the main toolbar row. */
+.interactive-session .chat-input-main-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--color-vscode-border-soft);
+  border-radius: 8px;
+  padding: 10px 12px 8px;
 }
 
 .interactive-session .chat-input-toolbars.toolbar-main .toolbar-left {

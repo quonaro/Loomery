@@ -1738,7 +1738,7 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-control);
+  border-radius: 50%;
   border: none;
   cursor: pointer;
   transition:
@@ -1764,10 +1764,17 @@
 }
 
 .chat-send-button.disabled {
-  background: color-mix(in srgb, var(--color-vscode-fg) 8%, transparent);
-  color: var(--color-vscode-muted);
-  opacity: 0.5;
+  /* Devin-like idle send: solid grey circle, lighter than the card. */
+  background: #3d3d3d;
+  color: #c9c9c9;
+  opacity: 1;
   cursor: default;
+}
+
+body.vscode-light .chat-send-button.disabled,
+body.vscode-high-contrast-light .chat-send-button.disabled {
+  background: color-mix(in srgb, var(--color-vscode-fg) 12%, transparent);
+  color: var(--color-vscode-muted);
 }
 
 .send-button-group {

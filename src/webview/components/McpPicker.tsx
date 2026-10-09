@@ -7,6 +7,7 @@ import { trapModalFocus } from '../lib/modal-focus';
 import { getSelectedMcpsForSession, setMcpStatus, state } from '../lib/state';
 import { observePopupViewport, placeDropdownAnchor } from '../lib/popup-position';
 import { checkIcon, xmarkIcon } from '../lib/ui-icons';
+import { Tooltip } from './Tooltip';
 import { UiIcon } from './UiIcon';
 
 export function McpPicker(props: {
@@ -201,7 +202,11 @@ export function McpPicker(props: {
                         {item.status.replaceAll('_', ' ')}
                       </span>
                       <Show when={item.error}>
-                        <span class="dropdown-hint">{item.error}</span>
+                        {(error) => (
+                          <Tooltip content={error()} delay={300}>
+                            <span class="dropdown-hint">{error()}</span>
+                          </Tooltip>
+                        )}
                       </Show>
                     </span>
                   </button>
