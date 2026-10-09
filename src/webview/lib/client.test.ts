@@ -380,6 +380,18 @@ describe('client', () => {
     ]);
   });
 
+  it('marks a committed message revert so v2 removes the reverted history', async () => {
+    const { client } = await loadClient();
+    bridgeMocks.apiCall.mockResolvedValue([]);
+
+    await client.session.revert('session-1', 'message-1', { commit: true });
+
+    expect(bridgeMocks.apiCall).toHaveBeenCalledWith('POST', '/session/session-1/revert', {
+      messageID: 'message-1',
+      commit: true,
+    });
+  });
+
   it.each([null, {}, { healthy: 'true', version: '1.0.0' }, { healthy: true, version: 1 }])(
     'rejects malformed health payload %#',
     async (response) => {

@@ -976,7 +976,12 @@ export class OpenCodeV2Adapter {
           await data<SessionInfo>('POST', `${endpoint}/fork`, { before: input.messageID })
         );
       if (action === 'revert') {
+        // Stage with file restoration. The message-level revert is permanent, so
+        // commit it and drop the reverted messages instead of leaving a reversible
+        // staged revert that a resync would show again. `/undo` keeps it staged so
+        // `/redo` can still restore it.
         await raw('POST', `${endpoint}/revert/stage`, { messageID: input.messageID, files: true });
+        if (input.commit === true) await raw('POST', `${endpoint}/revert/commit`, {});
         return this.session(await data<SessionInfo>('GET', endpoint));
       }
       if (action === 'unrevert') {

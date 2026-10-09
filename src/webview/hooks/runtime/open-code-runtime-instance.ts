@@ -2676,9 +2676,10 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       client.session.deleteMessage(sessionId, messageId, {
         directory: getSessionDirectory(sessionId),
       }),
-    revertSession: (sessionId, messageId) =>
+    revertSession: (sessionId, messageId, options) =>
       client.session.revert(sessionId, messageId, {
         directory: getSessionDirectory(sessionId),
+        commit: options?.commit,
       }),
     syncSession,
     syncSessionMessages,

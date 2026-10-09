@@ -244,7 +244,7 @@ describe('session-controls helpers', () => {
       'assistant-1'
     );
 
-    expect(revertSession).toHaveBeenCalledWith('session-1', 'assistant-1');
+    expect(revertSession).toHaveBeenCalledWith('session-1', 'assistant-1', { commit: true });
     expect(syncSession).toHaveBeenCalledWith('session-1');
     expect(syncSessionMessages).toHaveBeenCalledWith('session-1');
     expect(stopLoading).toHaveBeenCalledTimes(1);

@@ -130,7 +130,11 @@ export async function undoSessionWithDependencies(deps: {
 export async function revertToMessageWithDependencies(
   deps: {
     startLoading(): () => boolean;
-    revertSession(sessionId: string, messageId: string): Promise<void | boolean | object>;
+    revertSession(
+      sessionId: string,
+      messageId: string,
+      options?: { commit?: boolean }
+    ): Promise<void | boolean | object>;
     syncSession(sessionId: string): Promise<void | boolean | object>;
     syncSessionMessages(sessionId: string): Promise<void | boolean | object>;
     stopLoading(): void;
@@ -141,7 +145,9 @@ export async function revertToMessageWithDependencies(
 ) {
   const isCurrent = deps.startLoading();
   try {
-    await deps.revertSession(sessionId, messageId);
+    // The message-level revert is destructive: commit it so the reverted history
+    // is removed instead of staying staged and restorable through a resync.
+    await deps.revertSession(sessionId, messageId, { commit: true });
     await Promise.all([deps.syncSession(sessionId), deps.syncSessionMessages(sessionId)]);
     if (isCurrent()) deps.stopLoading();
   } catch (err) {
@@ -539,7 +545,11 @@ type SessionControlDependencies = {
   logError(context: string, cause: unknown): void;
   getMessages(): Array<{ info: Message; parts?: Part[] }>;
   startLoading(): () => boolean;
-  revertSession(sessionId: string, messageId: string): Promise<void | boolean | object>;
+  revertSession(
+    sessionId: string,
+    messageId: string,
+    options?: { commit?: boolean }
+  ): Promise<void | boolean | object>;
   syncSession(sessionId: string): Promise<void | boolean | object>;
   syncSessionMessages(sessionId: string): Promise<void | boolean | object>;
   setError(message: string): void;

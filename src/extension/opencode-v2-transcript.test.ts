@@ -1,12 +1,16 @@
 /* oxlint-disable anti-slop/no-module-mocking -- The HTTP adapter imports the extension logger; transcript fixtures run without a VS Code host. */
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import type { SessionMessageInfo } from '@opencode/client';
+import type { SessionInfo, SessionMessageInfo } from '@opencode/client';
 import { OpenCodeV2Adapter } from './opencode-v2-adapter';
+import { OpenCodeV2SessionState } from './opencode-v2-session-state';
 import { projectV2Event } from './opencode-v2-events';
 import { projectV2Message } from './opencode-v2-projection';
 import { parseServerEvent } from '../shared/protocol';
 import { parseSkillAttachment } from '../shared/skill-reference';
-import { asRecord } from '../shared/type-utils';
+import { asRecord, type UnknownRecord } from '../shared/type-utils';
 
 vi.mock('./logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
@@ -137,6 +141,62 @@ describe('V2 transcript deletion', () => {
       adapter.request('DELETE', `/session/ses_one/message/${user.id}`, undefined)
     ).rejects.toThrow('OpenCode repeated a message pagination cursor');
     expect(wire).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('V2 session revert', () => {
+  const session: SessionInfo = {
+    id: 'ses_one',
+    title: 'Session',
+    projectID: 'project',
+    location: { directory: '/workspace/loomery' },
+    time: { created: 1, updated: 2 },
+    cost: 0,
+    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+  };
+
+  async function runRevert(body: UnknownRecord) {
+    const directory = await mkdtemp(join(tmpdir(), 'loomery-v2-revert-'));
+    const calls: Array<{ method: string; path: string; body: unknown }> = [];
+    try {
+      const wire = vi.fn<ConstructorParameters<typeof OpenCodeV2Adapter>[0]>(
+        async (method, path, requestBody) => {
+          calls.push({ method, path, body: requestBody });
+          if (method === 'GET' && path.endsWith('/ses_one')) return { data: session };
+          return {};
+        }
+      );
+      const adapter = new OpenCodeV2Adapter(wire, new OpenCodeV2SessionState(directory));
+      await adapter.request('POST', '/session/ses_one/revert', body);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+    return calls;
+  }
+
+  it('stages then commits a message revert so the reverted history is removed', async () => {
+    const calls = await runRevert({ messageID: 'msg_user', commit: true });
+    expect(calls).toEqual([
+      {
+        method: 'POST',
+        path: '/api/session/ses_one/revert/stage',
+        body: { messageID: 'msg_user', files: true },
+      },
+      { method: 'POST', path: '/api/session/ses_one/revert/commit', body: {} },
+      { method: 'GET', path: '/api/session/ses_one', body: undefined },
+    ]);
+  });
+
+  it('leaves an undo revert staged so redo can still clear it', async () => {
+    const calls = await runRevert({ messageID: 'msg_user' });
+    expect(calls).toEqual([
+      {
+        method: 'POST',
+        path: '/api/session/ses_one/revert/stage',
+        body: { messageID: 'msg_user', files: true },
+      },
+      { method: 'GET', path: '/api/session/ses_one', body: undefined },
+    ]);
   });
 });
 

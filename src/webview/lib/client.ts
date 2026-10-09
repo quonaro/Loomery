@@ -372,12 +372,14 @@ export const client = {
     async revert(
       id: string,
       messageID: string,
-      options?: { directory?: string }
+      options?: { directory?: string; commit?: boolean }
     ): Promise<Session> {
+      // v2 commits the revert so the reverted messages are removed; v1 keeps the
+      // legacy reversible behavior and ignores the additional flag.
       return apiCall(
         'POST',
         withDirectory(`/session/${encodeURIComponent(id)}/revert`, options?.directory),
-        { messageID }
+        options?.commit ? { messageID, commit: true } : { messageID }
       );
     },
     async unrevert(id: string, options?: { directory?: string }): Promise<Session> {

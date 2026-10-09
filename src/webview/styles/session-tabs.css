@@ -142,7 +142,6 @@
   flex-shrink: 0;
   padding: 0 6px;
   background: var(--color-vscode-sidebar);
-  border-left: 1px solid var(--color-vscode-border-soft);
 }
 
 .session-tabs-new .chat-header-btn {
