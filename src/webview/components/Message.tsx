@@ -16,7 +16,7 @@ import {
   isProviderAuthFailure,
 } from '../../shared/error-classification';
 import { normalizeSessionTitle } from '../../shared/session-title';
-import { retryMessage } from '../hooks/useOpenCode';
+import { retryMessage, revertToMessage } from '../hooks/useOpenCode';
 import {
   getAssistantActivityPartKey,
   isAssistantActiveInlineToolPart,
@@ -73,7 +73,9 @@ import {
   parseUserMessageContent,
 } from './message/UserMessageContent';
 import { isString } from '../lib/runtime-values';
-import { playIcon } from '../lib/ui-icons';
+import { playIcon, undoIcon } from '../lib/ui-icons';
+import { RevertConfirmDialog } from './RevertConfirmDialog';
+import { Tooltip } from './Tooltip';
 import { UiIcon } from './UiIcon';
 import { isPlanImplementationMessage } from './message-list/plan-actions';
 import { getPresentationPartKey } from './message-list/streaming-presentation';
@@ -602,6 +604,16 @@ export function Message(props: {
     hasUserMessageEditableContent(normalizedParts());
   const [editContentLoading, setEditContentLoading] = createSignal(false);
   const [editContentError, setEditContentError] = createSignal('');
+  const [showRevertConfirm, setShowRevertConfirm] = createSignal(false);
+  const canRevertToMessage = () =>
+    isUser() &&
+    hasUserContent() &&
+    props.info.sessionID === state.activeSessionId &&
+    !isManagedSubagentSession() &&
+    !isActiveSessionWorking() &&
+    !isSteeringMessage() &&
+    !isPlanImplementation();
+  const handleRevertToMessage = () => revertToMessage(props.info.sessionID, props.info.id);
   let editContentController: AbortController | undefined;
   createEffect(
     on(
@@ -709,6 +721,33 @@ export function Message(props: {
             if (event.animationName === 'assistant-final-mark-pulse') setPulseFinalMark(false);
           }}
         >
+          <Show when={canRevertToMessage()}>
+            <Tooltip content="Revert to here" delay={500}>
+              <button
+                type="button"
+                class="message-revert-button"
+                aria-label="Revert session to this message. Later messages are removed and files are restored."
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowRevertConfirm(true);
+                }}
+              >
+                <UiIcon source={undoIcon} width={13} height={13} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </Show>
+
+          <Show when={showRevertConfirm()}>
+            <RevertConfirmDialog
+              sessionId={props.info.sessionID}
+              messageId={props.info.id}
+              onCancel={() => setShowRevertConfirm(false)}
+              onConfirm={async () => {
+                setShowRevertConfirm(false);
+                await handleRevertToMessage();
+              }}
+            />
+          </Show>
           <Show when={!isUser() || hasUserContent()}>
             <Show when={editContentLoading()}>
               <div role="status">Loading attachments for editing…</div>

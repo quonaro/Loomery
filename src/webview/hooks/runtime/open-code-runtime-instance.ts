@@ -210,6 +210,7 @@ export interface OpenCodeRuntime {
   openPlan(markdown: string, sessionId?: string | null): Promise<void>;
   abortSession(): Promise<void>;
   undoSession(): Promise<void>;
+  revertToMessage(sessionId: string, messageId: string): Promise<void>;
   redoSession(): Promise<void>;
   initSession(): Promise<void>;
   runSlashCommandByName(
@@ -3233,6 +3234,10 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     await sessionControlOperations.undoSession();
   }
 
+  async function revertToMessage(sessionId: string, messageId: string) {
+    await sessionControlOperations.revertToMessage(sessionId, messageId);
+  }
+
   async function redoSession() {
     await sessionControlOperations.redoSession();
   }
@@ -3401,6 +3406,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     openPlan,
     abortSession,
     undoSession,
+    revertToMessage,
     redoSession,
     initSession,
     runSlashCommandByName,

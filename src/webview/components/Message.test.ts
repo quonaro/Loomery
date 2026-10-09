@@ -29,11 +29,13 @@ import { projectV2Message } from '../../extension/opencode-v2-projection';
 import { buildPlanImplementationPrompt } from './message-list/plan-actions';
 
 const retryMessageMock = vi.hoisted(() => vi.fn());
+const revertToMessageMock = vi.hoisted(() => vi.fn(async () => {}));
 const selectSessionMock = vi.hoisted(() => vi.fn());
 
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise Message actions through the useOpenCode module boundary. */
 vi.mock('../hooks/useOpenCode', () => ({
   retryMessage: retryMessageMock,
+  revertToMessage: revertToMessageMock,
   selectSession: selectSessionMock,
 }));
 
@@ -70,6 +72,7 @@ afterEach(() => {
   else Reflect.deleteProperty(globalThis, 'ResizeObserver');
   document.body.classList.remove('chat-image-preview-open');
   retryMessageMock.mockReset();
+  revertToMessageMock.mockReset();
   selectSessionMock.mockReset();
   resetProviderConnectionState();
   setShowModels(false);
@@ -3451,5 +3454,147 @@ describe('Message assistant final answer rendering', () => {
     expect(errorBlock).toBeNull();
     expect(retryButton).toBeNull();
     expect(retryMessageMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('Message revert action', () => {
+  let diffSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    diffSpy = vi.spyOn(client.session, 'diff').mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    diffSpy.mockRestore();
+    setAppState('activeSessionId', null);
+    setAppState('sessions', []);
+    setAppState('sessionStatus', {});
+  });
+
+  it('shows the revert button on user messages only', () => {
+    setAppState('activeSessionId', 'session-1');
+    cleanup = render(
+      () => [
+        Message({
+          info: userMessage('message-user-revert'),
+          parts: [textPart('text-user', 'Build the thing')],
+        }),
+        Message({
+          info: assistantMessage('message-assistant-revert'),
+          parts: [textPart('text-assistant', 'Done.')],
+        }),
+      ],
+      container!
+    );
+
+    const turns = container?.querySelectorAll<HTMLElement>('.chat-turn');
+    expect(turns?.[0]?.querySelector('.message-revert-button')).toBeInstanceOf(HTMLButtonElement);
+    expect(turns?.[1]?.querySelector('.message-revert-button')).toBeNull();
+  });
+
+  it('opens a confirmation dialog listing the files that will be restored', async () => {
+    setAppState('activeSessionId', 'session-1');
+    diffSpy.mockResolvedValue([
+      {
+        file: 'src/a.ts',
+        additions: 2,
+        deletions: 1,
+        patch: '@@ -1,1 +1,2 @@\n-old\n+new\n+extra\n',
+      },
+    ]);
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-revert'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-revert-button')?.click();
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-dialog')).not.toBeNull();
+    });
+    expect(diffSpy).toHaveBeenCalledWith('session-1', 'message-revert', { directory: undefined });
+    expect(document.body.textContent).toContain('1 file changed');
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.diff-view-file')).not.toBeNull();
+    });
+    expect(revertToMessageMock).not.toHaveBeenCalled();
+  });
+
+  it('reverts only after the confirmation is accepted', async () => {
+    setAppState('activeSessionId', 'session-1');
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-confirm'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-revert-button')?.click();
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-submit')).not.toBeNull();
+    });
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-submit') as HTMLButtonElement).click();
+
+    await vi.waitFor(() => {
+      expect(revertToMessageMock).toHaveBeenCalledWith('session-1', 'message-confirm');
+    });
+  });
+
+  it('does not revert when the confirmation is cancelled', async () => {
+    setAppState('activeSessionId', 'session-1');
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-cancel'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-revert-button')?.click();
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-cancel')).not.toBeNull();
+    });
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-cancel') as HTMLButtonElement).click();
+
+    expect(revertToMessageMock).not.toHaveBeenCalled();
+    expect(document.body.querySelector('.revert-confirm-dialog')).toBeNull();
+  });
+
+  it('hides the revert button while the session is working', () => {
+    setAppState('activeSessionId', 'session-1');
+    setAppState('sessionStatus', { 'session-1': { type: 'busy' } });
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-busy'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    expect(container?.querySelector('.message-revert-button')).toBeNull();
+  });
+
+  it('hides the revert button for inactive sessions', () => {
+    setAppState('activeSessionId', 'session-other');
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-inactive'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    expect(container?.querySelector('.message-revert-button')).toBeNull();
   });
 });

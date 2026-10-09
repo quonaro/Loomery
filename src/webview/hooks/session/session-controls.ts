@@ -127,6 +127,31 @@ export async function undoSessionWithDependencies(deps: {
   }
 }
 
+export async function revertToMessageWithDependencies(
+  deps: {
+    startLoading(): () => boolean;
+    revertSession(sessionId: string, messageId: string): Promise<void | boolean | object>;
+    syncSession(sessionId: string): Promise<void | boolean | object>;
+    syncSessionMessages(sessionId: string): Promise<void | boolean | object>;
+    stopLoading(): void;
+    setError(message: string): void;
+  },
+  sessionId: string,
+  messageId: string
+) {
+  const isCurrent = deps.startLoading();
+  try {
+    await deps.revertSession(sessionId, messageId);
+    await Promise.all([deps.syncSession(sessionId), deps.syncSessionMessages(sessionId)]);
+    if (isCurrent()) deps.stopLoading();
+  } catch (err) {
+    if (isCurrent()) {
+      deps.stopLoading();
+      deps.setError(err instanceof Error ? err.message : 'Failed to revert');
+    }
+  }
+}
+
 export async function editMessageWithDependencies(
   deps: {
     getActiveSessionId(): string | null;
@@ -620,6 +645,21 @@ export class SessionControlOperations {
       stopLoading: this.deps.stopLoading,
       setError: this.deps.setError,
     });
+  };
+
+  readonly revertToMessage = async (sessionId: string, messageId: string) => {
+    await revertToMessageWithDependencies(
+      {
+        startLoading: this.deps.startLoading,
+        revertSession: this.deps.revertSession,
+        syncSession: this.deps.syncSession,
+        syncSessionMessages: this.deps.syncSessionMessages,
+        stopLoading: this.deps.stopLoading,
+        setError: this.deps.setError,
+      },
+      sessionId,
+      messageId
+    );
   };
 
   readonly editMessage = async (

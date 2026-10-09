@@ -32,6 +32,7 @@ export {
   respondQuestion,
   restoreSession,
   retryMessage,
+  revertToMessage,
   reviewSession,
   runSlashCommandByName,
   selectSession,

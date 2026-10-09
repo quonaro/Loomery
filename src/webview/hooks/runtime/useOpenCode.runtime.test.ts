@@ -35,6 +35,7 @@ function createRuntimeMock(label: string) {
     openPlan: vi.fn().mockResolvedValue(undefined),
     abortSession: vi.fn().mockResolvedValue(undefined),
     undoSession: vi.fn().mockResolvedValue(undefined),
+    revertToMessage: vi.fn().mockResolvedValue(undefined),
     redoSession: vi.fn().mockResolvedValue(undefined),
     initSession: vi.fn().mockResolvedValue(undefined),
     runSlashCommandByName: vi.fn().mockResolvedValue(`${label}-command`),

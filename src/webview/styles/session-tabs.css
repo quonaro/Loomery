@@ -130,13 +130,19 @@
   background: var(--color-vscode-toolbar-hover);
 }
 
-/* New-session button pinned at the end of the tab strip. */
+/* New-session button pinned to the right edge of the tab strip. It stays
+   sticky while the conversation tabs scroll underneath, so it is always
+   reachable on the right. */
 .session-tabs-new {
+  position: sticky;
+  right: 0;
+  z-index: var(--z-raised);
   display: flex;
   align-items: center;
   flex-shrink: 0;
   padding: 0 6px;
-  border-right: 1px solid var(--color-vscode-border-soft);
+  background: var(--color-vscode-sidebar);
+  border-left: 1px solid var(--color-vscode-border-soft);
 }
 
 .session-tabs-new .chat-header-btn {

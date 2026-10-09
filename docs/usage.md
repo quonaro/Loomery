@@ -689,6 +689,8 @@ Hold `Alt` or `Option` while viewing a sufficiently long final answer to reveal 
 
 Editable user messages expose an edit action. Sending the replacement removes that user message and the later conversation history before resending, but it does not restore files changed in the workspace. Use session `/undo` or `/revert` when you need OpenCode's revert workflow instead.
 
+Hovering an idle user message reveals a revert action. It opens a confirmation dialog that lists every file the revert restores as per-file accordions with their diffs, then restores the workspace to that checkpoint and removes that message plus the later conversation history. The action is hidden while the session is working, in subagent sessions, and for inactive sessions.
+
 ## VS Code Commands And Keybindings
 
 - `Loomery: New Session`

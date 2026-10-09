@@ -6,6 +6,7 @@ import {
   compactSessionWithDependencies,
   editMessageWithDependencies,
   redoSessionWithDependencies,
+  revertToMessageWithDependencies,
   reviewSessionWithDependencies,
   undoSessionWithDependencies,
 } from './session/session-controls';
@@ -221,6 +222,61 @@ describe('session-controls helpers', () => {
     });
 
     expect(revertSession).toHaveBeenCalledWith('session-1', 'assistant-active');
+  });
+
+  it('reverts to an explicit message and resyncs the session', async () => {
+    const revertSession = vi.fn(async () => {});
+    const syncSession = vi.fn(async () => {});
+    const syncSessionMessages = vi.fn(async () => {});
+    const stopLoading = vi.fn();
+    const setError = vi.fn();
+
+    await revertToMessageWithDependencies(
+      {
+        startLoading: vi.fn(() => () => true),
+        revertSession,
+        syncSession,
+        syncSessionMessages,
+        stopLoading,
+        setError,
+      },
+      'session-1',
+      'assistant-1'
+    );
+
+    expect(revertSession).toHaveBeenCalledWith('session-1', 'assistant-1');
+    expect(syncSession).toHaveBeenCalledWith('session-1');
+    expect(syncSessionMessages).toHaveBeenCalledWith('session-1');
+    expect(stopLoading).toHaveBeenCalledTimes(1);
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  it('reports revert failures without resyncing', async () => {
+    const revertSession = vi.fn(async () => {
+      throw new Error('revert failed');
+    });
+    const syncSession = vi.fn(async () => {});
+    const syncSessionMessages = vi.fn(async () => {});
+    const stopLoading = vi.fn();
+    const setError = vi.fn();
+
+    await revertToMessageWithDependencies(
+      {
+        startLoading: vi.fn(() => () => true),
+        revertSession,
+        syncSession,
+        syncSessionMessages,
+        stopLoading,
+        setError,
+      },
+      'session-1',
+      'assistant-1'
+    );
+
+    expect(syncSession).not.toHaveBeenCalled();
+    expect(syncSessionMessages).not.toHaveBeenCalled();
+    expect(stopLoading).toHaveBeenCalledTimes(1);
+    expect(setError).toHaveBeenCalledWith('revert failed');
   });
 
   it('edits a user message by deleting its history tail and resending the new text', async () => {
