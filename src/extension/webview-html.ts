@@ -26,7 +26,7 @@ body { background: var(--vscode-sideBar-background, #181818); }
   color: var(--vscode-foreground, #cccccc);
 }
 .loomery-startup-logo {
-  width: clamp(64px, 12vw, 88px);
+  width: clamp(96px, 18vw, 132px);
   height: auto;
   filter: grayscale(1);
   user-select: none;

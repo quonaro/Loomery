@@ -634,7 +634,9 @@ describe('empty session pruning', () => {
     await Promise.resolve();
 
     expect(container?.textContent).not.toContain('New session');
-    expect(container?.textContent).toContain('Sessions (0)');
+    expect(container?.querySelector('.session-list-view')).not.toBeNull();
+    expect(container?.querySelector('.session-tabs')).not.toBeNull();
+    expect(container?.textContent).not.toContain('Sessions (');
     expect(deleteImmediatelySpy).not.toHaveBeenCalled();
   });
 

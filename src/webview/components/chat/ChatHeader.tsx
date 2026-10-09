@@ -380,6 +380,7 @@ export function SessionPickerHeader(props: {
   filterLabel: string | null;
   filterPrefix: string;
   filterTitle?: string;
+  showTitle?: boolean;
   primarySessionsCount: number;
   showBackButton?: boolean;
   backTitle?: string;
@@ -424,9 +425,11 @@ export function SessionPickerHeader(props: {
         <Show
           when={props.filterLabel}
           fallback={
-            <span class="chat-header-title-text">
-              Sessions <span class="chat-header-title-count">({props.primarySessionsCount})</span>
-            </span>
+            <Show when={props.showTitle !== false}>
+              <span class="chat-header-title-text">
+                Sessions <span class="chat-header-title-count">({props.primarySessionsCount})</span>
+              </span>
+            </Show>
           }
         >
           {(label) => (

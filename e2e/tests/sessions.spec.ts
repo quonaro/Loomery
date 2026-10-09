@@ -341,7 +341,7 @@ test('filters sessions by running, failed, attention, and plan ready status', as
     'Completed sticky cleanup'
   );
   await openSessions(page);
-  await expect(page.getByText('Sessions', { exact: false })).toBeVisible();
+  await expect(page.locator('.session-tabs')).toBeVisible();
 
   const visibleSessionTitles = page.locator('.session-item:visible .session-item-title-text');
   await expect(visibleSessionTitles).toHaveText([

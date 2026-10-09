@@ -17,6 +17,7 @@ import {
 } from '../../shared/error-classification';
 import { normalizeSessionTitle } from '../../shared/session-title';
 import { retryMessage, revertToMessage } from '../hooks/useOpenCode';
+import { publishRevertedMessageDraft } from '../lib/reverted-message-draft';
 import {
   getAssistantActivityPartKey,
   isAssistantActiveInlineToolPart,
@@ -744,7 +745,16 @@ export function Message(props: {
               onCancel={() => setShowRevertConfirm(false)}
               onConfirm={async () => {
                 setShowRevertConfirm(false);
-                await handleRevertToMessage();
+                const parts = normalizedParts();
+                const text = getUserMessageEditText(parts);
+                const context = getUserMessageEditContext(parts);
+                const reverted = await handleRevertToMessage();
+                if (!reverted) return;
+                publishRevertedMessageDraft({
+                  sessionId: props.info.sessionID,
+                  text,
+                  context,
+                });
               }}
             />
           </Show>

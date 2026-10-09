@@ -153,8 +153,9 @@ export function ChatWorkspace(props: {
     props.showSessionPicker ? props.sessionListFilterPrefix : 'Viewing:';
   const sidebarFilterTitle = () =>
     props.showSessionPicker ? props.sessionListFilterTitle : props.sidebarSessionListFilterTitle;
-  const sessionPickerHeader = (useSidebarCounts = false) => (
+  const sessionPickerHeader = (useSidebarCounts = false, showTitle = true) => (
     <SessionPickerHeader
+      showTitle={showTitle}
       filterLabel={useSidebarCounts ? sidebarFilterLabel() : props.sessionListFilterLabel}
       filterPrefix={useSidebarCounts ? sidebarFilterPrefix() : props.sessionListFilterPrefix}
       filterTitle={useSidebarCounts ? sidebarFilterTitle() : props.sessionListFilterTitle}
@@ -303,13 +304,14 @@ export function ChatWorkspace(props: {
         <div
           class={`chat-header ${props.shouldRenderWorkspace ? 'chat-header-centered chat-header-chat-layout' : ''}`}
         >
-          <div class="chat-header-inner">{sessionPickerHeader()}</div>
+          <div class="chat-header-inner">{sessionPickerHeader(false, false)}</div>
         </div>
       </Show>
 
-      <Show when={props.shouldRenderWorkspace}>
-        <SessionTabs onCreateSession={props.onCreateSession} />
-      </Show>
+      <SessionTabs
+        onCreateSession={props.onCreateSession}
+        autoOpenActive={props.shouldRenderWorkspace}
+      />
 
       <Show when={props.showReconnectBanner}>
         <div

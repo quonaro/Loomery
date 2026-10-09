@@ -3,7 +3,7 @@ import { Portal } from 'solid-js/web';
 import { selectSession } from '../../hooks/useOpenCode';
 import { isPlaceholderSessionTitle, normalizeSessionTitle } from '../../../shared/session-title';
 import { clampPopupToViewport } from '../../lib/popup-position';
-import { isSessionUnread, state } from '../../lib/state';
+import { getSessionTreeRootId, state } from '../../lib/state';
 import {
   NEW_SESSION_TAB_ID,
   closeOtherSessionTabs,
@@ -17,7 +17,7 @@ import { xmarkIcon } from '../../lib/ui-icons';
 import { UiIcon } from '../UiIcon';
 import { NewChatButton } from './ChatHeader';
 
-type TabStatusKind = 'failed' | 'running' | 'unread' | 'idle';
+type TabStatusKind = 'failed' | 'awaiting' | 'running' | 'idle';
 
 const DRAG_MIME = 'text/loomery-session-tab';
 
@@ -28,7 +28,7 @@ const DRAG_MIME = 'text/loomery-session-tab';
  * New chat draft also shows up as a tab until its first message creates the
  * real session.
  */
-export function SessionTabs(props: { onCreateSession: () => void }) {
+export function SessionTabs(props: { onCreateSession: () => void; autoOpenActive?: boolean }) {
   let draggedId: string | null = null;
 
   const sessionsById = createMemo(
@@ -40,11 +40,28 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
     return getOpenSessionTabs().filter((id) => id === NEW_SESSION_TAB_ID || sessions.has(id));
   });
 
+  // Sessions blocked on a user decision (permission request or question) get the
+  // attention colour. Permissions/questions can belong to a child session, so
+  // map each one back to its tab's root id as well.
+  const awaitingSessionIds = createMemo(() => {
+    const ids = new Set<string>();
+    const add = (sessionId: string) => {
+      ids.add(sessionId);
+      ids.add(getSessionTreeRootId(sessionId) || sessionId);
+    };
+    for (const permission of state.permissions) add(permission.sessionID);
+    for (const question of state.questions) add(question.sessionID);
+    return ids;
+  });
+
   // Keep whatever session is active visible in the strip and retire the draft
   // tab once a real session takes over. The writes are untracked so closing the
   // active tab does not immediately reopen it when the tab list changes before
-  // the session switch lands.
+  // the session switch lands. The sessions list view disables this: there the
+  // active session is not necessarily one the user opened, and auto-tabbing it
+  // would defeat empty-session pruning.
   createEffect(() => {
+    if (props.autoOpenActive === false) return;
     const active = state.activeSessionId;
     untrack(() => {
       if (!active) return;
@@ -69,10 +86,9 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
   const tabStatus = (id: string): TabStatusKind => {
     if (isDraftTab(id)) return 'idle';
     if (state.failedSessionIds.includes(id)) return 'failed';
+    if (awaitingSessionIds().has(id)) return 'awaiting';
     const type = state.sessionStatus[id]?.type;
     if (type === 'busy' || type === 'retry') return 'running';
-    const session = sessionsById().get(id);
-    if (session && isSessionUnread(id, session.time.updated)) return 'unread';
     return 'idle';
   };
 
@@ -80,10 +96,10 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
     switch (kind) {
       case 'failed':
         return 'Failed';
+      case 'awaiting':
+        return 'Waiting for input';
       case 'running':
         return 'Running';
-      case 'unread':
-        return 'New activity';
       default:
         return 'Idle';
     }

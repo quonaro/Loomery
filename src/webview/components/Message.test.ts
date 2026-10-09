@@ -5,6 +5,7 @@ import type { FilePart, MessageEntry, Part, Session, TextPart, ToolPart } from '
 import { client } from '../lib/client';
 import { installHighlightWorker } from '../lib/highlight-worker.test-support';
 import { editingMessage, resetMessageEditState } from '../lib/message-edit-state';
+import { consumeRevertedMessageDraft } from '../lib/reverted-message-draft';
 import {
   providerConnectionRequest,
   providerRequiresReconnection,
@@ -29,7 +30,7 @@ import { projectV2Message } from '../../extension/opencode-v2-projection';
 import { buildPlanImplementationPrompt } from './message-list/plan-actions';
 
 const retryMessageMock = vi.hoisted(() => vi.fn());
-const revertToMessageMock = vi.hoisted(() => vi.fn(async () => {}));
+const revertToMessageMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>(async () => true));
 const selectSessionMock = vi.hoisted(() => vi.fn());
 
 /* oxlint-disable anti-slop/no-module-mocking -- These tests exercise Message actions through the useOpenCode module boundary. */
@@ -74,6 +75,7 @@ afterEach(() => {
   retryMessageMock.mockReset();
   revertToMessageMock.mockReset();
   selectSessionMock.mockReset();
+  consumeRevertedMessageDraft();
   resetProviderConnectionState();
   setShowModels(false);
   setAppState('sessions', []);
@@ -3524,7 +3526,8 @@ describe('Message revert action', () => {
     expect(revertToMessageMock).not.toHaveBeenCalled();
   });
 
-  it('reverts only after the confirmation is accepted', async () => {
+  it('reverts only after the confirmation is accepted and hands the prompt back', async () => {
+    revertToMessageMock.mockResolvedValue(true);
     setAppState('activeSessionId', 'session-1');
     cleanup = render(
       () =>
@@ -3545,6 +3548,38 @@ describe('Message revert action', () => {
     await vi.waitFor(() => {
       expect(revertToMessageMock).toHaveBeenCalledWith('session-1', 'message-confirm');
     });
+    await vi.waitFor(() => {
+      expect(consumeRevertedMessageDraft()).toMatchObject({
+        sessionId: 'session-1',
+        text: 'Build the thing',
+      });
+    });
+  });
+
+  it('does not hand the prompt back when the revert fails', async () => {
+    revertToMessageMock.mockResolvedValue(false);
+    setAppState('activeSessionId', 'session-1');
+    cleanup = render(
+      () =>
+        Message({
+          info: userMessage('message-revert-fail'),
+          parts: [textPart('text-1', 'Build the thing')],
+        }),
+      container!
+    );
+
+    container?.querySelector<HTMLButtonElement>('.message-revert-button')?.click();
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('.revert-confirm-submit')).not.toBeNull();
+    });
+    // SAFETY: The dialog renders into document.body through a Portal.
+    (document.body.querySelector('.revert-confirm-submit') as HTMLButtonElement).click();
+
+    await vi.waitFor(() => {
+      expect(revertToMessageMock).toHaveBeenCalledWith('session-1', 'message-revert-fail');
+    });
+    await Promise.resolve();
+    expect(consumeRevertedMessageDraft()).toBeNull();
   });
 
   it('does not revert when the confirmation is cancelled', async () => {

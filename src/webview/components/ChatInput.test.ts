@@ -46,6 +46,7 @@ import { handleWorkspaceSelectionFailure } from '../lib/workspace-selection';
 import { startNewChatDraft } from '../lib/new-chat-draft';
 import { client } from '../lib/client';
 import { resetMessageEditState, startEditingMessage } from '../lib/message-edit-state';
+import { publishRevertedMessageDraft } from '../lib/reverted-message-draft';
 import { setSessionHistoryPrompts } from '../lib/message-window';
 import { hasExpandedDiffOverlay, setExpandedDiffOverlay } from '../lib/diff-overlay-state';
 import {
@@ -4406,6 +4407,42 @@ describe('ChatInput', () => {
     });
   });
 
+  it('restores a reverted message into an empty composer', async () => {
+    setState('activeSessionId', 'session-1');
+    cleanup = render(() => ChatInput(), container!);
+
+    publishRevertedMessageDraft({
+      sessionId: 'session-1',
+      text: 'Reverted prompt',
+      context: { files: [], images: [], terminalSelection: null },
+    });
+    await Promise.resolve();
+
+    expect(inputText()).toBe('Reverted prompt');
+    expect(state.queuedMessages).toHaveLength(0);
+  });
+
+  it('parks a reverted message in the paused queue when the composer has a draft', async () => {
+    setState('activeSessionId', 'session-1');
+    setInputText('Existing draft');
+    cleanup = render(() => ChatInput(), container!);
+
+    publishRevertedMessageDraft({
+      sessionId: 'session-1',
+      text: 'Reverted prompt',
+      context: { files: [], images: [], terminalSelection: null },
+    });
+    await Promise.resolve();
+
+    expect(inputText()).toBe('Existing draft');
+    expect(state.queuedMessages).toHaveLength(1);
+    expect(state.queuedMessages[0]).toMatchObject({
+      sessionId: 'session-1',
+      text: 'Reverted prompt',
+      paused: true,
+    });
+  });
+
   it('queues busy composer attachments and clears them from the input', async () => {
     setupModelState();
     setInputText('Follow up with context');
@@ -8223,6 +8260,39 @@ describe('ChatInput', () => {
     await flushAsyncWork();
 
     expect(abortSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('parks the owned session-tree queue when the stop button interrupts generation', async () => {
+    setIsLoading(true);
+    setState('activeSessionId', 'session-1');
+    setState('sessions', [
+      session('session-1', 1_000),
+      { ...session('child', 1_000), parentID: 'session-1' },
+    ]);
+    setState('sessionStatus', { 'session-1': { type: 'busy' }, child: { type: 'busy' } });
+    setState('queuedMessages', [
+      { id: 'q1', sessionId: 'session-1', text: 'next' },
+      { id: 'q2', sessionId: 'child', text: 'child next' },
+      { id: 'q3', sessionId: 'session-2', text: 'other session' },
+      { id: 'q4', sessionId: 'session-1', text: 'other view', ownerViewId: 'editor-other' },
+    ]);
+    cleanup = render(() => ChatInput(), container!);
+
+    container
+      ?.querySelector<HTMLButtonElement>('[aria-label="Stop"]')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushAsyncWork();
+
+    expect(abortSessionMock).toHaveBeenCalledTimes(1);
+    expect(state.queuedMessages.filter((item) => item.paused).map((item) => item.id)).toEqual([
+      'q1',
+      'q2',
+    ]);
+    expect(
+      vi
+        .mocked(client.session.update)
+        .mock.calls.some(([, body]) => JSON.stringify(body).includes('"pauses"'))
+    ).toBe(false);
   });
 
   it('keeps the stop button through a short idle gap', async () => {

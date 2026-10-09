@@ -1093,11 +1093,6 @@ describe('extension manifest', () => {
       shortTitle: 'Open Sessions',
       icon: '$(comment-discussion)',
     });
-    expect(packageJson.contributes.submenus).toContainEqual({
-      id: 'loomery.viewActions',
-      label: 'More Actions',
-      icon: '$(more)',
-    });
     expect(packageJson.contributes.menus['view/title']).toEqual([
       {
         command: 'loomery.chat.openSessions',
@@ -1105,30 +1100,10 @@ describe('extension manifest', () => {
         group: 'navigation@0',
       },
       {
-        command: 'loomery.chat.showFileDiffs',
-        when: 'view == loomery.chat && !loomery:showFileDiffs',
-        group: 'navigation@1',
-      },
-      {
-        command: 'loomery.chat.hideFileDiffs',
-        when: 'view == loomery.chat && loomery:showFileDiffs',
-        group: 'navigation@1',
-      },
-      {
         command: 'loomery.chat.openSettings',
         when: 'view == loomery.chat',
-        group: 'navigation@2',
+        group: 'navigation@1',
       },
-      {
-        submenu: 'loomery.viewActions',
-        when: 'view == loomery.chat',
-        group: 'navigation@3',
-      },
-    ]);
-    expect(packageJson.contributes.menus['loomery.viewActions']).toEqual([
-      { command: 'loomery.about', group: '1_main@1' },
-      { command: 'loomery.chat.openStats', group: '1_main@2' },
-      { command: 'loomery.openGitHub', group: '1_main@3' },
     ]);
     expect(packageJson.contributes.menus.commandPalette).toEqual(
       expect.arrayContaining([

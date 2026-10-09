@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
+import { reconcile } from 'solid-js/store';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import type { Session } from '../../types';
+import type { Permission, Session } from '../../types';
 import { setSessions, setState } from '../../lib/state';
 import {
   NEW_SESSION_TAB_ID,
@@ -27,14 +28,28 @@ function session(id: string, updated: number, title = `Session ${id}`): Session 
   };
 }
 
+function permission(sessionId: string): Permission {
+  return {
+    id: `perm-${sessionId}`,
+    type: 'bash',
+    sessionID: sessionId,
+    messageID: `message-${sessionId}`,
+    title: 'Run command',
+    metadata: {},
+    time: { created: 1 },
+  };
+}
+
 let container: HTMLDivElement;
 let cleanup: (() => void) | undefined;
 
 beforeEach(() => {
   setState('sessions', []);
   setState('activeSessionId', null);
-  setState('sessionStatus', {});
+  setState('sessionStatus', reconcile({}));
   setState('failedSessionIds', []);
+  setState('permissions', []);
+  setState('questions', []);
   setOpenSessionTabsForTest([]);
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -46,8 +61,10 @@ afterEach(() => {
   container.remove();
   setState('sessions', []);
   setState('activeSessionId', null);
-  setState('sessionStatus', {});
+  setState('sessionStatus', reconcile({}));
   setState('failedSessionIds', []);
+  setState('permissions', []);
+  setState('questions', []);
   setOpenSessionTabsForTest([]);
   vi.restoreAllMocks();
 });
@@ -76,6 +93,73 @@ describe('SessionTabs', () => {
     cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
 
     expect(container.querySelector('.session-tab-title')?.textContent).toBe('New Session');
+  });
+
+  it('shows the running dot while a session is generating', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('sessionStatus', 'a', { type: 'busy' });
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-running')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('shows the awaiting dot when a session has a pending permission', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('permissions', [permission('a')]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-awaiting')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('shows the awaiting dot when a session has a pending question', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('questions', [{ id: 'question-1', sessionID: 'a', questions: [] }]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-awaiting')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('prefers the awaiting dot over running while input is required', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('sessionStatus', 'a', { type: 'busy' });
+    setState('permissions', [permission('a')]);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-awaiting')).toBeInstanceOf(HTMLElement);
+    expect(container.querySelector('.session-tab-dot.is-running')).toBeNull();
+  });
+
+  it('shows the idle dot once generation has finished', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-idle')).toBeInstanceOf(HTMLElement);
+  });
+
+  it('shows the failed dot for a failed session', () => {
+    setSessions([session('a', 3)]);
+    setState('activeSessionId', 'a');
+    setState('failedSessionIds', ['a']);
+    setOpenSessionTabsForTest(['a']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    expect(container.querySelector('.session-tab-dot.is-failed')).toBeInstanceOf(HTMLElement);
   });
 
   it('renders the unsaved draft as an active New Session tab', () => {

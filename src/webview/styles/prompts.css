@@ -469,7 +469,7 @@ body.vscode-light .question-custom-input {
 }
 
 .server-status-detecting-logo {
-  width: clamp(64px, 12vw, 88px);
+  width: clamp(96px, 18vw, 132px);
   height: auto;
   filter: grayscale(1);
   user-select: none;

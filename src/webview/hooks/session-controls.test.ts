@@ -231,7 +231,7 @@ describe('session-controls helpers', () => {
     const stopLoading = vi.fn();
     const setError = vi.fn();
 
-    await revertToMessageWithDependencies(
+    const reverted = await revertToMessageWithDependencies(
       {
         startLoading: vi.fn(() => () => true),
         revertSession,
@@ -244,6 +244,7 @@ describe('session-controls helpers', () => {
       'assistant-1'
     );
 
+    expect(reverted).toBe(true);
     expect(revertSession).toHaveBeenCalledWith('session-1', 'assistant-1', { commit: true });
     expect(syncSession).toHaveBeenCalledWith('session-1');
     expect(syncSessionMessages).toHaveBeenCalledWith('session-1');
@@ -260,7 +261,7 @@ describe('session-controls helpers', () => {
     const stopLoading = vi.fn();
     const setError = vi.fn();
 
-    await revertToMessageWithDependencies(
+    const reverted = await revertToMessageWithDependencies(
       {
         startLoading: vi.fn(() => () => true),
         revertSession,
@@ -273,6 +274,7 @@ describe('session-controls helpers', () => {
       'assistant-1'
     );
 
+    expect(reverted).toBe(false);
     expect(syncSession).not.toHaveBeenCalled();
     expect(syncSessionMessages).not.toHaveBeenCalled();
     expect(stopLoading).toHaveBeenCalledTimes(1);

@@ -1979,7 +1979,7 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
 }
 
 .chat-empty-logo {
-  width: clamp(64px, 12vw, 88px);
+  width: clamp(96px, 18vw, 132px);
   height: auto;
   opacity: 0.8;
   filter: grayscale(1) brightness(1.1)

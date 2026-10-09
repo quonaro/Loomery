@@ -174,7 +174,7 @@ export async function undoSession() {
 }
 
 export async function revertToMessage(sessionId: string, messageId: string) {
-  await getCurrentOpenCodeRuntime().revertToMessage(sessionId, messageId);
+  return await getCurrentOpenCodeRuntime().revertToMessage(sessionId, messageId);
 }
 
 export async function redoSession() {

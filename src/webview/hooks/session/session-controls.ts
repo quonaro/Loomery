@@ -142,7 +142,7 @@ export async function revertToMessageWithDependencies(
   },
   sessionId: string,
   messageId: string
-) {
+): Promise<boolean> {
   const isCurrent = deps.startLoading();
   try {
     // The message-level revert is destructive: commit it so the reverted history
@@ -150,11 +150,13 @@ export async function revertToMessageWithDependencies(
     await deps.revertSession(sessionId, messageId, { commit: true });
     await Promise.all([deps.syncSession(sessionId), deps.syncSessionMessages(sessionId)]);
     if (isCurrent()) deps.stopLoading();
+    return true;
   } catch (err) {
     if (isCurrent()) {
       deps.stopLoading();
       deps.setError(err instanceof Error ? err.message : 'Failed to revert');
     }
+    return false;
   }
 }
 
@@ -658,7 +660,7 @@ export class SessionControlOperations {
   };
 
   readonly revertToMessage = async (sessionId: string, messageId: string) => {
-    await revertToMessageWithDependencies(
+    return await revertToMessageWithDependencies(
       {
         startLoading: this.deps.startLoading,
         revertSession: this.deps.revertSession,

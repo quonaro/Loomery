@@ -78,13 +78,15 @@
   background: color-mix(in srgb, var(--color-vscode-fg) 35%, transparent);
 }
 
+/* Dot semantics: green = generating, yellow = waiting on the user (permission
+   or question), white = generation finished/idle, red = failed. */
 .session-tab-dot.is-running {
-  background: var(--color-vscode-accent);
+  background: var(--color-vscode-success);
   animation: pulse-soft 1.5s ease-in-out infinite;
 }
 
-.session-tab-dot.is-unread {
-  background: var(--color-vscode-accent);
+.session-tab-dot.is-awaiting {
+  background: var(--color-vscode-warning);
 }
 
 .session-tab-dot.is-failed {
@@ -92,7 +94,7 @@
 }
 
 .session-tab-dot.is-idle {
-  background: color-mix(in srgb, var(--color-vscode-fg) 35%, transparent);
+  background: color-mix(in srgb, var(--color-vscode-fg) 80%, transparent);
 }
 
 .session-tab-close {

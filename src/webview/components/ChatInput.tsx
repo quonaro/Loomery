@@ -214,6 +214,11 @@ import {
   type ComposerSnapshot,
 } from '../lib/composer-history';
 import { getSessionHistoryPrompts } from '../lib/message-window';
+import {
+  consumeRevertedMessageDraft,
+  revertedMessageDraft,
+  type RevertedMessageDraft,
+} from '../lib/reverted-message-draft';
 import { recordSessionPause } from '../lib/session-pauses';
 import { isSessionResumeMessage } from '../../shared/session-pauses';
 import { setError } from '../lib/app-state';
@@ -3042,9 +3047,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     );
   }
 
-  async function requestPauseSession() {
-    const sessionId = composerSessionId();
-    if (!sessionId) return;
+  function parkOwnedQueuedMessagesForSessionTree(sessionId: string) {
     const sessionIds = new Set(getSessionTreeIdsForSession(sessionId));
     // Park the queue before abort publishes idle and triggers automatic dispatch.
     for (const item of state.queuedMessages) {
@@ -3052,6 +3055,18 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         setQueuedMessagePaused(item.id, true);
       }
     }
+  }
+
+  function requestStopSession() {
+    const sessionId = composerSessionId();
+    if (sessionId) parkOwnedQueuedMessagesForSessionTree(sessionId);
+    requestAbortSession();
+  }
+
+  async function requestPauseSession() {
+    const sessionId = composerSessionId();
+    if (!sessionId) return;
+    parkOwnedQueuedMessagesForSessionTree(sessionId);
     try {
       await abortSession();
     } catch {
@@ -5152,6 +5167,66 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     }
   });
 
+  function composerHasDraftContent() {
+    return (
+      inputText().trim().length > 0 ||
+      state.droppedFiles.length > 0 ||
+      state.clipboardImages.length > 0 ||
+      state.nativePdfs.length > 0 ||
+      !!state.terminalSelection ||
+      state.inlineProblems.length > 0 ||
+      !!state.attachedDiagnostics
+    );
+  }
+
+  // A destructive revert hands the removed prompt back for review: an empty
+  // composer receives it as a draft, an occupied composer parks it as a paused
+  // queue row instead of overwriting what the user was already writing.
+  function restoreRevertedMessage(draft: RevertedMessageDraft) {
+    const context = draft.context;
+    if (!composerEditingMessage() && !composerHasDraftContent()) {
+      batch(() => {
+        setHistoryIndex(null);
+        setHistoryDraft('');
+        setCompletionIndex(0);
+        setSuppressCompletion(false);
+        applyComposerEditState(context, draft.text);
+      });
+      queueMicrotask(() => {
+        if (!richEditorRef) return;
+        richEditorRef.focus();
+        setIsFocused(true);
+      });
+      return;
+    }
+    enqueueMessage({
+      id: createAttachmentID(),
+      sessionId: draft.sessionId,
+      text: draft.text,
+      paused: true,
+      droppedFiles: context.files.map((file) => ({ ...file })),
+      clipboardImages: context.images.map((image) => ({ ...image })),
+      nativePdfs: context.pdfs?.map((pdf) => ({ ...pdf })),
+      terminalSelection: context.terminalSelection ? { ...context.terminalSelection } : null,
+      inlineProblems: cloneInlineProblems(context.inlineProblems),
+      attachedDiagnostics: context.attachedDiagnostics
+        ? {
+            ...context.attachedDiagnostics,
+            diagnostics: context.attachedDiagnostics.diagnostics.map((diagnostic) => ({
+              ...diagnostic,
+            })),
+          }
+        : undefined,
+    });
+  }
+
+  createEffect(() => {
+    const draft = revertedMessageDraft();
+    if (!draft || composerSessionId() !== draft.sessionId) return;
+    consumeRevertedMessageDraft();
+    restoreRevertedMessage(draft);
+  });
+
   function currentModelSupportsVision() {
     const current = currentModel();
     if (!current.providerID || !current.modelID) return true;
@@ -6615,7 +6690,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
               showAttachmentsControl={isToolbarControlVisible('attachments')}
               onAttach={() => postMessage({ type: 'files/pick' })}
               showStopButton={showStopButton()}
-              onStop={requestAbortSession}
+              onStop={requestStopSession}
               showSendControl={showSendControl()}
               showBusySendControls={showBusySendControls()}
               showBusySendOptions={showBusySendOptions()}
@@ -6832,7 +6907,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             showAttachmentsControl={isToolbarControlVisible('attachments')}
             onAttach={() => postMessage({ type: 'files/pick' })}
             showStopButton={showStopButton()}
-            onStop={requestAbortSession}
+            onStop={requestStopSession}
             showSendControl={showSendControl()}
             showBusySendControls={showBusySendControls()}
             showBusySendOptions={showBusySendOptions()}
