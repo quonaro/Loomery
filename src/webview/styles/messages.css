@@ -140,6 +140,19 @@
   max-height: min(200px, calc(100dvh - 162px));
 }
 
+/* Inline message editing drops the outer composer card entirely, so only the
+   inner editor box (with its own border) stays visible. */
+.interactive-session
+  .inline-edit-composer-slot
+  .interactive-input-part.editing-message
+  .chat-input-shell
+  > .chat-input-container {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
 /* Everything below the edited message is abandoned when the edit is sent. */
 .interactive-item-container.interactive-item-edit-abandoned {
   opacity: 0.35;
