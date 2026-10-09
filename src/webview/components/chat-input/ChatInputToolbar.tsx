@@ -239,6 +239,38 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
       ref={props.toolbarRef}
       class={`chat-input-toolbars toolbar-main ${props.compactTight ? 'compact-tight' : ''}`}
     >
+      <div ref={props.toolbarRightRef} class="toolbar-right toolbar-send-left">
+        <Show when={props.showStopButton}>
+          <StopButton onStop={props.onStop} />
+        </Show>
+
+        <Show when={props.showSendControl}>
+          <div style={{ position: 'relative' }}>
+            <SendControls
+              showBusyControls={props.showBusySendControls}
+              showBusyOptions={props.showBusySendOptions}
+              busyMenuOpen={props.showBusyMenu}
+              canSend={props.canSend}
+              busyToggleRef={props.busyToggleRef}
+              onSend={props.onSend}
+              onToggleBusyMenu={props.onToggleBusyMenu}
+            />
+
+            <Show
+              when={props.showBusyMenu && props.showBusySendControls && props.showBusySendOptions}
+            >
+              <BusySendMenu
+                ref={props.busyMenuRef}
+                onQueue={props.onQueue}
+                onSteer={props.onSteer}
+                onStopAndSend={props.onStopAndSend}
+                queueOnly={props.queueOnly}
+              />
+            </Show>
+          </div>
+        </Show>
+      </div>
+
       <div
         ref={props.toolbarLeftRef}
         class={`toolbar-left${props.showLeftPopupState ? ' showing-context-popup' : ''}`}
@@ -296,38 +328,6 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
 
         <Show when={props.selectionCostWarning}>
           {(warning) => <SelectionCostWarning {...warning()} />}
-        </Show>
-      </div>
-
-      <div ref={props.toolbarRightRef} class="toolbar-right">
-        <Show when={props.showStopButton}>
-          <StopButton onStop={props.onStop} />
-        </Show>
-
-        <Show when={props.showSendControl}>
-          <div style={{ position: 'relative' }}>
-            <SendControls
-              showBusyControls={props.showBusySendControls}
-              showBusyOptions={props.showBusySendOptions}
-              busyMenuOpen={props.showBusyMenu}
-              canSend={props.canSend}
-              busyToggleRef={props.busyToggleRef}
-              onSend={props.onSend}
-              onToggleBusyMenu={props.onToggleBusyMenu}
-            />
-
-            <Show
-              when={props.showBusyMenu && props.showBusySendControls && props.showBusySendOptions}
-            >
-              <BusySendMenu
-                ref={props.busyMenuRef}
-                onQueue={props.onQueue}
-                onSteer={props.onSteer}
-                onStopAndSend={props.onStopAndSend}
-                queueOnly={props.queueOnly}
-              />
-            </Show>
-          </div>
         </Show>
       </div>
     </div>

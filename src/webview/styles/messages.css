@@ -3017,6 +3017,11 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   min-width: 0;
 }
 
+.interactive-session .chat-input-toolbars.toolbar-main .toolbar-right.toolbar-send-left {
+  margin-left: 0;
+  justify-content: flex-start;
+}
+
 .interactive-session .chat-input-toolbars.toolbar-main .toolbar-popover {
   margin-bottom: 6px;
 }

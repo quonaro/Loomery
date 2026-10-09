@@ -1707,8 +1707,8 @@
 }
 
 .toolbar-popover.busy-menu {
-  left: auto;
-  right: 0;
+  left: 0;
+  right: auto;
   min-width: 190px;
 }
 
