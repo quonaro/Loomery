@@ -127,7 +127,4 @@
 
 /* NOTE: No hardcoded dark surfaces here - the webview must follow only
    the active VS Code theme (sideBar / list / input variables from base.css).
-   The focused ring below stays because it uses the theme accent. */
-body.vscode-dark .interactive-session .chat-input-container.focused {
-  border-color: var(--color-vscode-accent);
-}
+   The focused composer keeps its idle border (see messages.css). */

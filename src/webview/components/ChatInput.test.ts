@@ -776,6 +776,45 @@ function availableProviderLimit(
 }
 
 describe('ChatInput', () => {
+  describe('composer card focus', () => {
+    it('focuses the editor when clicking empty space in the card', () => {
+      setInputText('Draft message');
+      cleanup = render(() => ChatInput(), container!);
+      const box = container!.querySelector<HTMLElement>('.chat-input-main-box')!;
+      const editor = container!.querySelector<HTMLElement>('.rich-composer')!;
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+
+      box.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(document.activeElement).toBe(editor);
+    });
+
+    it('moves the caret to the end when focusing an unfocused editor from the card', async () => {
+      setInputText('Draft message');
+      cleanup = render(() => ChatInput(), container!);
+      const box = container!.querySelector<HTMLElement>('.chat-input-main-box')!;
+      const editor = container!.querySelector<HTMLElement>('.rich-composer')!;
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+
+      box.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushAsyncWork();
+
+      expect(document.activeElement).toBe(editor);
+      expect(window.getSelection()?.anchorOffset).toBe('Draft message'.length);
+    });
+
+    it('leaves clicks on interactive controls to the control', () => {
+      cleanup = render(() => ChatInput(), container!);
+      const editor = container!.querySelector<HTMLElement>('.rich-composer')!;
+      const sendButton = container!.querySelector<HTMLElement>('.chat-send-button')!;
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+
+      sendButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(document.activeElement).not.toBe(editor);
+    });
+  });
+
   describe('broken image attachments', () => {
     const broken = {
       id: 'broken-image',

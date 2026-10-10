@@ -601,6 +601,24 @@ const COPIED_SELECTION_MATCH_TIMEOUT_MS = 150;
 const MAX_PENDING_PASTE_TRANSACTIONS = 16;
 const MAX_PENDING_PASTE_IMAGE_BYTES = MAX_CLIPBOARD_IMAGES * MAX_CLIPBOARD_IMAGE_SIZE;
 
+// Controls inside the composer card own their own click behavior; clicking them
+// must not be treated as a click on empty card space that focuses the editor.
+const COMPOSER_BOX_INTERACTIVE_SELECTOR = [
+  'button',
+  'a',
+  'input',
+  'textarea',
+  'select',
+  '[role="button"]',
+  '[role="menuitem"]',
+  '[role="option"]',
+  '[contenteditable="true"]',
+].join(', ');
+
+function isComposerBoxInteractiveTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(COMPOSER_BOX_INTERACTIVE_SELECTOR) !== null;
+}
+
 type PasteTransaction = {
   event: ClipboardEvent | null;
   sessionId: string | null;
@@ -1059,6 +1077,19 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     showPermissionModePicker() ||
     showContextPopup() ||
     showProviderLimitPopup();
+
+  // Clicking empty space anywhere in the composer card should focus the editor
+  // so the whole card behaves like the input. Interactive controls keep their
+  // own behavior and are ignored.
+  const focusComposerFromBoxClick = (event: MouseEvent) => {
+    if (isComposerBoxInteractiveTarget(event.target)) return;
+    const editor = richEditorRef;
+    if (!editor) return;
+    const alreadyFocused = document.activeElement === editor;
+    editor.focus();
+    if (!alreadyFocused) setCaretPosition(inputText().length);
+    setIsFocused(true);
+  };
 
   createEffect(() => {
     const pending = pendingWorkspacePath();
@@ -6521,7 +6552,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             }}
           </Show>
 
-          <div class="chat-input-main-box">
+          <div class="chat-input-main-box" onClick={focusComposerFromBoxClick}>
             <RichComposerArea
               editorRef={(el) => {
                 richEditorRef = el;

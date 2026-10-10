@@ -2835,11 +2835,9 @@ body.vscode-dark[data-vscode-theme-id='Dark 2026'] .interactive-session .chat-in
   overflow: visible;
 }
 
-.interactive-session .chat-input-container.focused,
-body.vscode-dark .interactive-session .chat-input-container.focused {
-  --chat-input-focus-ring-color: color-mix(in srgb, var(--color-vscode-accent) 35%, transparent);
-  border-color: var(--color-vscode-accent);
-}
+/* The whole card focuses the composer on click, so a focused accent border and
+   ring would flash on nearly every interaction. The focused state intentionally
+   inherits the idle border and transparent focus ring instead. */
 
 .interactive-session .interactive-input-part {
   --chat-input-part-gap: 6px;
@@ -2953,7 +2951,6 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border: 1px solid var(--color-vscode-border-soft);
   border-radius: 8px;
   padding: 10px 12px 8px;
   background: color-mix(in srgb, white 7%, var(--color-vscode-input-bg));
