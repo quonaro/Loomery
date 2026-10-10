@@ -1,4 +1,4 @@
-import type { CompletionItem, MentionCompletionItem } from './CompletionMenu';
+import type { CompletionItem, MentionCompletionItem, MentionScope } from './CompletionMenu';
 import type { Agent, Session } from '../../types';
 import type {
   DroppedFile,
@@ -6,6 +6,7 @@ import type {
   DatabaseTableReference,
   EditorDiagnostic,
   WorkspaceProblemsSnapshot,
+  TerminalContextReference,
 } from '../../../shared/protocol';
 import { normalizeSessionTitle } from '../../../shared/session-title';
 import { getWorkspaceFolderLabel } from '../../../shared/workspace-folders';
@@ -73,6 +74,84 @@ export type MentionCompletionMeta = {
   showFileSearchHint: boolean;
 };
 
+export type MentionSkillEntry = {
+  name: string;
+  description: string;
+};
+
+const MENTION_SCOPE_ALIASES = new Map<string, MentionScope>([
+  ['file', 'file'],
+  ['files', 'file'],
+  ['directory', 'directory'],
+  ['directories', 'directory'],
+  ['dir', 'directory'],
+  ['folder', 'directory'],
+  ['folders', 'directory'],
+  ['rule', 'rules'],
+  ['rules', 'rules'],
+  ['terminal', 'terminal'],
+  ['terminals', 'terminal'],
+  ['term', 'terminal'],
+]);
+
+// Session and skill scopes reuse the dedicated session/skill completion
+// pipelines instead of the generic mention item union.
+const MENTION_SESSION_SCOPE_ALIASES = new Set(['session', 'sessions']);
+const MENTION_SKILL_SCOPE_ALIASES = new Set(['skill', 'skills']);
+
+export function getMentionScopeItems(): MentionCompletionItem[] {
+  return [
+    {
+      key: 'scope:file',
+      type: 'scope',
+      scope: 'file',
+      label: 'Files',
+      detail: 'Search workspace files',
+      value: '@file:',
+    },
+    {
+      key: 'scope:directory',
+      type: 'scope',
+      scope: 'directory',
+      label: 'Directories',
+      detail: 'Search workspace folders',
+      value: '@directory:',
+    },
+    {
+      key: 'scope:session',
+      type: 'scope',
+      scope: 'session',
+      label: 'Conversations',
+      detail: 'Reference another conversation',
+      value: '@session:',
+    },
+    {
+      key: 'scope:skill',
+      type: 'scope',
+      scope: 'skill',
+      label: 'Skills',
+      detail: 'Attach a skill',
+      value: '@skill:',
+    },
+    {
+      key: 'scope:rules',
+      type: 'scope',
+      scope: 'rules',
+      label: 'Rules',
+      detail: 'Attach instruction files',
+      value: '@rules:',
+    },
+    {
+      key: 'scope:terminal',
+      type: 'scope',
+      scope: 'terminal',
+      label: 'Terminal',
+      detail: 'Attach terminal output',
+      value: '@terminal:',
+    },
+  ];
+}
+
 type AgentMentionCompletionItem = Extract<MentionCompletionItem, { type: 'agent' }>;
 type FileMentionCompletionItem = Extract<MentionCompletionItem, { type: 'file' }>;
 
@@ -99,6 +178,8 @@ export type CompletionSelection =
   | { type: 'attach-problems'; diagnostic: EditorDiagnostic | null }
   | { type: 'set-slash'; value: string }
   | { type: 'run-slash'; value: string }
+  | { type: 'apply-scope'; value: string }
+  | { type: 'apply-terminal'; terminal: TerminalContextReference }
   | {
       type: 'apply-mention';
       value: string;
@@ -175,9 +256,43 @@ export function getActiveCompletion(text: string, cursor: number) {
   }
   if (!token.startsWith('@')) return null;
 
+  const mentionBody = token.slice(1);
+  const scopeSeparator = mentionBody.indexOf(':');
+  if (scopeSeparator > 0) {
+    const scopeKeyword = mentionBody.slice(0, scopeSeparator).toLowerCase();
+    const scopedQuery = mentionBody.slice(scopeSeparator + 1);
+    if (MENTION_SESSION_SCOPE_ALIASES.has(scopeKeyword)) {
+      return {
+        type: 'session' as const,
+        query: scopedQuery,
+        start: tokenStart,
+        end: cursor,
+      };
+    }
+    if (MENTION_SKILL_SCOPE_ALIASES.has(scopeKeyword)) {
+      return {
+        type: 'skill' as const,
+        query: scopedQuery,
+        start: tokenStart,
+        end: cursor,
+      };
+    }
+    const mentionScope = MENTION_SCOPE_ALIASES.get(scopeKeyword);
+    if (mentionScope) {
+      return {
+        type: 'mention' as const,
+        scope: mentionScope,
+        query: scopedQuery,
+        start: tokenStart,
+        end: cursor,
+      };
+    }
+  }
+
   return {
     type: 'mention' as const,
-    query: token.slice(1),
+    scope: 'all' as const,
+    query: mentionBody,
     start: tokenStart,
     end: cursor,
   };
@@ -261,6 +376,12 @@ export function getCompletionSelection(
   confirm = false
 ): CompletionSelection | null {
   if (!completion || !item) return null;
+  if (item.type === 'scope') {
+    return { type: 'apply-scope', value: item.value };
+  }
+  if (item.type === 'terminal') {
+    return { type: 'apply-terminal', terminal: item.terminal };
+  }
   if (item.type === 'problems' && completion.type === 'slash') {
     return { type: 'attach-problems', diagnostic: item.diagnostic };
   }
@@ -348,12 +469,22 @@ export function getMentionCompletionItems({
   files,
   source,
   meta,
+  scope = 'all',
+  sessions = [],
+  skills = [],
+  rules = [],
+  terminals = [],
 }: {
   rawQuery: string;
   agents?: Agent[];
   files?: DroppedFile[];
   source?: MentionCompletionSource;
   meta?: MentionCompletionMeta;
+  scope?: MentionScope;
+  sessions?: Session[];
+  skills?: MentionSkillEntry[];
+  rules?: DroppedFile[];
+  terminals?: TerminalContextReference[];
 }): MentionCompletionItem[] {
   const mentionSource =
     source ?? createMentionCompletionSource({ agents: agents ?? [], files: files ?? [] });
@@ -361,6 +492,29 @@ export function getMentionCompletionItems({
   const exactAgentMatch = mentionSource.exactAgentNames.has(query);
   const exactFileMatch = mentionSource.exactFilePaths.has(normalizeMentionPath(rawQuery));
   if (query && (exactAgentMatch || exactFileMatch)) return [];
+
+  if (scope === 'file' || scope === 'directory') {
+    if (!rawQuery) return [];
+    const wantedType = scope === 'directory' ? 'directory' : 'file';
+    return mentionSource.fileEntries
+      .filter((entry) => entry.item.file.type === wantedType)
+      .map((entry) => entry.item)
+      .slice(0, 10);
+  }
+
+  if (scope === 'rules') {
+    const matches = rawQuery
+      ? rules.filter((file) => matchesMentionQuery(query, [file.relativePath, file.path]))
+      : rules;
+    return toRuleFileItems(matches).slice(0, 10);
+  }
+
+  if (scope === 'terminal') {
+    const matches = rawQuery
+      ? terminals.filter((terminal) => matchesMentionQuery(query, [terminal.name]))
+      : terminals;
+    return toTerminalItems(matches).slice(0, 10);
+  }
 
   const agentItems = mentionSource.agentEntries
     .filter((agent) => {
@@ -375,7 +529,75 @@ export function getMentionCompletionItems({
     return agentItems.slice(0, 10);
   }
 
-  return [...agentItems, ...(rawQuery ? mentionSource.tableItems : []), ...fileItems].slice(0, 10);
+  const sessionItems = rawQuery
+    ? sessions
+        .filter((session) => matchesMentionQuery(query, [session.title, session.id]))
+        .slice(0, 10)
+        .map((session) => ({
+          key: `session:${session.id}`,
+          type: 'session' as const,
+          label: normalizeSessionTitle(session.title) || 'Untitled',
+          detail: '',
+          value: `session:${session.id} `,
+          session,
+        }))
+    : [];
+
+  const skillItems = rawQuery
+    ? skills
+        .filter((skill) => matchesMentionQuery(query, [skill.name, skill.description]))
+        .slice(0, 10)
+        .map((skill) => ({
+          key: `skill-ref:${skill.name}`,
+          type: 'skill-ref' as const,
+          label: skill.name,
+          detail: skill.description,
+          value: formatSkillReference(skill.name),
+          skillName: skill.name,
+        }))
+    : [];
+
+  const terminalItems = rawQuery
+    ? toTerminalItems(terminals.filter((terminal) => matchesMentionQuery(query, [terminal.name])))
+    : [];
+
+  return [
+    ...agentItems,
+    ...(rawQuery ? mentionSource.tableItems : []),
+    ...fileItems,
+    ...sessionItems,
+    ...skillItems,
+    ...terminalItems,
+  ].slice(0, 10);
+}
+
+function toRuleFileItems(files: DroppedFile[]): MentionCompletionItem[] {
+  return files.map((file) => ({
+    key: `rules:${file.path}`,
+    type: 'file' as const,
+    label: file.relativePath,
+    detail: 'Rule file',
+    value: `@${formatMentionPath(file.relativePath)} `,
+    file,
+  }));
+}
+
+function toTerminalItems(terminals: TerminalContextReference[]): MentionCompletionItem[] {
+  return terminals.map((terminal) => ({
+    key: `terminal:${terminal.id}`,
+    type: 'terminal' as const,
+    label: terminal.name,
+    detail: terminal.hasOutput
+      ? `${terminal.lineCount} ${terminal.lineCount === 1 ? 'line' : 'lines'}`
+      : 'No output yet',
+    value: '',
+    terminal,
+  }));
+}
+
+function matchesMentionQuery(query: string, values: Array<string | undefined>) {
+  if (!query) return true;
+  return values.some((value) => value?.toLowerCase().includes(query));
 }
 
 export function createMentionCompletionSource({

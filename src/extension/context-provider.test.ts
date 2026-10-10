@@ -437,6 +437,38 @@ describe('ContextProvider', () => {
     }
   });
 
+  it('lists open terminals and returns captured output by id', async () => {
+    const provider = new ContextProvider(vi.fn());
+    const terminal = { name: 'zsh' };
+    const idleTerminal = { name: 'node' };
+    vscodeMock.window.activeTerminal = terminal;
+    vscodeMock.window.terminals = [terminal, idleTerminal];
+    const listener = vscodeMock.window.onDidStartTerminalShellExecution.mock.calls.at(-1)![0]!;
+    async function* output() {
+      yield 'npm run build\r\n';
+      yield 'built in 2s\r\n';
+    }
+
+    try {
+      listener({ terminal, execution: { commandLine: { value: 'npm run build' }, read: output } });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const entries = provider.listTerminals();
+      expect(entries.map((entry) => entry.name)).toEqual(['zsh', 'node']);
+      expect(entries[0]).toMatchObject({ name: 'zsh', hasOutput: true, lineCount: 3 });
+      expect(entries[1]).toMatchObject({ name: 'node', hasOutput: false, lineCount: 0 });
+
+      expect(provider.getTerminalOutput(entries[0]!.id)).toEqual({
+        text: expect.stringContaining('built in 2s'),
+        terminalName: 'zsh',
+      });
+      expect(provider.getTerminalOutput('missing-id')).toBeNull();
+    } finally {
+      provider.dispose();
+      vscodeMock.window.terminals = [];
+    }
+  });
+
   it('restores captured terminal output after a window reload reconnects the same process', async () => {
     vi.useFakeTimers();
     const stored = new Map<string, unknown>();

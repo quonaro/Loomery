@@ -524,9 +524,27 @@
   flex-shrink: 0;
 }
 
-.composer-completion-item:is(.completion-agent, .completion-file, .completion-session)
+.composer-completion-item:is(
+    .completion-agent,
+    .completion-file,
+    .completion-session,
+    .completion-scope,
+    .completion-skill-ref,
+    .completion-terminal
+  )
   .composer-completion-title {
   font-weight: 400;
+}
+
+.composer-completion-item.completion-scope .composer-completion-title-shell {
+  flex: 0 0 auto;
+  min-width: max-content;
+  overflow: visible;
+}
+
+.composer-completion-item.completion-scope .composer-completion-detail {
+  flex: 1 1 auto;
+  text-align: left;
 }
 
 .composer-completion-detail {
@@ -1613,12 +1631,6 @@
   z-index: 1;
 }
 
-.toolbar-picker.stop-button {
-  color: var(--color-vscode-muted);
-  height: 28px;
-  min-width: 28px;
-}
-
 .chat-input-toolbars.compact-tight {
   gap: 4px;
 }
@@ -1659,12 +1671,6 @@
   width: 26px;
   height: 26px;
 }
-.toolbar-picker.stop-button svg,
-.toolbar-picker.stop-button .ui-icon {
-  color: var(--color-vscode-error);
-  opacity: 0.75;
-}
-
 .toolbar-attach-button {
   display: flex;
   align-items: center;
@@ -1740,24 +1746,30 @@ body.vscode-high-contrast-light .chat-send-button.disabled {
   color: var(--color-vscode-muted);
 }
 
+/* Stop control mirrors the circular send button so the composer toolbar keeps
+   the same height whether generation is running or idle. */
 .chat-stop-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-control);
+  padding: 0;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   color: var(--color-vscode-error);
-  background: color-mix(in srgb, var(--color-vscode-error) 12%, transparent);
+  background: color-mix(in srgb, var(--color-vscode-error) 16%, transparent);
+  flex-shrink: 0;
   transition:
     background-color 0.12s,
     transform 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .chat-stop-button:hover {
-  background: color-mix(in srgb, var(--color-vscode-error) 22%, transparent);
+  background: color-mix(in srgb, var(--color-vscode-error) 26%, transparent);
 }
 
 .chat-stop-button:active {

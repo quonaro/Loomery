@@ -2,7 +2,11 @@ import * as vscode from 'vscode';
 import { randomUUID } from 'node:crypto';
 import { readdir, realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, parse, relative, sep } from 'path';
-import type { EditorContext, EditorTextContext } from '../shared/protocol';
+import type {
+  EditorContext,
+  EditorTextContext,
+  TerminalContextReference,
+} from '../shared/protocol';
 import { asRecord, isNumber, isString } from '../shared/type-utils';
 import { isSameWorkspacePath } from '../shared/workspace-path';
 import { toEditorDiagnostic } from './workspace-problems';
@@ -63,6 +67,8 @@ export class ContextProvider implements vscode.Disposable {
     diagnosticCounts: { errors: 0, warnings: 0 },
   };
   private _terminalSelection: { text: string; terminalName: string } | null = null;
+  private readonly terminalIds = new WeakMap<vscode.Terminal, string>();
+  private terminalIdCounter = 0;
   private readonly recentTerminalText = new Map<vscode.Terminal, string>();
   private readonly recentTerminalCommands = new Map<vscode.Terminal, string[]>();
   private readonly terminalProcessIds = new Map<vscode.Terminal, number>();
@@ -516,6 +522,51 @@ export class ContextProvider implements vscode.Disposable {
 
   clearTerminalSelection() {
     this._terminalSelection = null;
+  }
+
+  /**
+   * Open terminals the user can attach as `@terminal` context, ordered with the
+   * active terminal first. Ids stay stable while the extension host lives and
+   * are never reused, so a stale webview reference resolves to nothing rather
+   * than another terminal.
+   */
+  listTerminals(): TerminalContextReference[] {
+    const active = vscode.window.activeTerminal;
+    const terminals = [
+      ...(active ? [active] : []),
+      ...vscode.window.terminals.filter((terminal) => terminal !== active),
+    ];
+    return terminals.map((terminal) => {
+      const text = this.recentTerminalText.get(terminal) ?? '';
+      return {
+        id: this.getTerminalId(terminal),
+        name: terminal.name,
+        hasOutput: text.length > 0,
+        lineCount: text ? text.trimEnd().split(/\r?\n/).length : 0,
+      };
+    });
+  }
+
+  /**
+   * Recently captured output for one terminal. The terminal API cannot read the
+   * screen, so this is limited to output seen through shell integration and may
+   * be empty for a terminal that has not run anything yet.
+   */
+  getTerminalOutput(id: string): { text: string; terminalName: string } | null {
+    for (const terminal of vscode.window.terminals) {
+      if (this.getTerminalId(terminal) !== id) continue;
+      return { text: this.recentTerminalText.get(terminal) ?? '', terminalName: terminal.name };
+    }
+    return null;
+  }
+
+  private getTerminalId(terminal: vscode.Terminal): string {
+    const existing = this.terminalIds.get(terminal);
+    if (existing) return existing;
+    this.terminalIdCounter += 1;
+    const id = `term-${this.terminalIdCounter}`;
+    this.terminalIds.set(terminal, id);
+    return id;
   }
 
   private debouncedUpdate() {

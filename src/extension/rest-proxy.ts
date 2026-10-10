@@ -37,6 +37,7 @@ import type { HiddenSessionManager } from './hidden-session-manager';
 import { isAllowedApiRequest } from './util/webview-message';
 import type { ContextProvider } from './context-provider';
 import { getWorkspaceProblems } from './workspace-problems';
+import { getWorkspaceRules } from './workspace-rules';
 import type { LocalSessionSummaryData } from './local-session-summary';
 import { sessionSummary } from './session-summary';
 import { logger } from './logger';
@@ -296,7 +297,7 @@ export interface RestProxyCallbacks {
     ContextProvider,
     'context' | 'getOpenWorkspaceRoot' | 'readFile' | 'resolvePath'
   > &
-    Partial<Pick<ContextProvider, 'findTerminalText'>>;
+    Partial<Pick<ContextProvider, 'findTerminalText' | 'listTerminals' | 'getTerminalOutput'>>;
   providerLimitService: Pick<ProviderLimitService, 'get'>;
   sessionState: Pick<
     SessionStateManager,
@@ -1094,6 +1095,22 @@ export class RestProxy {
       const workspaceFileRequest = this.parseWorkspaceFileRequest(method, payload.path);
       if (method === 'GET' && payload.path === LOOMERY_API_ENDPOINTS.workspaceProblems) {
         const data = getWorkspaceProblems(this.getCurrentWorkspaceResolutionRoot());
+        this.callbacks.postApiResponse(requestGeneration, { id: payload.id, data });
+        return;
+      }
+      if (method === 'GET' && payload.path === LOOMERY_API_ENDPOINTS.workspaceRules) {
+        const data = await getWorkspaceRules();
+        this.callbacks.postApiResponse(requestGeneration, { id: payload.id, data });
+        return;
+      }
+      if (method === 'GET' && payload.path === LOOMERY_API_ENDPOINTS.terminalContext) {
+        const data = this.callbacks.contextProvider.listTerminals?.() ?? [];
+        this.callbacks.postApiResponse(requestGeneration, { id: payload.id, data });
+        return;
+      }
+      const terminalOutputId = this.parseTerminalOutputRequest(method, payload.path);
+      if (terminalOutputId) {
+        const data = this.callbacks.contextProvider.getTerminalOutput?.(terminalOutputId) ?? null;
         this.callbacks.postApiResponse(requestGeneration, { id: payload.id, data });
         return;
       }
@@ -3946,6 +3963,19 @@ export class RestProxy {
 
   private isWorkspaceFilePickRequest(method: string, path: string) {
     return method === 'GET' && path === LOOMERY_API_ENDPOINTS.workspaceFilePick;
+  }
+
+  private parseTerminalOutputRequest(method: string, path: string) {
+    if (method !== 'GET') return null;
+
+    const url = new URL(path, 'http://localhost');
+    if (url.pathname !== LOOMERY_API_ENDPOINTS.terminalOutput) return null;
+
+    const id = url.searchParams.get('id')?.trim();
+    if (!id) {
+      throw new Error('Terminal id is required');
+    }
+    return id;
   }
 
   /**

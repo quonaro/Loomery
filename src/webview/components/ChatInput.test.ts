@@ -160,6 +160,9 @@ vi.mock('../lib/client', () => ({
     },
     loomery: {
       workspaceProblems: vi.fn(async () => ({ total: 0, diagnostics: [] })),
+      workspaceRules: vi.fn(async () => ({ files: [] })),
+      terminalContext: vi.fn(async () => []),
+      terminalOutput: vi.fn(async () => null),
       session: {
         diffSummary: vi.fn(async () => ({
           files: 0,
@@ -3713,6 +3716,113 @@ describe('ChatInput', () => {
 
     expect(inputText()).toBe('Ask @helper ');
     expect(sendMessageMock).not.toHaveBeenCalled();
+  });
+
+  it('shows grouped context scopes for a bare mention', async () => {
+    setState('allAgents', [
+      {
+        name: 'helper',
+        description: 'Help with the task',
+        mode: 'subagent',
+        builtIn: false,
+        permission: [],
+      },
+    ]);
+    setInputText('@');
+
+    cleanup = render(() => ChatInput(), container!);
+
+    const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
+    if (!editor?.firstChild) throw new Error('Expected populated composer editor');
+    editor.focus();
+    setCollapsedSelection(editor.firstChild, '@'.length);
+    editor.dispatchEvent(new KeyboardEvent('keyup', { key: '@', bubbles: true }));
+    await flushAsyncWork();
+
+    const scopeItems = Array.from(
+      container?.querySelectorAll<HTMLButtonElement>('.completion-scope') ?? []
+    );
+    expect(scopeItems.map((item) => item.textContent)).toEqual([
+      'FilesSearch workspace files',
+      'DirectoriesSearch workspace folders',
+      'ConversationsReference another conversation',
+      'SkillsAttach a skill',
+      'RulesAttach instruction files',
+      'TerminalAttach terminal output',
+    ]);
+  });
+
+  it('inserts a scope filter when a context scope is selected', async () => {
+    setInputText('@');
+
+    cleanup = render(() => ChatInput(), container!);
+
+    const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
+    if (!editor?.firstChild) throw new Error('Expected populated composer editor');
+    editor.focus();
+    setCollapsedSelection(editor.firstChild, '@'.length);
+    editor.dispatchEvent(new KeyboardEvent('keyup', { key: '@', bubbles: true }));
+    await flushAsyncWork();
+
+    const filesScope = container?.querySelector<HTMLButtonElement>('.completion-scope');
+    filesScope?.click();
+    await flushAsyncWork();
+
+    expect(inputText()).toBe('@file:');
+    expect(container?.querySelector('.composer-completion-menu')).not.toBeNull();
+    expect(container?.querySelector('.composer-completion-header')?.textContent).toBe(
+      'Type to search workspace files'
+    );
+  });
+
+  it('attaches a discovered rule file from the @rules scope', async () => {
+    vi.mocked(client.loomery.workspaceRules).mockResolvedValue({
+      files: [{ path: '/repo/AGENTS.md', relativePath: 'AGENTS.md', type: 'file' }],
+    });
+    setInputText('@rules:');
+
+    cleanup = render(() => ChatInput(), container!);
+
+    const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
+    if (!editor?.firstChild) throw new Error('Expected populated composer editor');
+    editor.focus();
+    setCollapsedSelection(editor.firstChild, '@rules:'.length);
+    editor.dispatchEvent(new KeyboardEvent('keyup', { key: ':', bubbles: true }));
+
+    await vi.waitFor(() => expect(container?.querySelector('.completion-file')).not.toBeNull());
+    container?.querySelector<HTMLButtonElement>('.completion-file')?.click();
+    await flushAsyncWork();
+
+    expect(inputText()).toBe('@AGENTS.md ');
+    expect(state.droppedFiles).toEqual([
+      expect.objectContaining({ path: '/repo/AGENTS.md', type: 'file' }),
+    ]);
+  });
+
+  it('attaches captured terminal output from the @terminal scope', async () => {
+    vi.mocked(client.loomery.terminalContext).mockResolvedValue([
+      { id: 'term-1', name: 'zsh', hasOutput: true, lineCount: 2 },
+    ]);
+    vi.mocked(client.loomery.terminalOutput).mockResolvedValue({
+      text: 'npm run build\nbuilt',
+      terminalName: 'zsh',
+    });
+    setInputText('@terminal:');
+
+    cleanup = render(() => ChatInput(), container!);
+
+    const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
+    if (!editor?.firstChild) throw new Error('Expected populated composer editor');
+    editor.focus();
+    setCollapsedSelection(editor.firstChild, '@terminal:'.length);
+    editor.dispatchEvent(new KeyboardEvent('keyup', { key: ':', bubbles: true }));
+
+    await vi.waitFor(() => expect(container?.querySelector('.completion-terminal')).not.toBeNull());
+    container?.querySelector<HTMLButtonElement>('.completion-terminal')?.click();
+    await flushAsyncWork();
+
+    expect(state.terminalSelection).toEqual({ text: 'npm run build\nbuilt', terminalName: 'zsh' });
+    expect(inputText()).toContain('[Terminal selection]');
   });
 
   it('runs a parameterless slash completion on the first Enter', async () => {

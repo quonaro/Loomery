@@ -1851,6 +1851,12 @@ const API_ROUTES: ApiRoute[] = [
   route(LOOMERY_API_ENDPOINTS.workspaceFilePick, methodsNoQuery('GET')),
   route(LOOMERY_API_ENDPOINTS.copiedSelectionMatch, methodsNoQuery('POST')),
   route(LOOMERY_API_ENDPOINTS.workspaceProblems, methodsNoQuery('GET')),
+  route(LOOMERY_API_ENDPOINTS.workspaceRules, methodsNoQuery('GET')),
+  route(LOOMERY_API_ENDPOINTS.terminalContext, methodsNoQuery('GET')),
+  route(
+    LOOMERY_API_ENDPOINTS.terminalOutput,
+    ({ method, url }) => method === 'GET' && onlyQuery(url, 'id') && requiredQuery(url, 'id')
+  ),
   route(
     LOOMERY_API_ENDPOINTS.sessionHistoryScope,
     ({ method, url }) =>

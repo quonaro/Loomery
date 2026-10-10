@@ -36,6 +36,8 @@ import type {
   WorkspaceStatusEventSummary,
   WorkspaceFilePick,
   WorkspaceProblemsSnapshot,
+  WorkspaceRulesSnapshot,
+  TerminalContextReference,
   OpenCodePermissionConfig,
   OpenCodeServerMemoryPermissions,
 } from '../../shared/protocol';
@@ -660,6 +662,16 @@ export const client = {
       signal?: AbortSignal;
     }): Promise<WorkspaceProblemsSnapshot> {
       return apiCall('GET', LOOMERY_API_ENDPOINTS.workspaceProblems, undefined, options);
+    },
+    async workspaceRules(options?: { signal?: AbortSignal }): Promise<WorkspaceRulesSnapshot> {
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.workspaceRules, undefined, options);
+    },
+    async terminalContext(options?: { signal?: AbortSignal }): Promise<TerminalContextReference[]> {
+      return apiCall('GET', LOOMERY_API_ENDPOINTS.terminalContext, undefined, options);
+    },
+    async terminalOutput(id: string): Promise<{ text: string; terminalName: string } | null> {
+      const params = new URLSearchParams({ id });
+      return apiCall('GET', `${LOOMERY_API_ENDPOINTS.terminalOutput}?${params.toString()}`);
     },
     async readWorkspaceFile(path: string): Promise<string | null> {
       const params = new URLSearchParams({ path });

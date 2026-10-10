@@ -36,6 +36,7 @@ import type {
   ChatModelSelection,
   DroppedFile,
   DatabaseTableReference,
+  TerminalContextReference,
   ExtensionMessage,
   InitialWebviewState,
   SessionTokenBreakdown,
@@ -313,6 +314,7 @@ import {
   getLeadingSlashCommand,
   getMentionCompletionItems,
   getMentionInsertionTrailingSpace,
+  getMentionScopeItems,
   getSessionCompletionItems,
   getSessionReferenceIds,
   normalizeSessionLookupQuery,
@@ -1167,6 +1169,8 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   const [tableSearchResults, setTableSearchResults] = createSignal<DatabaseTableReference[]>([]);
   const [sessionSearchResults, setSessionSearchResults] = createSignal<Session[]>([]);
   const [sessionReferences, setSessionReferences] = createSignal<Record<string, Session>>({});
+  const [rulesFiles, setRulesFiles] = createSignal<DroppedFile[]>([]);
+  const [terminalEntries, setTerminalEntries] = createSignal<TerminalContextReference[]>([]);
   const [showFileSearchHint, setShowFileSearchHint] = createSignal(false);
   const [suppressCompletion, setSuppressCompletion] = createSignal(false);
   const [toolbarCompactMode, setToolbarCompactMode] = createSignal<ToolbarCompactMode>('full');
@@ -1177,6 +1181,10 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   let fileSearchTimer: ReturnType<typeof setTimeout> | null = null;
   let sessionSearchTimer: ReturnType<typeof setTimeout> | null = null;
   let sessionSearchAbortController: AbortController | undefined;
+  let rulesRequestScope: string | null = null;
+  let rulesAbortController: AbortController | undefined;
+  let terminalRequestScope: string | null = null;
+  let terminalAbortController: AbortController | undefined;
   const pendingSessionReferenceIds = new Set<string>();
   const toolbarFitter = createToolbarFitter({
     getToolbar: () => toolbarRef,
@@ -2421,6 +2429,18 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
 
     const rawQuery = completion.query.trim();
 
+    if (completion.scope === 'rules' || completion.scope === 'terminal') {
+      if (fileSearchTimer) {
+        clearTimeout(fileSearchTimer);
+        fileSearchTimer = null;
+      }
+      latestFileSearchQuery = '';
+      setFileSearchResults([]);
+      setTableSearchResults([]);
+      setShowFileSearchHint(false);
+      return;
+    }
+
     setShowFileSearchHint(rawQuery.length === 0);
 
     if (!rawQuery) {
@@ -2447,6 +2467,57 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         payload: { requestId, query: rawQuery, limit: 12 },
       });
     }, 120);
+  });
+
+  createEffect(() => {
+    const completion = activeCompletion();
+    const scope = completion?.type === 'mention' ? completion.scope : null;
+    const workspaceKey = getFileSearchScopeKey();
+    const wantsRules = scope === 'rules';
+    const wantsTerminals = scope === 'terminal' || (scope === 'all' && !!completion?.query.trim());
+
+    if (!wantsRules) {
+      rulesAbortController?.abort();
+      rulesAbortController = undefined;
+      rulesRequestScope = null;
+      setRulesFiles([]);
+    } else if (rulesRequestScope !== workspaceKey) {
+      rulesRequestScope = workspaceKey;
+      rulesAbortController?.abort();
+      const controller = new AbortController();
+      rulesAbortController = controller;
+      void client.loomery
+        .workspaceRules({ signal: controller.signal })
+        .then((snapshot) => {
+          if (controller.signal.aborted) return;
+          setRulesFiles(snapshot.files);
+        })
+        .catch(() => {});
+    }
+
+    if (!wantsTerminals) {
+      terminalAbortController?.abort();
+      terminalAbortController = undefined;
+      terminalRequestScope = null;
+      setTerminalEntries([]);
+    } else if (terminalRequestScope !== workspaceKey) {
+      terminalRequestScope = workspaceKey;
+      terminalAbortController?.abort();
+      const controller = new AbortController();
+      terminalAbortController = controller;
+      void client.loomery
+        .terminalContext({ signal: controller.signal })
+        .then((entries) => {
+          if (controller.signal.aborted) return;
+          setTerminalEntries(entries);
+        })
+        .catch(() => {});
+    }
+  });
+
+  onCleanup(() => {
+    rulesAbortController?.abort();
+    terminalAbortController?.abort();
   });
 
   createEffect(() => {
@@ -2513,14 +2584,30 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     sessionSearchAbortController?.abort();
   });
 
+  const mentionSkills = createMemo(() =>
+    skillCommands().map((command) => ({
+      name: command.name,
+      description: command.description || command.template,
+    }))
+  );
+  const mentionSessions = createMemo(() =>
+    state.sessions.filter((session) => session.id !== composerSessionId() && !session.parentID)
+  );
+
   const mentionCompletions = createMemo(() => {
     const completion = activeCompletion();
     if (completion?.type !== 'mention') return [];
-
+    const rawQuery = completion.query.trim();
+    if (completion.scope === 'all' && !rawQuery) return getMentionScopeItems();
     return getMentionCompletionItems({
-      rawQuery: completion.query.trim(),
+      rawQuery,
+      scope: completion.scope,
       source: mentionCompletionSource(),
       meta: { showFileSearchHint: showFileSearchHint() },
+      sessions: mentionSessions(),
+      skills: mentionSkills(),
+      rules: rulesFiles(),
+      terminals: terminalEntries(),
     });
   });
 
@@ -2639,6 +2726,10 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const completion = activeCompletion();
     if (completion?.type === 'skill') return 'Skills';
     if (completion?.type === 'session') return undefined;
+    if (completion?.type === 'mention' && completion.scope === 'all' && !completion.query.trim())
+      return undefined;
+    if (completion?.type === 'mention' && completion.scope === 'rules') return 'Rules';
+    if (completion?.type === 'mention' && completion.scope === 'terminal') return 'Terminals';
     if (showFileSearchHint()) return 'Type to search workspace files';
     if (
       completion?.type === 'slash' &&
@@ -2650,6 +2741,13 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   });
 
   const completionEmptyMessage = createMemo(() => {
+    const completion = activeCompletion();
+    if (completion?.type === 'mention' && completion.scope === 'terminal') {
+      return composerCompletions().length === 0 ? 'No open terminals' : undefined;
+    }
+    if (completion?.type === 'mention' && completion.scope === 'rules') {
+      return composerCompletions().length === 0 ? 'No rule files found' : undefined;
+    }
     if (!problemsPickerScope()) return undefined;
     if (pendingProblems()) return 'Loading problems…';
     if (problemsError()) return problemsError()!;
@@ -2685,7 +2783,9 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       composerCompletions().length > 0 ||
       !!problemsPickerScope() ||
       (completion.type === 'mention' && showFileSearchHint()) ||
-      completion.type === 'session'
+      completion.type === 'session' ||
+      (completion.type === 'mention' &&
+        (completion.scope === 'rules' || completion.scope === 'terminal'))
     );
   };
 
@@ -2800,10 +2900,11 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         const items = composerCompletions();
         const item = items[Math.min(completionIndex(), items.length - 1)];
         void applyActiveCompletion(item?.type === 'slash' && !item.acceptsArguments);
-        setSuppressCompletion(
-          item?.type !== 'slash' ||
-            (item.name !== SKILLS_COMMAND_NAME && item.name !== PROBLEMS_COMMAND_NAME)
-        );
+        const keepMenuOpen =
+          item?.type === 'scope' ||
+          (item?.type === 'slash' &&
+            (item.name === SKILLS_COMMAND_NAME || item.name === PROBLEMS_COMMAND_NAME));
+        setSuppressCompletion(!keepMenuOpen);
         return;
       }
     }
@@ -2877,6 +2978,14 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const item = items[Math.min(completionIndex(), items.length - 1)];
     const completionSelection = getCompletionSelection(completion, item, confirm);
     if (!completionSelection) return;
+    if (completionSelection.type === 'apply-scope') {
+      applyScopeCompletion(completionSelection.value);
+      return;
+    }
+    if (completionSelection.type === 'apply-terminal') {
+      void attachTerminalCompletion(completionSelection.terminal);
+      return;
+    }
     if (completionSelection.type === 'attach-problems') {
       attachPickedProblems(completionSelection.diagnostic);
       return;
@@ -3016,6 +3125,63 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const diagnostics = [...existing, ...additions];
     setState('attachedDiagnostics', { diagnostics, total: diagnostics.length, inline: false });
     queueMicrotask(() => richEditorRef?.focus());
+  }
+
+  async function attachTerminalCompletion(terminal: TerminalContextReference) {
+    const completion = activeCompletion();
+    const tokenStart = completion?.type === 'mention' ? completion.start : inputText().length;
+    const tokenEnd = completion?.type === 'mention' ? completion.end : inputText().length;
+    const text = inputText();
+    let output: { text: string; terminalName: string } | null = null;
+    try {
+      output = await client.loomery.terminalOutput(terminal.id);
+    } catch {
+      output = null;
+    }
+    if (!output || !output.text.trim()) {
+      showSessionActionFeedback('No terminal output captured yet', 'warning');
+      queueMicrotask(() => richEditorRef?.focus());
+      return;
+    }
+    if (inputText() !== text) return;
+    const { text: terminalText, terminalName } = output;
+    const markerPresent = text.includes(TERMINAL_SELECTION_MARKER);
+    const trailingSpace = getMentionInsertionTrailingSpace(
+      TERMINAL_SELECTION_MARKER,
+      text[tokenEnd]
+    );
+    const insertion = markerPresent ? '' : `${TERMINAL_SELECTION_MARKER}${trailingSpace}`;
+    batch(() => {
+      setState('terminalSelection', { text: terminalText, terminalName });
+      setInputText(`${text.slice(0, tokenStart)}${insertion}${text.slice(tokenEnd)}`);
+      setCaretPosition(tokenStart + insertion.length);
+      setCompletionIndex(0);
+      setFileSearchResults([]);
+      setTableSearchResults([]);
+      setSessionSearchResults([]);
+    });
+    queueMicrotask(() => richEditorRef?.focus());
+  }
+
+  function applyScopeCompletion(value: string) {
+    const completion = activeCompletion();
+    if (completion?.type !== 'mention') return;
+    const text = inputText();
+    const nextValue = `${text.slice(0, completion.start)}${value}${text.slice(completion.end)}`;
+    const nextCursor = completion.start + value.length;
+    batch(() => {
+      setInputText(nextValue);
+      setCaretPosition(nextCursor);
+      setCompletionIndex(0);
+      setFileSearchResults([]);
+      setTableSearchResults([]);
+      setSessionSearchResults([]);
+    });
+    latestFileSearchQuery = '';
+
+    queueMicrotask(() => {
+      if (richEditorRef) richEditorRef.focus();
+    });
   }
 
   function applyCompletionValue(
@@ -6509,6 +6675,14 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
                 const completion = activeCompletion();
                 const completionSelection = getCompletionSelection(completion, item, true);
                 if (!completionSelection) return;
+                if (completionSelection.type === 'apply-scope') {
+                  applyScopeCompletion(completionSelection.value);
+                  return;
+                }
+                if (completionSelection.type === 'apply-terminal') {
+                  void attachTerminalCompletion(completionSelection.terminal);
+                  return;
+                }
                 if (completionSelection.type === 'attach-problems') {
                   attachPickedProblems(completionSelection.diagnostic);
                   return;

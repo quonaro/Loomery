@@ -133,6 +133,17 @@ export interface TerminalSelection {
   terminalName: string;
 }
 
+export interface TerminalContextReference {
+  id: string;
+  name: string;
+  hasOutput: boolean;
+  lineCount: number;
+}
+
+export interface WorkspaceRulesSnapshot {
+  files: DroppedFile[];
+}
+
 export interface WorkspaceFilePick {
   path: string;
   workspaceDirectory: string | null;
@@ -458,6 +469,9 @@ export const LOOMERY_API_ENDPOINTS = {
   workspaceFile: `${LOOMERY_API_NAMESPACE}/workspace-file`,
   workspaceFilePick: `${LOOMERY_API_NAMESPACE}/workspace-file/pick`,
   workspaceProblems: `${LOOMERY_API_NAMESPACE}/workspace-problems`,
+  workspaceRules: `${LOOMERY_API_NAMESPACE}/workspace-rules`,
+  terminalContext: `${LOOMERY_API_NAMESPACE}/terminal-context`,
+  terminalOutput: `${LOOMERY_API_NAMESPACE}/terminal-output`,
   workspacePathResolve: `${LOOMERY_API_NAMESPACE}/workspace-path/resolve`,
   copiedSelectionMatch: `${LOOMERY_API_NAMESPACE}/copied-selection/match`,
   permissionJudge: `${LOOMERY_API_NAMESPACE}/permission/judge`,

@@ -11,6 +11,7 @@ import {
   getLeadingSlashCommand,
   getMentionCompletionItems,
   getMentionInsertionTrailingSpace,
+  getMentionScopeItems,
   getSessionCompletionItems,
   getSessionReferenceIds,
   normalizeSessionLookupQuery,
@@ -236,6 +237,159 @@ describe('getMentionCompletionItems', () => {
   });
 });
 
+describe('scoped mention completions', () => {
+  const files = [
+    { path: '/workspace/src/app.ts', relativePath: 'src/app.ts', type: 'file' as const },
+    { path: '/workspace/src/lib', relativePath: 'src/lib', type: 'directory' as const },
+  ];
+
+  it('lists the root scope categories for a bare @', () => {
+    expect(
+      getMentionScopeItems().map((item) => (item.type === 'scope' ? item.value : item.type))
+    ).toEqual(['@file:', '@directory:', '@session:', '@skill:', '@rules:', '@terminal:']);
+  });
+
+  it('filters file-scoped queries to files only', () => {
+    const items = getMentionCompletionItems({ rawQuery: 'app', scope: 'file', agents: [], files });
+    expect(items.map((item) => item.type)).toEqual(['file']);
+    expect(items[0]).toMatchObject({
+      type: 'file',
+      label: 'src/app.ts',
+      file: { type: 'file' },
+    });
+  });
+
+  it('filters directory-scoped queries to directories only', () => {
+    const items = getMentionCompletionItems({
+      rawQuery: 'app',
+      scope: 'directory',
+      agents: [],
+      files,
+    });
+    expect(items.map((item) => item.type)).toEqual(['file']);
+    expect(items[0]).toMatchObject({ type: 'file', file: { type: 'directory' } });
+  });
+
+  it('returns nothing for an empty scoped file query', () => {
+    expect(getMentionCompletionItems({ rawQuery: '', scope: 'file', agents: [], files })).toEqual(
+      []
+    );
+  });
+
+  it('mixes sessions and skills into a full search', () => {
+    const session: Session = {
+      id: 'ses_auth',
+      projectID: 'project-1',
+      directory: '/workspace',
+      title: 'Investigate auth',
+      version: '1.0.0',
+      time: { created: 1, updated: 2 },
+    };
+    const items = getMentionCompletionItems({
+      rawQuery: 'auth',
+      agents: [],
+      files: [],
+      sessions: [session],
+      skills: [{ name: 'auth-audit', description: 'Audit authentication' }],
+    });
+    expect(items.map((item) => item.type)).toEqual(['session', 'skill-ref']);
+    expect(items[0]).toMatchObject({ value: 'session:ses_auth ', session });
+    expect(items[1]).toMatchObject({ value: '$[auth-audit]', skillName: 'auth-audit' });
+  });
+
+  it('turns a scope category selection into a text replacement', () => {
+    const scopeItem = getMentionScopeItems().find(
+      (item) => item.type === 'scope' && item.scope === 'file'
+    );
+    expect(
+      getCompletionSelection(
+        { type: 'mention', scope: 'all', query: '', start: 0, end: 1 },
+        scopeItem
+      )
+    ).toEqual({ type: 'apply-scope', value: '@file:' });
+  });
+
+  it('routes @rules: and @terminal: to their scopes', () => {
+    expect(getActiveCompletion('@rules:agent', 12)).toEqual({
+      type: 'mention',
+      scope: 'rules',
+      query: 'agent',
+      start: 0,
+      end: 12,
+    });
+    expect(getActiveCompletion('@terminal:', 10)).toEqual({
+      type: 'mention',
+      scope: 'terminal',
+      query: '',
+      start: 0,
+      end: 10,
+    });
+  });
+
+  it('lists discovered rule files, filtered by the query', () => {
+    const rules = [
+      { path: '/repo/AGENTS.md', relativePath: 'AGENTS.md', type: 'file' as const },
+      { path: '/repo/.cursorrules', relativePath: '.cursorrules', type: 'file' as const },
+    ];
+    expect(
+      getMentionCompletionItems({ rawQuery: '', scope: 'rules', agents: [], files: [], rules }).map(
+        (item) => item.type
+      )
+    ).toEqual(['file', 'file']);
+    const [first] = getMentionCompletionItems({
+      rawQuery: '',
+      scope: 'rules',
+      agents: [],
+      files: [],
+      rules,
+    });
+    expect(first).toMatchObject({ label: 'AGENTS.md', detail: 'Rule file', value: '@AGENTS.md ' });
+    expect(
+      getMentionCompletionItems({
+        rawQuery: 'cursor',
+        scope: 'rules',
+        agents: [],
+        files: [],
+        rules,
+      }).map((item) => (item.type === 'file' ? item.label : item.type))
+    ).toEqual(['.cursorrules']);
+  });
+
+  it('lists open terminals and marks captured output', () => {
+    const terminals = [
+      { id: 'term-1', name: 'zsh', hasOutput: true, lineCount: 12 },
+      { id: 'term-2', name: 'node', hasOutput: false, lineCount: 0 },
+    ];
+    const items = getMentionCompletionItems({
+      rawQuery: '',
+      scope: 'terminal',
+      agents: [],
+      files: [],
+      terminals,
+    });
+    expect(items.map((item) => item.type)).toEqual(['terminal', 'terminal']);
+    expect(items[0]).toMatchObject({ label: 'zsh', detail: '12 lines' });
+    expect(items[1]).toMatchObject({ label: 'node', detail: 'No output yet' });
+  });
+
+  it('resolves a terminal selection to an apply-terminal action', () => {
+    const terminal = { id: 'term-1', name: 'zsh', hasOutput: true, lineCount: 3 };
+    const [item] = getMentionCompletionItems({
+      rawQuery: '',
+      scope: 'terminal',
+      agents: [],
+      files: [],
+      terminals: [terminal],
+    });
+    expect(
+      getCompletionSelection(
+        { type: 'mention', scope: 'terminal', query: '', start: 0, end: 10 },
+        item
+      )
+    ).toEqual({ type: 'apply-terminal', terminal });
+  });
+});
+
 describe('shouldRequestMentionFileSearch', () => {
   it('skips duplicate mention file searches when the query text is unchanged', () => {
     expect(shouldRequestMentionFileSearch('readme', 'readme')).toBe(false);
@@ -303,11 +457,61 @@ describe('getActiveCompletion', () => {
   it('detects mention completions for the active token', () => {
     expect(getActiveCompletion('review @hel', 11)).toEqual({
       type: 'mention',
+      scope: 'all',
       query: 'hel',
       start: 7,
       end: 11,
     });
     expect(getActiveCompletion('review test', 11)).toBeNull();
+  });
+
+  it('parses scoped mention filters', () => {
+    expect(getActiveCompletion('@file:rea', 9)).toEqual({
+      type: 'mention',
+      scope: 'file',
+      query: 'rea',
+      start: 0,
+      end: 9,
+    });
+    expect(getActiveCompletion('look @directory:src', 19)).toEqual({
+      type: 'mention',
+      scope: 'directory',
+      query: 'src',
+      start: 5,
+      end: 19,
+    });
+    expect(getActiveCompletion('@file:', 6)).toEqual({
+      type: 'mention',
+      scope: 'file',
+      query: '',
+      start: 0,
+      end: 6,
+    });
+  });
+
+  it('routes @session: and @skill: filters to the dedicated pickers', () => {
+    expect(getActiveCompletion('@session:auth', 13)).toEqual({
+      type: 'session',
+      query: 'auth',
+      start: 0,
+      end: 13,
+    });
+    expect(getActiveCompletion('@skill:brow', 11)).toEqual({
+      type: 'skill',
+      query: 'brow',
+      start: 0,
+      end: 11,
+    });
+  });
+
+  it('falls back to a full search for unknown scope prefixes', () => {
+    expect(getActiveCompletion('@unknown:value', 14)).toEqual({
+      type: 'mention',
+      scope: 'all',
+      query: 'unknown:value',
+      start: 0,
+      end: 14,
+    });
   });
 
   it('detects session completions for the active token', () => {
@@ -533,7 +737,7 @@ describe('getCompletionSelection', () => {
 
     expect(
       getCompletionSelection(
-        { type: 'mention', query: 'read', start: 0, end: 5 },
+        { type: 'mention', scope: 'all', query: 'read', start: 0, end: 5 },
         {
           key: 'file:/workspace/README.md',
           type: 'file',

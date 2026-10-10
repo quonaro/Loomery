@@ -1,4 +1,5 @@
 import { For, Show, createEffect, onCleanup, onMount } from 'solid-js';
+import { DocumentIcon } from '../DocumentIcon';
 import { FileTypeIcon } from '../FileTypeIcon';
 import { FolderIcon } from '../FolderIcon';
 import { MaterialChipIcon } from '../MaterialChipIcon';
@@ -14,12 +15,22 @@ import type {
   DroppedFile,
   DatabaseTableReference,
   EditorDiagnostic,
+  TerminalContextReference,
 } from '../../../shared/protocol';
 import type { Session } from '../../types';
 import { formatRelativeAge } from '../../lib/message-metrics';
 
 const COMPLETION_MENU_EDGE_INSET = 4;
 const COMPLETION_MENU_GAP = 10;
+
+export type MentionScope =
+  | 'all'
+  | 'file'
+  | 'directory'
+  | 'session'
+  | 'skill'
+  | 'rules'
+  | 'terminal';
 
 export type MentionCompletionItem =
   | {
@@ -52,6 +63,30 @@ export type MentionCompletionItem =
       detail: string;
       value: string;
       session: Session;
+    }
+  | {
+      key: string;
+      type: 'terminal';
+      label: string;
+      detail: string;
+      value: string;
+      terminal: TerminalContextReference;
+    }
+  | {
+      key: string;
+      type: 'skill-ref';
+      label: string;
+      detail: string;
+      value: string;
+      skillName: string;
+    }
+  | {
+      key: string;
+      type: 'scope';
+      label: string;
+      detail: string;
+      value: string;
+      scope: MentionScope;
     };
 
 export type SlashCommand = {
@@ -208,6 +243,22 @@ export function CompletionMenu(props: {
                         <MaterialChipIcon kind="skill" class="completion-skill-icon" />
                       ) : item.type === 'session' ? (
                         <MaterialChipIcon kind="session" class="completion-session-icon" />
+                      ) : item.type === 'terminal' ? (
+                        <MaterialChipIcon kind="terminal" class="completion-terminal-icon" />
+                      ) : item.type === 'skill-ref' ? (
+                        <MaterialChipIcon kind="skill" class="completion-skill-icon" />
+                      ) : item.type === 'scope' ? (
+                        item.scope === 'directory' ? (
+                          <FolderIcon width={12} height={12} />
+                        ) : item.scope === 'session' ? (
+                          <MaterialChipIcon kind="session" class="completion-session-icon" />
+                        ) : item.scope === 'skill' ? (
+                          <MaterialChipIcon kind="skill" class="completion-skill-icon" />
+                        ) : item.scope === 'terminal' ? (
+                          <MaterialChipIcon kind="terminal" class="completion-terminal-icon" />
+                        ) : (
+                          <DocumentIcon width={12} height={12} />
+                        )
                       ) : item.type === 'problems' ? (
                         <ProblemsIcon severity={item.diagnostic?.severity ?? item.severity} />
                       ) : item.type === 'table' ? (
