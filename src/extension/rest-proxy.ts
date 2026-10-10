@@ -1935,39 +1935,60 @@ export class RestProxy {
       signal?.throwIfAborted();
       const settledRootResults = await Promise.allSettled(
         roots.map(async (root) => {
-          const rootUrl = new URL(url.toString());
-          const scope = await scopeRequests.get(root)!;
-          this.applySessionCatalogScope(rootUrl, scope);
-          const catalogLimit = Math.min(perRootLimit + 1, FULL_SESSION_LIST_LIMIT);
-          rootUrl.searchParams.set('limit', String(catalogLimit));
-          const response = await this.requestSessionCatalog(
-            `${rootUrl.pathname}${rootUrl.search}`,
-            scope,
-            root,
-            signal
-          );
-          if (!Array.isArray(response)) throw new Error('Malformed session list response');
-          let catalogValid = true;
-          const scopedSessions = this.readSessionCatalog(response, scope, () => {
-            catalogValid = false;
-          }).filter(
-            (session) =>
-              !this.isDedicatedWorkspaceDirectory(root) ||
-              this.getSessionWorkspaceScope(session.id) === 'workspace'
-          );
-          const reachedHardCap =
-            catalogLimit === FULL_SESSION_LIST_LIMIT && response.length >= catalogLimit;
-          const catalogMayHaveMore = response.length >= catalogLimit;
-          return {
-            catalogComplete: catalogValid && response.length < catalogLimit,
-            hasMore: scopedSessions.length > perRootLimit || reachedHardCap,
-            incomplete: reachedHardCap,
-            needsLargerCatalog:
-              scopedSessions.length <= perRootLimit && catalogMayHaveMore && !reachedHardCap,
-            root,
-            scope,
-            sessions: scopedSessions.slice(0, perRootLimit),
-          };
+          try {
+            const rootUrl = new URL(url.toString());
+            const scope = await scopeRequests.get(root)!;
+            this.applySessionCatalogScope(rootUrl, scope);
+            const catalogLimit = Math.min(perRootLimit + 1, FULL_SESSION_LIST_LIMIT);
+            rootUrl.searchParams.set('limit', String(catalogLimit));
+            const response = await this.requestSessionCatalog(
+              `${rootUrl.pathname}${rootUrl.search}`,
+              scope,
+              root,
+              signal
+            );
+            if (!Array.isArray(response)) throw new Error('Malformed session list response');
+            let catalogValid = true;
+            const scopedSessions = this.readSessionCatalog(response, scope, () => {
+              catalogValid = false;
+            }).filter(
+              (session) =>
+                !this.isDedicatedWorkspaceDirectory(root) ||
+                this.getSessionWorkspaceScope(session.id) === 'workspace'
+            );
+            const reachedHardCap =
+              catalogLimit === FULL_SESSION_LIST_LIMIT && response.length >= catalogLimit;
+            const catalogMayHaveMore = response.length >= catalogLimit;
+            return {
+              catalogComplete: catalogValid && response.length < catalogLimit,
+              hasMore: scopedSessions.length > perRootLimit || reachedHardCap,
+              incomplete: reachedHardCap,
+              needsLargerCatalog:
+                scopedSessions.length <= perRootLimit && catalogMayHaveMore && !reachedHardCap,
+              root,
+              scope,
+              sessions: scopedSessions.slice(0, perRootLimit),
+            };
+          } catch (err) {
+            // A workspace folder can outlive its directory on disk (renamed or
+            // deleted folder). The server answers directory-scoped reads with
+            // `404 Location not found`; that root simply has no sessions.
+            if (isNotFoundError(err)) {
+              logger.warn(
+                `Skipping missing workspace root ${root}: ${err instanceof Error ? err.message : String(err)}`
+              );
+              return {
+                catalogComplete: true,
+                hasMore: false,
+                incomplete: false,
+                needsLargerCatalog: false,
+                root,
+                scope: { kind: 'exact', root } as const,
+                sessions: [],
+              };
+            }
+            throw err;
+          }
         })
       );
       signal?.throwIfAborted();
@@ -2080,72 +2101,90 @@ export class RestProxy {
 
     const settledResults = await Promise.allSettled(
       roots.map(async (root) => {
-        const requestOptions = signal ? { signal, directory: root } : { directory: root };
-        const scope = await scopeRequests.get(root)!;
-        const identity = this.getSessionCatalogIdentity(root, scope);
-        const rootStatusRequest = identity
-          ? this.requestWorkspaceStatusForDirectory(identity, root, signal)
-          : this.requestServer('GET', '/session/status', undefined, requestOptions);
-        const [rootStatusValue, catalog] = await Promise.all([
-          rootStatusRequest,
-          this.loadWorkspaceStatusSessionCatalog(root, signal, false, scope),
-        ]);
-        const statusDirectories = new Map<string, string>();
-        const rootIdentity = normalizeWorkspaceIdentity(root);
-        if (rootIdentity) statusDirectories.set(rootIdentity, root);
-        for (const session of catalog.sessions) {
-          const sessionIdentity = normalizeWorkspaceIdentity(session.directory);
-          if (sessionIdentity) statusDirectories.set(sessionIdentity, session.directory);
-        }
-        const statusValues = await Promise.all([
-          rootStatusValue,
-          ...[...statusDirectories.entries()]
-            .filter(([directoryIdentity]) => directoryIdentity !== rootIdentity)
-            .map(([, directory]) =>
-              identity
-                ? this.requestWorkspaceStatusForDirectory(identity, directory, signal)
-                : this.requestServer('GET', '/session/status', undefined, {
-                    ...requestOptions,
-                    directory,
-                  })
+        try {
+          const requestOptions = signal ? { signal, directory: root } : { directory: root };
+          const scope = await scopeRequests.get(root)!;
+          const identity = this.getSessionCatalogIdentity(root, scope);
+          const rootStatusRequest = identity
+            ? this.requestWorkspaceStatusForDirectory(identity, root, signal)
+            : this.requestServer('GET', '/session/status', undefined, requestOptions);
+          const [rootStatusValue, catalog] = await Promise.all([
+            rootStatusRequest,
+            this.loadWorkspaceStatusSessionCatalog(root, signal, false, scope),
+          ]);
+          const statusDirectories = new Map<string, string>();
+          const rootIdentity = normalizeWorkspaceIdentity(root);
+          if (rootIdentity) statusDirectories.set(rootIdentity, root);
+          for (const session of catalog.sessions) {
+            const sessionIdentity = normalizeWorkspaceIdentity(session.directory);
+            if (sessionIdentity) statusDirectories.set(sessionIdentity, session.directory);
+          }
+          const statusValues = await Promise.all([
+            rootStatusValue,
+            ...[...statusDirectories.entries()]
+              .filter(([directoryIdentity]) => directoryIdentity !== rootIdentity)
+              .map(([, directory]) =>
+                (identity
+                  ? this.requestWorkspaceStatusForDirectory(identity, directory, signal)
+                  : this.requestServer('GET', '/session/status', undefined, {
+                      ...requestOptions,
+                      directory,
+                    })
+                ).catch((err: unknown) => {
+                  // A session directory can disappear after its session was
+                  // created. Skip it instead of failing every sibling status.
+                  if (isNotFoundError(err)) return {};
+                  throw err;
+                })
+              ),
+          ]);
+          const statuses = Object.assign(
+            {},
+            ...statusValues.map((statusValue) => {
+              if (!statusValue || Array.isArray(statusValue) || typeof statusValue !== 'object') {
+                throw new Error('Malformed session status response');
+              }
+              return statusValue;
+            })
+          );
+          const sessions = catalog.sessions;
+          const visibleSessions = this.filterWorkspaceVisibleSessions(sessions);
+          const visibleSessionsByID = new Map(
+            visibleSessions.map((session) => [session.id, session] as const)
+          );
+          const endpointWorkspaceDirectory =
+            this.callbacks.getWorkspacePath?.() ??
+            this.callbacks.contextProvider.context.workspacePath ??
+            this.callbacks.server.getWorkspaceCwd();
+          return {
+            catalogComplete: catalog.complete,
+            sessions,
+            statuses: Object.fromEntries(
+              Object.entries(statuses)
+                .filter(([sessionID]) => visibleSessionsByID.has(sessionID))
+                .map(([sessionID, status]) => {
+                  const sessionDirectory = visibleSessionsByID.get(sessionID)?.directory;
+                  const exposeFullStatus =
+                    !endpointWorkspaceDirectory ||
+                    isSameWorkspacePath(sessionDirectory, endpointWorkspaceDirectory);
+                  return [
+                    sessionID,
+                    exposeFullStatus ? status : projectWorkspaceCatalogStatus(status),
+                  ];
+                })
             ),
-        ]);
-        const statuses = Object.assign(
-          {},
-          ...statusValues.map((statusValue) => {
-            if (!statusValue || Array.isArray(statusValue) || typeof statusValue !== 'object') {
-              throw new Error('Malformed session status response');
-            }
-            return statusValue;
-          })
-        );
-        const sessions = catalog.sessions;
-        const visibleSessions = this.filterWorkspaceVisibleSessions(sessions);
-        const visibleSessionsByID = new Map(
-          visibleSessions.map((session) => [session.id, session] as const)
-        );
-        const endpointWorkspaceDirectory =
-          this.callbacks.getWorkspacePath?.() ??
-          this.callbacks.contextProvider.context.workspacePath ??
-          this.callbacks.server.getWorkspaceCwd();
-        return {
-          catalogComplete: catalog.complete,
-          sessions,
-          statuses: Object.fromEntries(
-            Object.entries(statuses)
-              .filter(([sessionID]) => visibleSessionsByID.has(sessionID))
-              .map(([sessionID, status]) => {
-                const sessionDirectory = visibleSessionsByID.get(sessionID)?.directory;
-                const exposeFullStatus =
-                  !endpointWorkspaceDirectory ||
-                  isSameWorkspacePath(sessionDirectory, endpointWorkspaceDirectory);
-                return [
-                  sessionID,
-                  exposeFullStatus ? status : projectWorkspaceCatalogStatus(status),
-                ];
-              })
-          ),
-        };
+          };
+        } catch (err) {
+          // Same missing-root handling as the session list: a deleted or
+          // renamed folder contributes no statuses instead of failing siblings.
+          if (isNotFoundError(err)) {
+            logger.warn(
+              `Skipping missing workspace root ${root}: ${err instanceof Error ? err.message : String(err)}`
+            );
+            return { catalogComplete: true, sessions: [], statuses: {} };
+          }
+          throw err;
+        }
       })
     );
     signal?.throwIfAborted();
@@ -2189,15 +2228,26 @@ export class RestProxy {
       return response;
     }
 
-    const scopes = await Promise.all(
+    const settledScopes = await Promise.allSettled(
       roots.map((root) => this.resolveSessionCatalogScope(root, signal))
     );
+    const scopes = settledScopes.map((result, index) => {
+      if (result.status === 'fulfilled') return result.value;
+      // A deleted or renamed folder has no catalog scope; treat it as an
+      // exact empty root. Any other scope failure still throws below.
+      if (isNotFoundError(result.reason)) return { kind: 'exact', root: roots[index]! } as const;
+      throw result.reason;
+    });
     const catalogs = await Promise.all(
       scopes.map((scope, index) => {
         const root = roots[index]!;
-        return scope.kind === 'exact'
-          ? Promise.resolve(null)
-          : this.loadWorkspaceStatusSessionCatalog(root, signal, true, scope);
+        if (scope.kind === 'exact') return Promise.resolve(null);
+        return this.loadWorkspaceStatusSessionCatalog(root, signal, true, scope).catch(
+          (err: unknown) => {
+            if (isNotFoundError(err)) return null;
+            throw err;
+          }
+        );
       })
     );
     const directories = new Map<string, string>();
@@ -2214,11 +2264,27 @@ export class RestProxy {
       for (const session of catalog.sessions) rememberDirectory(session.directory);
     }
 
-    const responses = await Promise.all(
+    const settledResponses = await Promise.allSettled(
       [...directories.values()].map((directory) =>
         this.requestServer('GET', path, undefined, { directory, signal })
       )
     );
+    const responses: unknown[] = [];
+    for (const [index, result] of settledResponses.entries()) {
+      if (result.status === 'fulfilled') {
+        responses.push(result.value);
+        continue;
+      }
+      // Skip directories that no longer exist instead of failing every
+      // sibling workspace root.
+      if (isNotFoundError(result.reason)) {
+        logger.warn(
+          `Skipping missing workspace directory ${[...directories.values()][index]}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`
+        );
+        continue;
+      }
+      throw result.reason;
+    }
     const requests: unknown[] = [];
     const seenIDs = new Set<string>();
     const seenValues = new Set<unknown>();

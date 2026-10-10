@@ -4205,6 +4205,122 @@ describe('RestProxy handleRequest', () => {
     });
   });
 
+  it('treats a missing workspace root as empty instead of failing the session list', async () => {
+    const healthySessions = [{ id: 'healthy', directory: '/repo-a' }];
+    const serverRequest = vi.fn(
+      (_method: string, _path: string, _body: unknown, options?: { directory?: string }) =>
+        options?.directory === '/repo-b'
+          ? Promise.reject(new Error('404 Location not found: /repo-b'))
+          : Promise.resolve(healthySessions)
+    );
+    const { proxy, callbacks } = createProxy({
+      contextProvider: {
+        ...createCallbacks().contextProvider,
+        context: {
+          workspacePath: '/repo-a',
+          workspaceFolders: [
+            { name: 'repo-a', path: '/repo-a' },
+            { name: 'repo-b', path: '/repo-b' },
+          ],
+          activeFile: null,
+          selection: null,
+          diagnostics: [],
+        },
+        getOpenWorkspaceRoot: vi.fn((path: string) => path),
+      } as never,
+      server: {
+        ...createCallbacks().server,
+        getWorkspaceCwd: vi.fn(() => '/repo-a'),
+        request: serverRequest,
+      } as never,
+    });
+
+    await proxy.handleRequest(makePayload(1522, 'GET', '/session?limit=100'));
+
+    expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
+      id: 1522,
+      data: { items: healthySessions, hasMore: false },
+    });
+  });
+
+  it('skips a missing workspace root when loading session statuses', async () => {
+    const serverRequest = vi.fn(
+      (_method: string, path: string, _body: unknown, options?: { directory?: string }) => {
+        if (options?.directory === '/repo-b') {
+          return Promise.reject(new Error('404 Location not found: /repo-b'));
+        }
+        if (path === '/session/status') return Promise.resolve({ healthy: { type: 'idle' } });
+        return Promise.resolve([{ id: 'healthy', directory: '/repo-a' }]);
+      }
+    );
+    const { proxy, callbacks } = createProxy({
+      contextProvider: {
+        ...createCallbacks().contextProvider,
+        context: {
+          workspacePath: '/repo-a',
+          workspaceFolders: [
+            { name: 'repo-a', path: '/repo-a' },
+            { name: 'repo-b', path: '/repo-b' },
+          ],
+          activeFile: null,
+          selection: null,
+          diagnostics: [],
+        },
+        getOpenWorkspaceRoot: vi.fn((path: string) => path),
+      } as never,
+      server: {
+        ...createCallbacks().server,
+        getWorkspaceCwd: vi.fn(() => '/repo-a'),
+        request: serverRequest,
+      } as never,
+    });
+
+    await proxy.handleRequest(makePayload(1523, 'GET', '/session/status'));
+
+    expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
+      id: 1523,
+      data: { healthy: { type: 'idle' } },
+    });
+  });
+
+  it('skips a missing workspace directory when loading pending questions', async () => {
+    const questions = [{ id: 'question-1', sessionID: 'healthy' }];
+    const serverRequest = vi.fn(
+      (_method: string, _path: string, _body: unknown, options?: { directory?: string }) =>
+        options?.directory === '/repo-b'
+          ? Promise.reject(new Error('404 Location not found: /repo-b'))
+          : Promise.resolve(questions)
+    );
+    const { proxy, callbacks } = createProxy({
+      contextProvider: {
+        ...createCallbacks().contextProvider,
+        context: {
+          workspacePath: '/repo-a',
+          workspaceFolders: [
+            { name: 'repo-a', path: '/repo-a' },
+            { name: 'repo-b', path: '/repo-b' },
+          ],
+          activeFile: null,
+          selection: null,
+          diagnostics: [],
+        },
+        getOpenWorkspaceRoot: vi.fn((path: string) => path),
+      } as never,
+      server: {
+        ...createCallbacks().server,
+        getWorkspaceCwd: vi.fn(() => '/repo-a'),
+        request: serverRequest,
+      } as never,
+    });
+
+    await proxy.handleRequest(makePayload(1524, 'GET', '/question'));
+
+    expect(callbacks.postApiResponse).toHaveBeenCalledWith(1, {
+      id: 1524,
+      data: questions,
+    });
+  });
+
   it('does not treat a partial session page as an authoritative directory snapshot', async () => {
     const partialPage = deferred<Array<{ id: string; directory: string }>>();
     const serverRequest = vi.fn((_method: string, path: string) => {

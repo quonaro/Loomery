@@ -73,3 +73,105 @@ install:
   script: |
     set -euo pipefail
     npm run vscode:install -- --target="${target:-all}"
+
+compile:
+  desc: Build extension + webview (no vsix)
+  color: cyan
+  script: |
+    set -euo pipefail
+    npm run build
+
+lint:
+  desc: Lint check (oxlint type-aware, no fix)
+  color: yellow
+  script: |
+    set -euo pipefail
+    npm run lint:check
+
+lint-fix:
+  desc: Lint with autofix
+  color: yellow
+  script: |
+    set -euo pipefail
+    npm run lint
+
+fmt-check:
+  desc: Check formatting (oxfmt, no write)
+  color: yellow
+  script: |
+    set -euo pipefail
+    npm run fmt:check
+
+fmt-fix:
+  desc: Format src/ with oxfmt
+  color: yellow
+  script: |
+    set -euo pipefail
+    npm run fmt
+
+typecheck:
+  desc: Typecheck all TS (app + scripts)
+  color: yellow
+  script: |
+    set -euo pipefail
+    npm run typecheck
+
+check:
+  desc: Fast verification (lint + typecheck)
+  color: green
+  depends: [lint, typecheck]
+  script: echo OK
+
+test:
+  desc: Unit tests (quote filter for one file)
+  color: green
+  args:
+  - "filter:str?"
+  script: |
+    set -euo pipefail
+    if [ -n "${filter:-}" ]; then
+      npm run test -- "$filter"
+    else
+      npm run test
+    fi
+
+coverage:
+  desc: Unit tests with coverage
+  color: green
+  script: |
+    set -euo pipefail
+    npm run test:coverage
+
+e2e:
+  desc: E2E tests (quote filter for one spec)
+  color: green
+  args:
+  - "spec:str?"
+  script: |
+    set -euo pipefail
+    if [ -n "${spec:-}" ]; then
+      npm run test:e2e -- "$spec"
+    else
+      npm run test:e2e
+    fi
+
+sandbox:
+  desc: Disposable VS Code sandbox check
+  color: green
+  script: |
+    set -euo pipefail
+    npm run test:vscode-sandbox
+
+compat-adapters:
+  desc: OpenCode adapter compatibility (no Docker)
+  color: cyan
+  script: |
+    set -euo pipefail
+    npm run test:compatibility:adapters
+
+prune:
+  desc: Prune stale artifacts/
+  color: cyan
+  script: |
+    set -euo pipefail
+    npm run artifacts:prune
