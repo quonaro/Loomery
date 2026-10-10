@@ -917,6 +917,24 @@
   display: none;
 }
 
+.diff-view-lines-expanded {
+  overflow: auto;
+  max-height: 320px;
+  overscroll-behavior: contain;
+}
+
+.diff-view-lines-expanded::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+
+.diff-view-lines-expanded::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-vscode-chat-scrollbar-thumb) padding-box;
+}
+
 .diff-view-file:has(.diff-view-lines:focus-visible) {
   border-color: color-mix(in srgb, var(--color-vscode-accent) 38%, var(--color-vscode-border));
 }

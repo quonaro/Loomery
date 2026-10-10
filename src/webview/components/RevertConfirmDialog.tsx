@@ -115,6 +115,7 @@ export function RevertConfirmDialog(props: {
                   <DiffView
                     diffs={files()}
                     showChanges
+                    expandMode="inline"
                     stateKey={`revert-confirm:${props.messageId}`}
                   />
                 </div>

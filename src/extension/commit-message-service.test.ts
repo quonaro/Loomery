@@ -1539,4 +1539,36 @@ describe('CommitMessageService', () => {
     );
     expect(request).not.toHaveBeenCalled();
   });
+
+  it('releases the generation slot before the stale-changes warning so retry is not stuck', async () => {
+    const repository = createRepository('/repo', 'patch-a');
+    repository.diff
+      .mockResolvedValueOnce('patch-a')
+      .mockResolvedValueOnce('patch-b')
+      .mockResolvedValue('patch-c');
+    setGitRepositories([repository]);
+    const warning = deferred<string | undefined>();
+    mocks.window.showWarningMessage.mockImplementation((message: unknown) => {
+      if (typeof message === 'string' && message.includes('changes changed')) {
+        return warning.promise as Promise<string | undefined>;
+      }
+      return Promise.resolve(undefined);
+    });
+    const { service } = createService();
+
+    const first = service.generate();
+    await waitFor(() =>
+      mocks.window.showWarningMessage.mock.calls.some(([message]) =>
+        String(message).includes('changes changed')
+      )
+    );
+    const second = service.generate();
+    await second;
+
+    expect(repository.inputBox.value).toContain('feat: generated message');
+    expect(mocks.executeCommand).toHaveBeenCalledWith('workbench.view.scm');
+
+    warning.resolve(undefined);
+    await first;
+  });
 });

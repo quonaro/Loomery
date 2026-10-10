@@ -165,20 +165,44 @@ export class CommitMessageService {
       if (!repository) return;
 
       const root = repository.rootUri.fsPath;
-      const previous = this.inFlightRoots.get(root);
-      if (previous) {
-        previous.cancel();
-        await previous.completion.catch(() => undefined);
-      }
-
       const cancellation = new vscode.CancellationTokenSource();
       const commandCancellation = token?.onCancellationRequested(() => cancellation.cancel());
       if (token?.isCancellationRequested) cancellation.cancel();
-      const completion = this.generateForRepository(repository, cancellation.token);
-      const generation: InFlightGeneration = {
+      const previous = this.inFlightRoots.get(root);
+      if (previous) {
+        previous.cancel();
+        let waitSubscription: { dispose(): void } | undefined;
+        await Promise.race([
+          previous.completion.catch(() => undefined),
+          new Promise<void>((resolve) => {
+            if (cancellation.token.isCancellationRequested) {
+              resolve();
+              return;
+            }
+            waitSubscription = cancellation.token.onCancellationRequested(() => {
+              resolve();
+            });
+          }),
+        ]);
+        waitSubscription?.dispose();
+        if (cancellation.token.isCancellationRequested) {
+          commandCancellation?.dispose();
+          cancellation.dispose();
+          throw new GenerationCancelledError();
+        }
+      }
+
+      const holder: { current?: InFlightGeneration } = {};
+      const completion = this.generateForRepository(repository, cancellation.token, () => {
+        if (holder.current && this.inFlightRoots.get(root) === holder.current) {
+          this.inFlightRoots.delete(root);
+        }
+      });
+      holder.current = {
         cancel: () => cancellation.cancel(),
         completion,
       };
+      const generation = holder.current;
       this.inFlightRoots.set(root, generation);
       try {
         await completion;
@@ -291,7 +315,8 @@ export class CommitMessageService {
 
   private async generateForRepository(
     repository: GitRepository,
-    externalToken?: vscode.CancellationToken
+    externalToken?: vscode.CancellationToken,
+    onGenerationSettled?: () => void
   ): Promise<void> {
     await repository.status();
     if ((repository.state.mergeChanges?.length ?? 0) > 0) {
@@ -324,24 +349,34 @@ export class CommitMessageService {
     }
 
     const changePaths = collectChangePaths(repository, scope);
-    const generatedMessage = await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.SourceControl,
-        title: 'Generating commit message',
-        cancellable: true,
-      },
-      async (_progress, token) =>
-        this.generateWithHelper(repository, changePatch, changePaths, scope, token, externalToken)
-    );
+    let generatedMessage: string;
+    try {
+      generatedMessage = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.SourceControl,
+          title: 'Generating commit message',
+          cancellable: true,
+        },
+        async (_progress, token) =>
+          this.generateWithHelper(repository, changePatch, changePaths, scope, token, externalToken)
+      );
+    } finally {
+      onGenerationSettled?.();
+    }
+
+    if (externalToken?.isCancellationRequested) throw new GenerationCancelledError();
 
     await repository.status();
     const latestChanges = await captureRepositoryChanges(repository, scope);
     if (latestChanges.fingerprint !== capturedChanges.fingerprint) {
+      if (externalToken?.isCancellationRequested) throw new GenerationCancelledError();
       await vscode.window.showWarningMessage(
         `${scope === 'staged' ? 'Staged' : 'Unstaged'} changes changed while the commit message was being generated. Generate it again.`
       );
       return;
     }
+
+    if (externalToken?.isCancellationRequested) throw new GenerationCancelledError();
 
     if (repository.inputBox.value !== capturedInput) {
       const choice = await vscode.window.showWarningMessage(

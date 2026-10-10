@@ -991,6 +991,58 @@ describe('DiffView', () => {
     expect(hasExpandedDiffOverlay()).toBe(false);
   });
 
+  it('expands inline without an overlay when expandMode is inline', async () => {
+    cleanup = render(
+      () =>
+        DiffView({
+          showChanges: true,
+          expandMode: 'inline',
+          diffs: [
+            {
+              file: 'src/example.ts',
+              patch: makeAddedPatch(10),
+              additions: 10,
+              deletions: 0,
+            },
+          ],
+        }),
+      container!
+    );
+    await Promise.resolve();
+
+    // Collapsed inline preview mounts only the bounded line window.
+    expect(container?.querySelectorAll('.diff-view-line')).toHaveLength(6);
+    expect(container?.querySelector('.diff-view-lines-expanded')).toBeNull();
+    const toggle = container?.querySelector<HTMLButtonElement>('.diff-view-toggle');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+
+    // Clicking the code preview only focuses it for scrolling/selection.
+    container
+      ?.querySelector<HTMLElement>('.diff-view-lines')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(document.querySelector('.diff-view-overlay')).toBeNull();
+
+    // The header expands all lines inline instead of opening a fullscreen overlay.
+    container?.querySelector<HTMLElement>('.diff-view-item')?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+    expect(document.querySelector('.diff-view-overlay')).toBeNull();
+    expect(hasExpandedDiffOverlay()).toBe(false);
+    const expandedViewport = container?.querySelector<HTMLElement>('.diff-view-lines-expanded');
+    expect(expandedViewport).toBeInstanceOf(HTMLDivElement);
+    expect(container?.querySelectorAll('.diff-view-line')).toHaveLength(10);
+
+    toggle?.click();
+    await Promise.resolve();
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(container?.querySelector('.diff-view-lines-expanded')).toBeNull();
+    expect(container?.querySelectorAll('.diff-view-line')).toHaveLength(6);
+    expect(document.querySelector('.diff-view-overlay')).toBeNull();
+  });
+
   it('shows an explicit truncated state instead of parsing oversized patches', () => {
     cleanup = render(
       () =>
