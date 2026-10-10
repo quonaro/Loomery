@@ -133,7 +133,7 @@ import {
   TurnNavigationRail,
 } from './message-list/MessageListChrome';
 import { Tooltip } from './Tooltip';
-import { UiIcon } from './UiIcon';
+import { UiIcon, toCssUrl } from './UiIcon';
 import {
   getSubagentSessionIds,
   getStickyUserMessagePreview,
@@ -10068,15 +10068,11 @@ export function MessageList() {
               <Show when={!state.messagesLoading && shouldShowStarterLogo()}>
                 <div class="chat-empty-state">
                   <Show when={state.emptyStateLogoUri}>
-                    <img
+                    <div
                       class="chat-empty-logo"
-                      src={chatLogoUri}
-                      decoding="sync"
-                      width="256"
-                      height="256"
-                      alt=""
-                      aria-hidden="true"
-                      draggable="false"
+                      role="img"
+                      aria-label="Loomery"
+                      style={{ '--chat-empty-logo-mask': toCssUrl(chatLogoUri) }}
                     />
                   </Show>
                   <span class="chat-empty-wordmark">LOOMERY</span>

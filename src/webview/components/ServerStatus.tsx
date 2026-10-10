@@ -14,7 +14,7 @@ import { statusIcons } from '../lib/status-icons';
 import { checkIcon, copyIcon } from '../lib/ui-icons';
 import { writeClipboard } from '../lib/write-clipboard';
 import { Tooltip } from './Tooltip';
-import { UiIcon } from './UiIcon';
+import { UiIcon, toCssUrl } from './UiIcon';
 
 function openExternal(url: string) {
   postMessage({ type: 'vscode/open-external', payload: { url } });
@@ -222,10 +222,13 @@ export function ServerStatus() {
       <Show when={serverStatus().state === 'stopped'}>
         <div role="status" aria-label="Detecting OpenCode server">
           <Show when={defaultAppState.state.emptyStateLogoUri}>
-            <img
+            <div
               class="server-status-detecting-logo animate-pulse-soft"
-              src={defaultAppState.state.emptyStateLogoUri}
-              alt="Loomery"
+              role="img"
+              aria-label="Loomery"
+              style={{
+                '--server-status-logo-mask': toCssUrl(defaultAppState.state.emptyStateLogoUri),
+              }}
             />
           </Show>
         </div>

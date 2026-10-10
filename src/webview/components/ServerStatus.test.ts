@@ -59,10 +59,13 @@ describe('ServerStatus', () => {
     renderServerStatus();
 
     const status = container?.querySelector('[role="status"]');
-    const logo = status?.querySelector<HTMLImageElement>('img');
+    const logo = status?.querySelector<HTMLElement>('.server-status-detecting-logo');
     expect(status?.getAttribute('aria-label')).toBe('Detecting OpenCode server');
-    expect(logo?.src).toBe('https://example.test/loomery.png');
-    expect(logo?.alt).toBe('Loomery');
+    expect(logo?.getAttribute('role')).toBe('img');
+    expect(logo?.getAttribute('aria-label')).toBe('Loomery');
+    expect(logo?.style.getPropertyValue('--server-status-logo-mask')).toBe(
+      toCssUrl('https://example.test/loomery.png')
+    );
     expect(logo?.classList).toContain('animate-pulse-soft');
     expect(container?.textContent).not.toContain('Server not running');
     expect(

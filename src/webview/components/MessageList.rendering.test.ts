@@ -2970,11 +2970,11 @@ describe('MessageList empty state', () => {
     cleanup = render(() => MessageList(), container!);
 
     expect(container?.querySelector('.chat-empty-state')).toBeInstanceOf(HTMLDivElement);
-    const logo = container?.querySelector<HTMLImageElement>('.chat-empty-logo');
-    expect(logo).toBeInstanceOf(HTMLImageElement);
-    expect(logo?.width).toBe(256);
-    expect(logo?.height).toBe(256);
-    expect(logo?.getAttribute('decoding')).toBe('sync');
+    const logo = container?.querySelector<HTMLElement>('.chat-empty-logo');
+    expect(logo).toBeInstanceOf(HTMLDivElement);
+    expect(logo?.getAttribute('role')).toBe('img');
+    expect(logo?.getAttribute('aria-label')).toBe('Loomery');
+    expect(logo?.style.getPropertyValue('--chat-empty-logo-mask')).toContain('url(');
     expect(container?.querySelector('.chat-empty-wordmark')?.textContent).toBe('LOOMERY');
     expect(container?.querySelector('.chat-empty-hints')).toBeNull();
   });

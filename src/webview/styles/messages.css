@@ -1899,9 +1899,8 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
 }
 
 .chat-empty-wordmark {
-  /* Loomery logo ink, matching the logo image. */
-  color: #202729;
-  opacity: 0.8;
+  /* Theme foreground at low emphasis so the wordmark stays subtle on any theme. */
+  color: color-mix(in srgb, var(--color-vscode-fg) 42%, transparent);
   font-family: var(--font-sans);
   font-size: clamp(22px, 6vw, 30px);
   font-weight: 700;
@@ -1914,8 +1913,18 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
 
 .chat-empty-logo {
   width: clamp(96px, 18vw, 132px);
-  height: auto;
-  opacity: 0.8;
+  aspect-ratio: 1;
+  /* The bundled PNG is only a silhouette mask; the fill comes from the
+     active theme so the logo stays visible on light and dark themes. */
+  background: color-mix(in srgb, var(--color-vscode-fg) 32%, transparent);
+  -webkit-mask-image: var(--chat-empty-logo-mask);
+  mask-image: var(--chat-empty-logo-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
   filter: drop-shadow(0 1px 1px var(--vscode-keybindingLabel-shadow, rgb(0 0 0 / 28%)));
   user-select: none;
   -webkit-user-drag: none;
@@ -2661,11 +2670,10 @@ body:is(.vscode-high-contrast, .vscode-high-contrast-light) .assistant-activity-
   flex-direction: column;
   gap: 6px;
   cursor: text;
-  background: linear-gradient(
-    to bottom,
-    var(--color-vscode-surface-inset),
-    var(--color-vscode-input-bg)
-  );
+  /* Outer card is always darker than the inner main box below: both derive
+     from the active theme's input background, darkened / lightened with
+     black / white so the contrast holds on any light or dark theme. */
+  background: color-mix(in srgb, black 18%, var(--color-vscode-input-bg));
   border: 1px solid var(--color-vscode-border-default);
   border-radius: 12px;
   padding: 12px 12px 8px 12px;
@@ -2697,11 +2705,7 @@ body:is(.vscode-light, .vscode-high-contrast-light) .interactive-session .chat-i
 }
 
 body.vscode-dark .interactive-session .chat-input-container {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--color-vscode-fg) 4%, var(--color-vscode-input-bg)),
-    var(--color-vscode-input-bg)
-  );
+  background: color-mix(in srgb, black 18%, var(--color-vscode-input-bg));
   border-color: color-mix(in srgb, var(--color-vscode-fg) 10%, var(--color-vscode-border));
 }
 
@@ -2733,11 +2737,7 @@ body.vscode-dark:is(
     var(--color-vscode-input-bg) 84%,
     black 16%
   );
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--color-vscode-fg) 12%, var(--color-vscode-input-bg)),
-    color-mix(in srgb, var(--color-vscode-fg) 8%, var(--color-vscode-input-bg))
-  );
+  background: color-mix(in srgb, black 18%, var(--color-vscode-input-bg));
   border-color: color-mix(in srgb, var(--color-vscode-fg) 14%, var(--color-vscode-input-bg));
 }
 
@@ -2813,43 +2813,16 @@ body.vscode-dark:is(
 }
 
 body.vscode-dark.loomery-flat-dark .interactive-session .chat-input-container {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--color-vscode-fg) 6%, var(--color-vscode-input-bg)),
-    color-mix(in srgb, var(--color-vscode-fg) 2%, var(--color-vscode-input-bg))
-  );
+  background: color-mix(in srgb, black 18%, var(--color-vscode-input-bg));
   border-color: color-mix(in srgb, var(--color-vscode-fg) 14%, var(--color-vscode-border));
 }
 
 body.vscode-dark[data-vscode-theme-id='Dark 2026'] .interactive-session .chat-input-container {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--color-vscode-fg) 12%, var(--color-vscode-input-bg)),
-    color-mix(in srgb, var(--color-vscode-fg) 8%, var(--color-vscode-input-bg))
-  );
+  background: color-mix(in srgb, black 18%, var(--color-vscode-input-bg));
 }
 
-/* Reference look: page behind the composer is darker, the input card and
-   its tools sit lighter on top of it. Dark theme only; light stays native. */
-body.vscode-dark .chat-main-shell {
-  background-color: #0e0e0e;
-}
-
-body.vscode-dark .interactive-session .chat-input-container {
-  background: #161616;
-  border-color: #2b2b2b;
-}
-
-body.vscode-dark .interactive-session .chat-input-toolbars.toolbar-main .toolbar-picker:hover,
-body.vscode-dark
-  .interactive-session
-  .chat-input-toolbars.toolbar-main
-  .toolbar-picker[aria-expanded='true'],
-body.vscode-dark .interactive-session .toolbar-attach-button:hover {
-  /* Hovered tools read lighter than the card itself. */
-  background: #2c2c2c;
-}
-
+/* The chat surfaces follow only the active VS Code theme (see base.css
+   --color-vscode-list-bg / input variables). No hardcoded dark fills here. */
 .interactive-session .chat-input-container.showing-context-popup {
   z-index: var(--z-chrome-raised);
 }
@@ -2974,7 +2947,8 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   min-height: 22px;
 }
 
-/* Single inner box around the editor and the main toolbar row. */
+/* Single inner box around the editor and the main toolbar row. Always lighter
+   than the outer container above: theme input background lightened with white. */
 .interactive-session .chat-input-main-box {
   display: flex;
   flex-direction: column;
@@ -2982,6 +2956,7 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   border: 1px solid var(--color-vscode-border-soft);
   border-radius: 8px;
   padding: 10px 12px 8px;
+  background: color-mix(in srgb, white 7%, var(--color-vscode-input-bg));
 }
 
 .interactive-session .chat-input-toolbars.toolbar-main .toolbar-left {
