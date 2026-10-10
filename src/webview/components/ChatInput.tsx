@@ -1466,6 +1466,31 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     if (clearsTerminalSelection) postMessage({ type: 'terminal-selection/clear' });
   }
 
+  // Ctrl/Cmd+Z walks the draft undo stack first. Once it is exhausted (or the
+  // composer is already showing a sent message), the same shortcut walks sent
+  // message history older/newer with no UI, like devin-desktop. Message editing
+  // never touches sent history so the edit draft cannot be clobbered.
+  function handleComposerHistoryAction(action: ComposerHistoryAction) {
+    if (!composerEditingMessage() && historyIndex() !== null) {
+      if (navigateMessageHistory(action === 'undo' ? -1 : 1)) return;
+    }
+    if (action === 'undo') {
+      if (composerHistory.canUndo()) {
+        applyComposerHistoryAction('undo');
+      } else if (!composerEditingMessage()) {
+        navigateMessageHistory(-1);
+      }
+      return;
+    }
+    if (composerHistory.canRedo()) {
+      applyComposerHistoryAction('redo');
+    }
+  }
+
+  function resetComposerDraftHistory() {
+    composerHistory.reset({ text: '', caret: 0, files: [], images: [] });
+  }
+
   const explicitContextForActiveFile = () =>
     hasExplicitContextForPath(composerFiles(), composerActiveFile()?.path);
 
@@ -2706,7 +2731,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       // Always swallow the shortcut so native contenteditable undo never
       // fires against the programmatically managed editor DOM.
       e.preventDefault();
-      if (!e.isComposing) applyComposerHistoryAction(historyAction);
+      if (!e.isComposing) handleComposerHistoryAction(historyAction);
       return;
     }
 
@@ -3332,6 +3357,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       setInputText('');
       const clearedInputVersion = inputTextMutationVersion();
       resetPastedImageIndex();
+      resetComposerDraftHistory();
       let sent = false;
       let optimisticPublished = false;
       if (editTargetExists) {
@@ -3524,6 +3550,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       clearClipboardImages();
       clearNativePdfs();
       resetPastedImageIndex();
+      resetComposerDraftHistory();
       releaseHeldComposerHeight(true);
       postMessage({ type: 'files/clear', payload: { sentSessionId: sessionId } });
       postMessage({ type: 'terminal-selection/clear' });
@@ -3541,6 +3568,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     setInputText('');
     const clearedInputVersion = inputTextMutationVersion();
     resetPastedImageIndex();
+    resetComposerDraftHistory();
     clearUsageLimitsForSessionTree(sendSessionId);
     let sent = false;
     try {
@@ -4133,6 +4161,17 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       .filter((text): text is string => !!text);
   });
 
+  // Showing a sent message must not pollute the draft undo stack, otherwise
+  // the next Ctrl/Cmd+Z would undo the recall instead of walking older.
+  function setComposerValueFromMessageHistory(value: string) {
+    applyingComposerHistory = true;
+    try {
+      setComposerValue(value);
+    } finally {
+      applyingComposerHistory = false;
+    }
+  }
+
   async function navigateToOlderMessageHistory(
     sessionId: string,
     previousLength: number,
@@ -4157,7 +4196,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       if (added <= 0) return;
       const nextIndex = previousIndex === null ? history.length - 1 : added - 1;
       setHistoryIndex(nextIndex);
-      setComposerValue(history[nextIndex]!);
+      setComposerValueFromMessageHistory(history[nextIndex]!);
     } finally {
       setLoadingOlderMessageHistory(false);
     }
@@ -4194,13 +4233,13 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
 
     if (plan.kind === 'restore-draft') {
       setHistoryIndex(null);
-      setComposerValue(historyDraft());
+      setComposerValueFromMessageHistory(historyDraft());
       return true;
     }
 
     if (plan.stashDraft) setHistoryDraft(text);
     setHistoryIndex(plan.index);
-    setComposerValue(history[plan.index]!);
+    setComposerValueFromMessageHistory(history[plan.index]!);
     return true;
   }
 
@@ -6400,7 +6439,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
                 });
               }}
               onKeyDown={handleKeydown}
-              onHistory={applyComposerHistoryAction}
+              onHistory={handleComposerHistoryAction}
               onPaste={handlePaste}
               onPasteInsertion={handlePasteInsertion}
               onFocus={() => {

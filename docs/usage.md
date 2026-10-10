@@ -231,7 +231,7 @@ The `vision` agent must have an explicit model that OpenCode reports as supporti
 - While a session is running, `Ctrl+Enter` or `Cmd+Enter` sends a steering message with `noReply` enabled.
 - While a session is running, the send menu also exposes `Add to Queue`, `Steer with Message`, and `Stop and Send`.
 - `ArrowUp` and `ArrowDown` can step through previous user prompts when the composer is empty.
-- `Cmd+Z` / `Ctrl+Z` undoes the last composer edit, including pasted text and file, image, or PDF attachment changes. `Cmd+Shift+Z`, `Ctrl+Shift+Z`, or `Ctrl+Y` redoes it.
+- `Cmd+Z` / `Ctrl+Z` undoes the last composer edit, including pasted text and file, image, or PDF attachment changes. `Cmd+Shift+Z`, `Ctrl+Shift+Z`, or `Ctrl+Y` redoes it. When there is nothing left to undo, `Ctrl+Z` / `Cmd+Z` steps back through sent messages, and redo steps forward again.
 - `Escape` closes any open composer popup or cancels message editing; otherwise, it returns to the session list without stopping a running session.
 - `Tab` accepts the highlighted slash-command, mention, or session completion.
 - Slash commands are available directly in the composer.
