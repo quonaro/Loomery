@@ -36,8 +36,7 @@
     "dist/webview",
     "assets/icon.png",
     "assets/icon-blue.png",
-    "README.md",
-    "CHANGELOG.md"
+    "README.md"
   ],
   "main": "./dist/extension/extension.js",
   "enabledApiProposals": [
