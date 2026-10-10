@@ -1883,14 +1883,14 @@ describe('ModelsPanel', () => {
     const row = Array.from(container?.querySelectorAll('.models-model-row') || []).find(
       (item) => item.querySelector('.models-model-name')?.textContent === 'GPT-5'
     ) as HTMLElement;
-    expect(row.querySelector('[aria-label="Pinned model"]')).not.toBeNull();
+    expect(row.querySelector('[aria-label="Favorite model"]')).not.toBeNull();
 
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
     const menu = document.querySelector('.models-context-menu') as HTMLElement;
     const unpinButton = Array.from(
       menu.querySelectorAll<HTMLButtonElement>('.models-context-menu-item')
-    ).find((item) => item.textContent === 'Unpin model');
+    ).find((item) => item.textContent === 'Remove from favorites');
     expect(unpinButton).toBeTruthy();
     expect(menu.children[0]).toBe(unpinButton);
     expect(menu.children[1]?.textContent).toBe('Rename model');
@@ -1899,18 +1899,18 @@ describe('ModelsPanel', () => {
 
     unpinButton?.click();
     await Promise.resolve();
-    expect(row.querySelector('[aria-label="Pinned model"]')).toBeNull();
+    expect(row.querySelector('[aria-label="Favorite model"]')).toBeNull();
     expect(document.querySelector('.models-context-menu')).toBeNull();
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.pinnedModels)!)).toEqual([]);
 
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     const pinButton = Array.from(
       document.querySelectorAll<HTMLButtonElement>('.models-context-menu-item')
-    ).find((item) => item.textContent === 'Pin model');
+    ).find((item) => item.textContent === 'Add to favorites');
     pinButton?.click();
     await Promise.resolve();
 
-    expect(row.querySelector('[aria-label="Pinned model"]')).not.toBeNull();
+    expect(row.querySelector('[aria-label="Favorite model"]')).not.toBeNull();
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.pinnedModels)!)).toEqual([
       'openai:gpt-5',
     ]);

@@ -52,7 +52,7 @@ import {
   calendarIcon,
   menuIcon,
   navArrowRightIcon,
-  pinIcon,
+  starSolidIcon,
   warningCircleIcon,
   xmarkIcon,
 } from '../lib/ui-icons';
@@ -826,7 +826,9 @@ export function ModelsPanel() {
                   closeContextMenu();
                 }}
               >
-                {isModelPinned(menu.providerID, menu.modelID) ? 'Unpin' : 'Pin'} model
+                {isModelPinned(menu.providerID, menu.modelID)
+                  ? 'Remove from favorites'
+                  : 'Add to favorites'}
               </button>
               <button
                 type="button"
@@ -1675,9 +1677,14 @@ function ProviderSection(props: {
                         </Tooltip>
                       </Show>
                       <Show when={isModelPinned(props.provider.id, model.id)}>
-                        <Tooltip content="Pinned model">
-                          <span class="models-model-pinned-marker" aria-label="Pinned model">
-                            <UiIcon source={pinIcon} width={12} height={12} aria-hidden="true" />
+                        <Tooltip content="Favorite model">
+                          <span class="models-model-pinned-marker" aria-label="Favorite model">
+                            <UiIcon
+                              source={starSolidIcon}
+                              width={12}
+                              height={12}
+                              aria-hidden="true"
+                            />
                           </span>
                         </Tooltip>
                       </Show>

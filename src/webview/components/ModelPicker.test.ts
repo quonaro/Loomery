@@ -68,6 +68,7 @@ beforeEach(() => {
   restoreRuntime = installOpenCodeRuntime({ ...createOpenCodeRuntime(), refreshProviderLimit });
   window.localStorage.removeItem(STORAGE_KEYS.pinnedModels);
   window.localStorage.removeItem(STORAGE_KEYS.modelDisplayNames);
+  window.localStorage.removeItem(STORAGE_KEYS.modelPickerCollapsed);
   resetDefaultAppState();
   resetProviderConnectionState();
   window.localStorage.removeItem(STORAGE_KEYS.modelPickerOpened);
@@ -89,6 +90,7 @@ afterEach(() => {
   setShowModels(false);
   window.localStorage.removeItem(STORAGE_KEYS.pinnedModels);
   window.localStorage.removeItem(STORAGE_KEYS.modelDisplayNames);
+  window.localStorage.removeItem(STORAGE_KEYS.modelPickerCollapsed);
   resetDefaultAppState();
   resetProviderConnectionState();
   vi.restoreAllMocks();
@@ -239,7 +241,7 @@ describe('ModelPicker', () => {
     expect(limits).toHaveLength(1);
     expect(limits[0]?.textContent).toBe('5h 82% w 64% left');
     expect(limits[0]?.getAttribute('aria-label')).toBe('OpenAI limits remaining: 5h 82%, w 64%');
-    expect(container?.querySelector('.dropdown-group-header')?.textContent).toBe('Pinned');
+    expect(container?.querySelector('.model-picker-group-name')?.textContent).toBe('Favorites');
 
     setProviderLimit('openai', null, {
       providerID: 'openai',
@@ -290,7 +292,7 @@ describe('ModelPicker', () => {
     await flushMicrotasks();
 
     expect(
-      Array.from(container?.querySelectorAll('.dropdown-group-header') ?? []).map(
+      Array.from(container?.querySelectorAll('.model-picker-group-name') ?? []).map(
         (item) => item.textContent
       )
     ).toEqual(['Custom', 'OpenAI']);
@@ -575,7 +577,7 @@ describe('ModelPicker', () => {
     await flushMicrotasks();
 
     expect(
-      Array.from(container?.querySelectorAll('.dropdown-group-header') ?? []).map(
+      Array.from(container?.querySelectorAll('.model-picker-group-name') ?? []).map(
         (item) => item.textContent
       )
     ).toEqual(['OpenAI', 'Google', 'Alpha', 'Beta', 'Zulu']);
@@ -597,7 +599,7 @@ describe('ModelPicker', () => {
     await flushMicrotasks();
 
     const pinButton = container?.querySelector<HTMLButtonElement>(
-      '[aria-label="Pin GPT-5.6 Luna"]'
+      '[aria-label="Add to favorites: GPT-5.6 Luna"]'
     );
     pinButton?.click();
     await flushMicrotasks();
@@ -605,25 +607,29 @@ describe('ModelPicker', () => {
     expect(onSelect).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(
-      Array.from(container?.querySelectorAll('.dropdown-group-header') ?? []).map(
+      Array.from(container?.querySelectorAll('.model-picker-group-name') ?? []).map(
         (item) => item.textContent
       )
-    ).toEqual(['Pinned', 'OpenAI']);
+    ).toEqual(['Favorites', 'OpenAI']);
     expect(container?.querySelectorAll('.dropdown-name')).toHaveLength(2);
     const pinnedRow = container?.querySelector('.model-picker-row.pinned');
     expect(pinnedRow?.textContent).toContain('GPT-5.6 Luna');
     expect(pinnedRow?.querySelector('.model-picker-provider-name')?.textContent).toBe(
       'GitHub Copilot'
     );
-    expect(pinnedRow?.querySelector('[aria-label="Unpin GPT-5.6 Luna"]')).not.toBeNull();
+    expect(
+      pinnedRow?.querySelector('[aria-label="Remove from favorites: GPT-5.6 Luna"]')
+    ).not.toBeNull();
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.pinnedModels)!)).toEqual([
       'github-copilot:luna',
     ]);
 
-    pinnedRow?.querySelector<HTMLButtonElement>('[aria-label="Unpin GPT-5.6 Luna"]')?.click();
+    pinnedRow
+      ?.querySelector<HTMLButtonElement>('[aria-label="Remove from favorites: GPT-5.6 Luna"]')
+      ?.click();
     await flushMicrotasks();
 
-    expect(container?.querySelector('.dropdown-group-header')?.textContent).toBe('OpenAI');
+    expect(container?.querySelector('.model-picker-group-name')?.textContent).toBe('OpenAI');
     expect(container?.textContent).toContain('GitHub Copilot');
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.pinnedModels)!)).toEqual([]);
   });
@@ -682,7 +688,7 @@ describe('ModelPicker', () => {
     await flushMicrotasks();
 
     const providerHeaders = Array.from(
-      container?.querySelectorAll('.dropdown-group-header') ?? []
+      container?.querySelectorAll('.model-picker-group-name') ?? []
     ).map((item) => item.textContent?.trim());
     const modelNames = Array.from(container?.querySelectorAll('.dropdown-name') ?? []).map((item) =>
       item.textContent?.trim()
@@ -1035,5 +1041,57 @@ describe('ModelPicker', () => {
 
     expect(anchor?.style.width).toBe('360px');
     expect(anchor?.style.left).toBe('20px');
+  });
+
+  it('collapses provider groups via the header and persists the state', async () => {
+    window.localStorage.removeItem(STORAGE_KEYS.modelPickerCollapsed);
+    setState('providers', [
+      createProvider('openai', 'OpenAI', {
+        alpha: createModel('alpha', 'Alpha'),
+        beta: createModel('beta', 'Beta'),
+      }),
+      createProvider('custom', 'Custom', { custom: createModel('custom', 'Custom') }),
+    ]);
+
+    cleanup = render(() => ModelPicker({ onSelect: vi.fn(), onClose: vi.fn() }), container!);
+    await flushMicrotasks();
+
+    expect(container?.querySelectorAll('.model-picker-item')).toHaveLength(3);
+    const openAIHeader = Array.from(
+      container?.querySelectorAll<HTMLButtonElement>('.model-picker-group-header') ?? []
+    ).find((header) => header.querySelector('.model-picker-group-name')?.textContent === 'OpenAI');
+    expect(openAIHeader?.getAttribute('aria-expanded')).toBe('true');
+    expect(openAIHeader?.querySelector('.model-picker-group-count')?.textContent).toBe('2');
+
+    openAIHeader?.click();
+    await flushMicrotasks();
+
+    expect(container?.querySelectorAll('.model-picker-item')).toHaveLength(1);
+    expect(openAIHeader?.getAttribute('aria-expanded')).toBe('false');
+    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.modelPickerCollapsed)!)).toEqual([
+      'openai',
+    ]);
+  });
+
+  it('expands collapsed groups while searching', async () => {
+    window.localStorage.setItem(STORAGE_KEYS.modelPickerCollapsed, JSON.stringify(['openai']));
+    setState('providers', [
+      createProvider('openai', 'OpenAI', {
+        alpha: createModel('alpha', 'Alpha'),
+      }),
+    ]);
+
+    cleanup = render(() => ModelPicker({ onSelect: vi.fn(), onClose: vi.fn() }), container!);
+    await flushMicrotasks();
+
+    expect(container?.querySelector('.model-picker-item')).toBeNull();
+
+    const search = container?.querySelector<HTMLInputElement>('[aria-label="Search models"]');
+    // SAFETY: The rendered DOM fixture provides the browser shape used by this statement.
+    (search as HTMLInputElement).value = 'alpha';
+    search?.dispatchEvent(new Event('input', { bubbles: true }));
+    await flushMicrotasks();
+
+    expect(container?.querySelector('.model-picker-item')?.textContent).toContain('Alpha');
   });
 });

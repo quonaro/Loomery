@@ -25,6 +25,7 @@ export const STORAGE_KEYS = {
   pinnedModels: 'loomery.pinnedModels',
   modelDisplayNames: 'loomery.modelDisplayNames',
   modelPickerOpened: 'loomery.modelPickerOpened',
+  modelPickerCollapsed: 'loomery.modelPickerCollapsed',
   lastSeenSessions: 'loomery.lastSeenSessions',
   completedSessionResponses: 'loomery.completedSessionResponses',
   unsharedSessions: 'loomery.unsharedSessions',

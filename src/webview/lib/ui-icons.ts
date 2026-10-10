@@ -68,6 +68,8 @@ import shareAndroidIcon from 'iconoir/icons/share-android.svg';
 import shareIosIcon from 'iconoir/icons/share-ios.svg';
 import sparksIcon from 'iconoir/icons/sparks.svg';
 import squareIcon from 'iconoir/icons/square.svg';
+import starIcon from 'iconoir/icons/star.svg';
+import starSolidIcon from 'iconoir/icons/star-solid.svg';
 import taskListIcon from 'iconoir/icons/task-list.svg';
 import terminalIcon from 'iconoir/icons/terminal.svg';
 import toolsIcon from 'iconoir/icons/tools.svg';
@@ -155,6 +157,8 @@ export {
   shareIosIcon,
   sparksIcon,
   squareIcon,
+  starIcon,
+  starSolidIcon,
   taskListIcon,
   terminalIcon,
   toolsIcon,

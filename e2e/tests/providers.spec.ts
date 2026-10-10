@@ -15,7 +15,9 @@ test('shows usage-limit retry state and lets the user switch providers', async (
   const providerHeaders = page.locator('.model-picker-menu .dropdown-group-header');
   await expect(providerHeaders.filter({ hasText: /^OpenAI/ })).toBeVisible();
   await expect(providerHeaders.filter({ hasText: /^OpenCode Go/ })).toBeVisible();
-  await expect(providerHeaders.getByText('OpenCode Go', { exact: true })).toBeVisible();
+  await expect(
+    providerHeaders.locator('.model-picker-group-name').getByText('OpenCode Go', { exact: true })
+  ).toBeVisible();
   await expect(page.getByText('Go Plan', { exact: true })).toBeVisible();
   await expect(page.getByText('Go Build', { exact: true })).toBeVisible();
   await page.getByText('Go Plan', { exact: true }).click();

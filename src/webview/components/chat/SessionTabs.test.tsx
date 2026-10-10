@@ -394,4 +394,57 @@ describe('SessionTabs', () => {
 
     expect(menuItem(menu, 'Close tabs to the right').disabled).toBe(true);
   });
+
+  it('scrolls the strip horizontally on a plain vertical wheel', () => {
+    setSessions([session('a', 3), session('b', 2)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const strip = container.querySelector<HTMLElement>('.session-tabs')!;
+    Object.defineProperty(strip, 'scrollWidth', { value: 500, configurable: true });
+    Object.defineProperty(strip, 'clientWidth', { value: 200, configurable: true });
+    strip.scrollLeft = 50;
+
+    const event = new WheelEvent('wheel', {
+      deltaY: 100,
+      deltaX: 0,
+      bubbles: true,
+      cancelable: true,
+    });
+    strip.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(strip.scrollLeft).toBe(150);
+  });
+
+  it('ignores horizontal wheel gestures and pinch-zoom on the strip', () => {
+    setSessions([session('a', 3), session('b', 2)]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const strip = container.querySelector<HTMLElement>('.session-tabs')!;
+    Object.defineProperty(strip, 'scrollWidth', { value: 500, configurable: true });
+    Object.defineProperty(strip, 'clientWidth', { value: 200, configurable: true });
+    strip.scrollLeft = 50;
+
+    const horizontal = new WheelEvent('wheel', {
+      deltaY: 10,
+      deltaX: 100,
+      bubbles: true,
+      cancelable: true,
+    });
+    strip.dispatchEvent(horizontal);
+    expect(horizontal.defaultPrevented).toBe(false);
+    expect(strip.scrollLeft).toBe(50);
+
+    const zoom = new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true });
+    Object.defineProperty(zoom, 'ctrlKey', { value: true });
+    strip.dispatchEvent(zoom);
+    expect(zoom.defaultPrevented).toBe(false);
+    expect(strip.scrollLeft).toBe(50);
+  });
 });

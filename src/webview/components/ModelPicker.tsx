@@ -31,7 +31,15 @@ import {
 import { modelSupportsVariants } from '../lib/model-capabilities';
 import { compareProviders, sortProviderModels } from '../lib/model-ordering';
 import { STORAGE_KEYS, readStored, writeStored } from '../lib/state-storage';
-import { checkIcon, pinIcon, searchIcon, xmarkIcon } from '../lib/ui-icons';
+import { readStoredStringArray } from '../lib/state-stored-values';
+import {
+  checkIcon,
+  navArrowRightIcon,
+  searchIcon,
+  starIcon,
+  starSolidIcon,
+  xmarkIcon,
+} from '../lib/ui-icons';
 import { FormattedModelName } from './chat-input/ToolbarPickers';
 import { filterCompactProviderLimitForModel } from './chat-input/toolbar-compact';
 import { Tooltip } from './Tooltip';
@@ -112,6 +120,11 @@ export function ModelPicker(props: {
   const [query, setQuery] = createSignal('');
   const [animateManageModels, setAnimateManageModels] = createSignal(false);
   const [detailsTop, setDetailsTop] = createSignal(36);
+  const PINNED_GROUP_KEY = 'pinned';
+  const groupKeyFor = (providerID: string | undefined) => providerID ?? PINNED_GROUP_KEY;
+  const readCollapsedKeys = (): Set<string> =>
+    new Set(readStoredStringArray(STORAGE_KEYS.modelPickerCollapsed));
+  const [collapsedKeys, setCollapsedKeys] = createSignal<Set<string>>(readCollapsedKeys());
   const [hoveredEntry, setHoveredEntry] = createSignal<{
     provider: VisibleProvider;
     model: VisibleProvider['models'][string];
@@ -147,6 +160,31 @@ export function ModelPicker(props: {
     scrollTop: 0,
   });
   const normalizedQuery = createMemo(() => query().trim().toLocaleLowerCase());
+  const isSearching = createMemo(() => normalizedQuery().length > 0);
+  const isGroupCollapsed = (providerID: string | undefined) => {
+    if (isSearching()) return false;
+    return collapsedKeys().has(groupKeyFor(providerID));
+  };
+  function updateScrollMetrics() {
+    if (!listRef) return;
+    setScrollMetrics({
+      clientHeight: listRef.clientHeight,
+      scrollHeight: listRef.scrollHeight,
+      scrollTop: listRef.scrollTop,
+    });
+  }
+  const toggleGroup = (providerID: string | undefined) => {
+    if (isSearching()) return;
+    const key = groupKeyFor(providerID);
+    setCollapsedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      writeStored(STORAGE_KEYS.modelPickerCollapsed, [...next]);
+      return next;
+    });
+    queueMicrotask(updateScrollMetrics);
+  };
 
   const providerEntries = createMemo<ProviderEntry[]>(() =>
     visibleProviders().map((provider) => ({
@@ -217,7 +255,7 @@ export function ModelPicker(props: {
     }
     return [
       ...(pinnedModels.length > 0
-        ? [{ name: 'Pinned', providerID: undefined, models: pinnedModels }]
+        ? [{ name: 'Favorites', providerID: undefined, models: pinnedModels }]
         : []),
       ...filtered.map((entry) => ({
         name: entry.provider.name,
@@ -228,14 +266,33 @@ export function ModelPicker(props: {
   });
 
   const [focusIndex, setFocusIndex] = createSignal(0);
+  const visibleGroups = createMemo(() => {
+    // Touch collapsedKeys so collapsing a group recomputes keyboard order.
+    collapsedKeys();
+    const groups = filteredGroups();
+    if (isSearching()) return groups;
+    return groups.filter((group) => !collapsedKeys().has(groupKeyFor(group.providerID)));
+  });
   const flatItems = createMemo<FlatItem[]>(() => {
     const items: FlatItem[] = [];
-    for (const { models } of filteredGroups()) {
+    for (const { models } of visibleGroups()) {
       for (const model of models) {
         items.push(model.item);
       }
     }
     return items;
+  });
+  createEffect(() => {
+    const count = flatItems().length;
+    if (count === 0) {
+      setFocusIndex(-1);
+      return;
+    }
+    setFocusIndex((cur) => {
+      if (cur < 0) return 0;
+      if (cur >= count) return 0;
+      return cur;
+    });
   });
 
   const initialIndex = () => {
@@ -264,6 +321,7 @@ export function ModelPicker(props: {
     const items = flatItems();
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
+      if (items.length === 0) return;
       setFocusIndex((cur) => {
         const next = cur + (e.key === 'ArrowDown' ? 1 : -1);
         if (next < 0) return items.length - 1;
@@ -271,6 +329,14 @@ export function ModelPicker(props: {
         return next;
       });
       scrollFocusedIntoView();
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const item = items[focusIndex()];
+      if (!item || isSearching()) return;
+      const shouldBeCollapsed = e.key === 'ArrowLeft';
+      const key = isModelPinned(item.providerID, item.modelID) ? PINNED_GROUP_KEY : item.providerID;
+      if (collapsedKeys().has(key) === shouldBeCollapsed) return;
+      e.preventDefault();
+      toggleGroup(key === PINNED_GROUP_KEY ? undefined : key);
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const item = items[focusIndex()];
@@ -293,6 +359,21 @@ export function ModelPicker(props: {
   onMount(() => {
     for (const provider of visibleProviders()) {
       void refreshProviderLimit(provider.id);
+    }
+
+    // Keep the current model reachable: never open with its group collapsed.
+    const sel = currentSelection();
+    if (sel?.providerID) {
+      const pinned = state.pinnedModels.includes(`${sel.providerID}:${sel.modelID}`);
+      const key = pinned ? PINNED_GROUP_KEY : sel.providerID;
+      if (collapsedKeys().has(key)) {
+        setCollapsedKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          writeStored(STORAGE_KEYS.modelPickerCollapsed, [...next]);
+          return next;
+        });
+      }
     }
 
     if (props.showManageModels ?? true) {
@@ -391,17 +472,9 @@ export function ModelPicker(props: {
     return availableScroll > 0 ? (scrollTop / availableScroll) * availableTrack : 0;
   });
 
-  function updateScrollMetrics() {
-    if (!listRef) return;
-    setScrollMetrics({
-      clientHeight: listRef.clientHeight,
-      scrollHeight: listRef.scrollHeight,
-      scrollTop: listRef.scrollTop,
-    });
-  }
-
   createEffect(() => {
     filteredGroups();
+    collapsedKeys();
     queueMicrotask(updateScrollMetrics);
   });
 
@@ -487,147 +560,192 @@ export function ModelPicker(props: {
                 }
               >
                 <For each={filteredGroups()}>
-                  {({ name, providerID, models }) => (
-                    <>
-                      <div class="dropdown-group-header">
-                        <span>{name}</span>
-                        <Show when={providerHeaderBadges(providerID)}>
-                          {(remaining) => (
-                            <Tooltip
-                              content={formatProviderLimitTitle(providerHeaderLimit(providerID))}
-                            >
-                              <span
-                                class="model-picker-provider-limit"
-                                aria-label={`${name} limits remaining: ${remaining()
-                                  .map((badge) => `${badge.prefix} ${badge.value}`.trim())
-                                  .join(', ')}`}
+                  {({ name, providerID, models }) => {
+                    const collapsed = () => isGroupCollapsed(providerID);
+                    const isPinnedGroup = () => providerID === undefined;
+                    return (
+                      <div
+                        class={`model-picker-group${collapsed() ? ' is-collapsed' : ''}${isPinnedGroup() ? ' is-pinned' : ''}`}
+                      >
+                        <button
+                          type="button"
+                          class={`dropdown-group-header model-picker-group-header${isPinnedGroup() ? ' pinned' : ''}`}
+                          data-collapsed={collapsed() ? 'true' : 'false'}
+                          aria-expanded={collapsed() ? 'false' : 'true'}
+                          aria-label={`${collapsed() ? 'Expand' : 'Collapse'} ${name} (${models.length})`}
+                          tabIndex={-1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleGroup(providerID);
+                          }}
+                        >
+                          <UiIcon
+                            source={navArrowRightIcon}
+                            class="model-picker-group-chevron"
+                            width={12}
+                            height={12}
+                            aria-hidden="true"
+                          />
+                          <Show when={isPinnedGroup()}>
+                            <UiIcon
+                              source={starSolidIcon}
+                              class="model-picker-group-star"
+                              width={11}
+                              height={11}
+                              aria-hidden="true"
+                            />
+                          </Show>
+                          <span class="model-picker-group-name">{name}</span>
+                          <span class="model-picker-group-count">{models.length}</span>
+                          <Show when={providerHeaderBadges(providerID)}>
+                            {(remaining) => (
+                              <Tooltip
+                                content={formatProviderLimitTitle(providerHeaderLimit(providerID))}
                               >
-                                <For each={remaining()}>
-                                  {(badge, index) => (
-                                    <>
-                                      {index() > 0 ? ' ' : ''}
-                                      <Show when={badge.prefix}>
-                                        <span class="model-picker-provider-limit-prefix">
-                                          {badge.prefix}{' '}
+                                <span
+                                  class="model-picker-provider-limit"
+                                  aria-label={`${name} limits remaining: ${remaining()
+                                    .map((badge) => `${badge.prefix} ${badge.value}`.trim())
+                                    .join(', ')}`}
+                                >
+                                  <For each={remaining()}>
+                                    {(badge, index) => (
+                                      <>
+                                        {index() > 0 ? ' ' : ''}
+                                        <Show when={badge.prefix}>
+                                          <span class="model-picker-provider-limit-prefix">
+                                            {badge.prefix}{' '}
+                                          </span>
+                                        </Show>
+                                        {badge.value}
+                                      </>
+                                    )}
+                                  </For>
+                                  <span class="model-picker-provider-limit-left"> left</span>
+                                </span>
+                              </Tooltip>
+                            )}
+                          </Show>
+                        </button>
+                        <Show when={!collapsed()}>
+                          <For each={models}>
+                            {(entry) => {
+                              const provider = entry.provider;
+                              const model = entry.model;
+                              const myIndex = () => getItemIndex(provider.id, model.id);
+                              const pinned = () => isModelPinned(provider.id, model.id);
+                              return (
+                                <div
+                                  class={`model-picker-row ${pinned() ? 'pinned' : ''}`}
+                                  onMouseEnter={(event) => {
+                                    clearTimeout(detailsHoverTimer);
+                                    setFocusIndex(myIndex());
+                                    setHoveredEntry({ provider, model });
+                                    if (!anchorRef || !menuRef) return;
+                                    const menu = menuRef;
+                                    const anchorBox = anchorRef.getBoundingClientRect();
+                                    const rowBox = event.currentTarget.getBoundingClientRect();
+                                    setDetailsTop(
+                                      Math.max(
+                                        0,
+                                        Math.min(
+                                          rowBox.top - anchorBox.top,
+                                          window.innerHeight - anchorBox.top - 150
+                                        )
+                                      )
+                                    );
+                                    setDetailsPlacement(null);
+                                    const detailsFitOnRight =
+                                      window.innerWidth > STACKED_DETAILS_MAX_WIDTH &&
+                                      menu.getBoundingClientRect().right + 235 <= window.innerWidth;
+                                    detailsHoverTimer = setTimeout(
+                                      () => {
+                                        if (window.innerWidth <= STACKED_DETAILS_MAX_WIDTH) {
+                                          setDetailsPlacement('top');
+                                        } else {
+                                          setDetailsPlacement(
+                                            menu.getBoundingClientRect().right + 235 <=
+                                              window.innerWidth
+                                              ? 'right'
+                                              : null
+                                          );
+                                        }
+                                        queueMicrotask(() => repositionPopup?.());
+                                      },
+                                      detailsFitOnRight
+                                        ? RIGHT_PICKER_DETAILS_HOVER_DELAY_MS
+                                        : PICKER_DETAILS_HOVER_DELAY_MS
+                                    );
+                                  }}
+                                  onMouseLeave={() => {
+                                    clearTimeout(detailsHoverTimer);
+                                    setFocusIndex(-1);
+                                    setHoveredEntry(null);
+                                    setDetailsPlacement(null);
+                                    queueMicrotask(() => repositionPopup?.());
+                                  }}
+                                >
+                                  <button
+                                    class={`dropdown-item model-picker-item ${isSelected(provider.id, model.id) ? 'selected' : ''} ${focusIndex() === myIndex() ? 'keyboard-focus' : ''}`}
+                                    data-provider-id={provider.id}
+                                    data-model-id={model.id}
+                                    onClick={() => {
+                                      props.onSelect({
+                                        providerID: provider.id,
+                                        modelID: model.id,
+                                      });
+                                      props.onClose();
+                                    }}
+                                  >
+                                    <span class="dropdown-name-wrap">
+                                      <span class="dropdown-name">
+                                        <FormattedModelName name={entry.item.name} showSpeedLabel />
+                                      </span>
+                                      <Show when={pinned()}>
+                                        <span class="model-picker-provider-name">
+                                          {provider.name}
                                         </span>
                                       </Show>
-                                      {badge.value}
-                                    </>
-                                  )}
-                                </For>
-                                <span class="model-picker-provider-limit-left"> left</span>
-                              </span>
-                            </Tooltip>
-                          )}
+                                      <span class="dropdown-check">
+                                        <Show when={isSelected(provider.id, model.id)}>
+                                          <UiIcon
+                                            source={checkIcon}
+                                            class="h-3 w-3 text-vscode-accent"
+                                            width={12}
+                                            height={12}
+                                          />
+                                        </Show>
+                                      </span>
+                                    </span>
+                                  </button>
+                                  <Tooltip
+                                    content={`${pinned() ? 'Remove from favorites' : 'Add to favorites'}`}
+                                  >
+                                    <button
+                                      type="button"
+                                      class="model-picker-pin"
+                                      classList={{ active: pinned() }}
+                                      onClick={() =>
+                                        setModelPinned(provider.id, model.id, !pinned())
+                                      }
+                                      aria-label={`${pinned() ? 'Remove from favorites' : 'Add to favorites'}: ${entry.item.name}`}
+                                    >
+                                      <UiIcon
+                                        source={pinned() ? starSolidIcon : starIcon}
+                                        width={14}
+                                        height={14}
+                                        aria-hidden="true"
+                                      />
+                                    </button>
+                                  </Tooltip>
+                                </div>
+                              );
+                            }}
+                          </For>
                         </Show>
                       </div>
-                      <For each={models}>
-                        {(entry) => {
-                          const provider = entry.provider;
-                          const model = entry.model;
-                          const myIndex = () => getItemIndex(provider.id, model.id);
-                          const pinned = () => isModelPinned(provider.id, model.id);
-                          return (
-                            <div
-                              class={`model-picker-row ${pinned() ? 'pinned' : ''}`}
-                              onMouseEnter={(event) => {
-                                clearTimeout(detailsHoverTimer);
-                                setFocusIndex(myIndex());
-                                setHoveredEntry({ provider, model });
-                                if (!anchorRef || !menuRef) return;
-                                const menu = menuRef;
-                                const anchorBox = anchorRef.getBoundingClientRect();
-                                const rowBox = event.currentTarget.getBoundingClientRect();
-                                setDetailsTop(
-                                  Math.max(
-                                    0,
-                                    Math.min(
-                                      rowBox.top - anchorBox.top,
-                                      window.innerHeight - anchorBox.top - 150
-                                    )
-                                  )
-                                );
-                                setDetailsPlacement(null);
-                                const detailsFitOnRight =
-                                  window.innerWidth > STACKED_DETAILS_MAX_WIDTH &&
-                                  menu.getBoundingClientRect().right + 235 <= window.innerWidth;
-                                detailsHoverTimer = setTimeout(
-                                  () => {
-                                    if (window.innerWidth <= STACKED_DETAILS_MAX_WIDTH) {
-                                      setDetailsPlacement('top');
-                                    } else {
-                                      setDetailsPlacement(
-                                        menu.getBoundingClientRect().right + 235 <=
-                                          window.innerWidth
-                                          ? 'right'
-                                          : null
-                                      );
-                                    }
-                                    queueMicrotask(() => repositionPopup?.());
-                                  },
-                                  detailsFitOnRight
-                                    ? RIGHT_PICKER_DETAILS_HOVER_DELAY_MS
-                                    : PICKER_DETAILS_HOVER_DELAY_MS
-                                );
-                              }}
-                              onMouseLeave={() => {
-                                clearTimeout(detailsHoverTimer);
-                                setFocusIndex(-1);
-                                setHoveredEntry(null);
-                                setDetailsPlacement(null);
-                                queueMicrotask(() => repositionPopup?.());
-                              }}
-                            >
-                              <button
-                                class={`dropdown-item model-picker-item ${isSelected(provider.id, model.id) ? 'selected' : ''} ${focusIndex() === myIndex() ? 'keyboard-focus' : ''}`}
-                                data-provider-id={provider.id}
-                                data-model-id={model.id}
-                                onClick={() => {
-                                  props.onSelect({ providerID: provider.id, modelID: model.id });
-                                  props.onClose();
-                                }}
-                              >
-                                <span class="dropdown-name-wrap">
-                                  <span class="dropdown-name">
-                                    <FormattedModelName name={entry.item.name} showSpeedLabel />
-                                  </span>
-                                  <Show when={pinned()}>
-                                    <span class="model-picker-provider-name">{provider.name}</span>
-                                  </Show>
-                                  <span class="dropdown-check">
-                                    <Show when={isSelected(provider.id, model.id)}>
-                                      <UiIcon
-                                        source={checkIcon}
-                                        class="h-3 w-3 text-vscode-accent"
-                                        width={12}
-                                        height={12}
-                                      />
-                                    </Show>
-                                  </span>
-                                </span>
-                              </button>
-                              <Tooltip content={`${pinned() ? 'Unpin' : 'Pin'} model`}>
-                                <button
-                                  type="button"
-                                  class="model-picker-pin"
-                                  classList={{ active: pinned() }}
-                                  onClick={() => setModelPinned(provider.id, model.id, !pinned())}
-                                  aria-label={`${pinned() ? 'Unpin' : 'Pin'} ${entry.item.name}`}
-                                >
-                                  <UiIcon
-                                    source={pinIcon}
-                                    width={14}
-                                    height={14}
-                                    aria-hidden="true"
-                                  />
-                                </button>
-                              </Tooltip>
-                            </div>
-                          );
-                        }}
-                      </For>
-                    </>
-                  )}
+                    );
+                  }}
                 </For>
               </Show>
             </Show>

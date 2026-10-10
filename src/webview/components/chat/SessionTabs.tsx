@@ -1,4 +1,13 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, untrack } from 'solid-js';
+import {
+  For,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+  untrack,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { selectSession } from '../../hooks/useOpenCode';
 import { isPlaceholderSessionTitle, normalizeSessionTitle } from '../../../shared/session-title';
@@ -45,6 +54,7 @@ const DRAG_MIME = 'text/loomery-session-tab';
  */
 export function SessionTabs(props: { onCreateSession: () => void }) {
   let draggedId: string | null = null;
+  let stripRef: HTMLDivElement | undefined;
 
   const sessionsById = createMemo(
     () => new Map(state.sessions.map((session) => [session.id, session]))
@@ -233,8 +243,43 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
     if (source && source !== id) reorderSessionTabs(source, id);
   };
 
+  // Plain wheel scrolls the strip horizontally so overflowing tabs are
+  // reachable without Shift. Native horizontal gestures and pinch-zoom are
+  // left alone.
+  const handleStripWheel = (event: WheelEvent) => {
+    const strip = stripRef;
+    if (!strip || event.ctrlKey || event.deltaY === 0) return;
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    if (strip.scrollWidth <= strip.clientWidth + 1) return;
+    const delta =
+      event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? strip.clientWidth : 1);
+    if (delta === 0) return;
+    if (
+      (delta < 0 && strip.scrollLeft <= 0) ||
+      (delta > 0 && strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 1)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    strip.scrollLeft += delta;
+  };
+
+  onMount(() => {
+    const strip = stripRef;
+    if (!strip) return;
+    strip.addEventListener('wheel', handleStripWheel, { passive: false });
+    onCleanup(() => strip.removeEventListener('wheel', handleStripWheel));
+  });
+
   return (
-    <div class="session-tabs" role="tablist" aria-label="Open sessions">
+    <div
+      ref={(element) => {
+        stripRef = element;
+      }}
+      class="session-tabs"
+      role="tablist"
+      aria-label="Open sessions"
+    >
       <For each={tabs()}>
         {(id) => {
           const isActive = () => isTabActive(id);
