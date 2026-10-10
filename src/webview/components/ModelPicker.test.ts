@@ -879,7 +879,7 @@ describe('ModelPicker', () => {
     expect(menu?.classList).toContain('model-picker-menu');
   });
 
-  it('opens toward the left when the default width would cross the viewport edge', async () => {
+  it('spans the full host width by default', async () => {
     setState('providers', [
       createProvider('openai', 'OpenAI', {
         'gpt-5': createModel('gpt-5', 'GPT-5'),
@@ -907,104 +907,9 @@ describe('ModelPicker', () => {
     });
     await flushMicrotasks();
 
-    expect(anchor?.style.width).toBe('256.5px');
-    expect(anchor?.style.left).toBe('44px');
-  });
-
-  it('reduces its width before opening toward the left', async () => {
-    setState('providers', [
-      createProvider('openai', 'OpenAI', {
-        'gpt-5': createModel('gpt-5', 'GPT-5'),
-      }),
-    ]);
-    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(320);
-
-    cleanup = render(() => ModelPicker({ onSelect: vi.fn(), onClose: vi.fn() }), container!);
-    const anchor = container?.querySelector<HTMLElement>('.model-picker-anchor');
-    const button = document.createElement('button');
-    button.className = 'model-picker-btn';
-    container?.appendChild(button);
-    vi.spyOn(anchor!, 'offsetParent', 'get').mockReturnValue(container);
-    vi.spyOn(container!, 'getBoundingClientRect').mockReturnValue({
-      ...container!.getBoundingClientRect(),
-      left: 0,
-      right: 320,
-      bottom: 500,
-    });
-    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({
-      ...button.getBoundingClientRect(),
-      left: 80,
-      right: 120,
-      top: 450,
-    });
-    await flushMicrotasks();
-
-    expect(anchor?.style.width).toBe('232px');
-    expect(anchor?.style.left).toBe('80px');
-  });
-
-  it('shrinks to the viewport when the default width cannot fit', async () => {
-    setState('providers', [
-      createProvider('openai', 'OpenAI', {
-        'gpt-5': createModel('gpt-5', 'GPT-5'),
-      }),
-    ]);
-    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(240);
-
-    cleanup = render(() => ModelPicker({ onSelect: vi.fn(), onClose: vi.fn() }), container!);
-    const anchor = container?.querySelector<HTMLElement>('.model-picker-anchor');
-    const button = document.createElement('button');
-    button.className = 'model-picker-btn';
-    container?.appendChild(button);
-    vi.spyOn(anchor!, 'offsetParent', 'get').mockReturnValue(container);
-    vi.spyOn(container!, 'getBoundingClientRect').mockReturnValue({
-      ...container!.getBoundingClientRect(),
-      left: 0,
-      right: 240,
-      bottom: 500,
-    });
-    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({
-      ...button.getBoundingClientRect(),
-      left: 200,
-      right: 230,
-      top: 450,
-    });
-    await flushMicrotasks();
-
-    expect(anchor?.style.width).toBe('224px');
-    expect(anchor?.style.left).toBe('8px');
-  });
-
-  it('limits its width and position to the input host', async () => {
-    setState('providers', [
-      createProvider('openai', 'OpenAI', {
-        'gpt-5': createModel('gpt-5', 'GPT-5'),
-      }),
-    ]);
-    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(600);
-
-    cleanup = render(() => ModelPicker({ onSelect: vi.fn(), onClose: vi.fn() }), container!);
-    const anchor = container?.querySelector<HTMLElement>('.model-picker-anchor');
-    const button = document.createElement('button');
-    button.className = 'model-picker-btn';
-    container?.appendChild(button);
-    vi.spyOn(anchor!, 'offsetParent', 'get').mockReturnValue(container);
-    vi.spyOn(container!, 'getBoundingClientRect').mockReturnValue({
-      ...container!.getBoundingClientRect(),
-      left: 100,
-      right: 350,
-      bottom: 500,
-    });
-    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({
-      ...button.getBoundingClientRect(),
-      left: 300,
-      right: 340,
-      top: 450,
-    });
-    await flushMicrotasks();
-
-    expect(anchor?.style.width).toBe('250px');
+    expect(anchor?.style.width).toBe('');
     expect(anchor?.style.left).toBe('0px');
+    expect(anchor?.style.right).toBe('0px');
   });
 
   it('can match the model trigger width', async () => {

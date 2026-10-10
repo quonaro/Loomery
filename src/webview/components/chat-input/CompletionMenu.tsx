@@ -8,6 +8,7 @@ import {
   flipPopupDownIfNeeded,
   getPopupTopBound,
   observePopupViewport,
+  spanPopupToBoundary,
 } from '../../lib/popup-position';
 import type {
   DroppedFile,
@@ -18,6 +19,7 @@ import type { Session } from '../../types';
 import { formatRelativeAge } from '../../lib/message-metrics';
 
 const COMPLETION_MENU_EDGE_INSET = 4;
+const COMPLETION_MENU_GAP = 10;
 
 export type MentionCompletionItem =
   | {
@@ -97,7 +99,13 @@ export function CompletionMenu(props: {
     const caret = props.anchorRect?.();
     const host = menuRef.offsetParent;
     if (caret && host instanceof HTMLElement) {
-      const bottom = caret.top - 6;
+      // Span the whole chat box and open above it like every other chat
+      // popup, not over the composer's text. Falls back to the caret line
+      // when the composer frame is unavailable.
+      const container = menuRef.closest<HTMLElement>('.chat-input-container');
+      if (container) spanPopupToBoundary(menuRef, container);
+      const containerTop = container?.getBoundingClientRect().top;
+      const bottom = (containerTop ?? caret.top) - COMPLETION_MENU_GAP;
       menuRef.style.top = 'auto';
       menuRef.style.bottom = `${host.getBoundingClientRect().bottom - bottom}px`;
       menuRef.style.transform = '';

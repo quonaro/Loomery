@@ -9,10 +9,11 @@ import {
 } from '../../lib/ui-icons';
 import { formatCost, formatNumber } from '../../lib/message-metrics';
 import {
-  alignPopupToBoundary,
   clampPopupToViewport,
   flipPopupDownIfNeeded,
+  liftPopupAboveBoundary,
   observePopupViewport,
+  spanPopupToBoundary,
 } from '../../lib/popup-position';
 import type {
   ContextBreakdownKey,
@@ -108,7 +109,6 @@ function CacheWriteInfo() {
 export function ContextPopup(props: {
   ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
   boundaryRef?: HTMLElement;
-  alignTo?: 'left' | 'right';
   usage: { used: number; limit: number; percent: number };
   breakdown: ContextBreakdownSegment[];
   nestedBreakdown: ContextBreakdownSegment[];
@@ -140,12 +140,16 @@ export function ContextPopup(props: {
   };
 
   onMount(() => {
-    if (!popupEl || !props.boundaryRef) return;
+    if (!popupEl) return;
 
     const reposition = () => {
-      if (!popupEl || !props.boundaryRef) return;
+      if (!popupEl) return;
+      const boundary = props.boundaryRef ?? popupEl.closest<HTMLElement>('.chat-input-container');
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary);
+      }
       flipPopupDownIfNeeded(popupEl);
-      alignPopupToBoundary(popupEl, props.boundaryRef, props.alignTo ?? 'right');
       clampPopupToViewport(popupEl);
     };
 
@@ -153,7 +157,12 @@ export function ContextPopup(props: {
   });
 
   return (
-    <div ref={setRef} class="context-popup" onClick={(e) => e.stopPropagation()}>
+    <div
+      ref={setRef}
+      class="context-popup"
+      data-popup-position-pending
+      onClick={(e) => e.stopPropagation()}
+    >
       <div class="context-popup-header">
         <span class="context-popup-title">Context Window</span>
         <span class={`context-popup-pct${contextUsageAvailable() ? '' : ' unavailable'}`}>
@@ -161,205 +170,209 @@ export function ContextPopup(props: {
         </span>
       </div>
 
-      <div class="context-popup-bar">
-        <div
-          class={`context-popup-bar-fill ${getContextUsageTone(props.usage.percent)}`}
-          style={{ width: `${Math.min(props.usage.percent, 100)}%` }}
-        />
-      </div>
+      <div class="context-popup-body">
+        <div class="context-popup-bar">
+          <div
+            class={`context-popup-bar-fill ${getContextUsageTone(props.usage.percent)}`}
+            style={{ width: `${Math.min(props.usage.percent, 100)}%` }}
+          />
+        </div>
 
-      <div class="context-popup-stat">
-        <span class={`context-popup-stat-value${contextUsageAvailable() ? '' : ' unavailable'}`}>
-          {contextUsageAvailable() ? formatNumber(props.usage.used) : '--'}
-        </span>
-        <span class="context-popup-sep">/</span>
-        <span>{formatNumber(props.usage.limit)}</span>
-        <span class="context-popup-unit">tokens</span>
-      </div>
-
-      <div class="context-popup-section">Session Tokens</div>
-      <div class="context-popup-rows">
-        <For each={getTokenRows(props.tokens)}>
-          {(row) => (
-            <div
-              class="context-popup-row"
-              classList={{
-                'context-popup-row-cache-read': row.key === 'cacheRead',
-                'context-popup-row-cache-write': row.key === 'cacheWrite',
-              }}
-            >
-              <span class="context-popup-row-label">{row.label}</span>
-              <span
-                class={`context-popup-row-value${sessionTokensAvailable() ? '' : ' unavailable'}`}
-              >
-                <Show when={row.key === 'cacheRead'}>
-                  <CacheReadInfo />
-                </Show>
-                <Show when={row.key === 'cacheWrite'}>
-                  <CacheWriteInfo />
-                </Show>
-                {sessionTokensAvailable() ? formatNumber(row.value) : '--'}
-              </span>
-            </div>
-          )}
-        </For>
-        <div class="context-popup-row context-popup-row-total">
-          <span class="context-popup-row-label">Total</span>
-          <span class={`context-popup-row-value${sessionTokensAvailable() ? '' : ' unavailable'}`}>
-            {sessionTokensAvailable() ? formatNumber(sessionTotal()) : '--'}
+        <div class="context-popup-stat">
+          <span class={`context-popup-stat-value${contextUsageAvailable() ? '' : ' unavailable'}`}>
+            {contextUsageAvailable() ? formatNumber(props.usage.used) : '--'}
           </span>
+          <span class="context-popup-sep">/</span>
+          <span>{formatNumber(props.usage.limit)}</span>
+          <span class="context-popup-unit">tokens</span>
         </div>
-        <Show
-          when={formatCost(
-            Math.max(props.cost ?? 0, props.tokens.cost ?? 0) + (props.subagentTokens.cost ?? 0)
-          )}
-        >
-          {(cost) => (
-            <div class="context-popup-row context-popup-cost-row">
-              <span class="context-popup-row-label">
-                Cost
-                <Show when={props.subagentCount > 0}>
-                  <Tooltip content="Cost includes all subagents.">
-                    <span
-                      class="context-popup-cost-info"
-                      tabindex="0"
-                      aria-label="Cost includes all subagents"
-                    >
-                      <UiIcon source={infoCircleIcon} width="11" height="11" />
-                    </span>
-                  </Tooltip>
-                </Show>
-              </span>
-              <span class="context-popup-row-value">{cost()}</span>
-            </div>
-          )}
-        </Show>
-      </div>
 
-      <Show when={visibleBreakdown().length > 0}>
-        <div class="context-popup-breakdown-header">
-          <div class="context-popup-breakdown-title">Context Breakdown</div>
-          <Show when={props.subagentCount > 0 && props.nestedBreakdown.length > 0}>
-            <label class="context-breakdown-nested">
-              <input
-                type="checkbox"
-                checked={nestedBreakdown()}
-                onChange={(event) => setNestedBreakdown(event.currentTarget.checked)}
-              />
-              <UiIcon
-                source={nestedBreakdown() ? checkSquareIcon : squareIcon}
-                class={`context-breakdown-checkbox context-breakdown-checkbox-${nestedBreakdown() ? 'checked' : 'unchecked'}`}
-                width="16"
-                height="16"
-              />
-              <span>nested</span>
-            </label>
-          </Show>
-        </div>
-        <div class="context-breakdown-bar" aria-label="Estimated context breakdown">
-          <For each={visibleBreakdown()}>
-            {(segment) => (
+        <div class="context-popup-section">Session Tokens</div>
+        <div class="context-popup-rows">
+          <For each={getTokenRows(props.tokens)}>
+            {(row) => (
               <div
-                class={`context-breakdown-segment ${segment.key}`}
-                style={{ width: `${segment.percent}%` }}
-              />
-            )}
-          </For>
-        </div>
-        <div class="context-breakdown-legend">
-          <For each={visibleBreakdown()}>
-            {(segment) => (
-              <div class="context-breakdown-item">
-                <span class={`context-breakdown-dot ${segment.key}`} />
-                <span>{BREAKDOWN_LABELS[segment.key]}</span>
-                <span class="context-breakdown-percent">{segment.percent.toFixed(1)}%</span>
+                class="context-popup-row"
+                classList={{
+                  'context-popup-row-cache-read': row.key === 'cacheRead',
+                  'context-popup-row-cache-write': row.key === 'cacheWrite',
+                }}
+              >
+                <span class="context-popup-row-label">{row.label}</span>
+                <span
+                  class={`context-popup-row-value${sessionTokensAvailable() ? '' : ' unavailable'}`}
+                >
+                  <Show when={row.key === 'cacheRead'}>
+                    <CacheReadInfo />
+                  </Show>
+                  <Show when={row.key === 'cacheWrite'}>
+                    <CacheWriteInfo />
+                  </Show>
+                  {sessionTokensAvailable() ? formatNumber(row.value) : '--'}
+                </span>
               </div>
             )}
           </For>
-        </div>
-      </Show>
-
-      <Show when={subagentTotal() > 0}>
-        <button
-          type="button"
-          class="context-popup-section context-popup-section-toggle"
-          aria-expanded={subagentsExpanded()}
-          onClick={() => setSubagentsExpanded((expanded) => !expanded)}
-        >
-          <span>Agents{props.subagentCount > 0 ? ` (${props.subagentCount})` : ''}</span>
-          <UiIcon
-            source={navArrowRightIcon}
-            class={`context-popup-section-chevron${subagentsExpanded() ? ' expanded' : ''}`}
-            width="10"
-            height="10"
-          />
-          <Show when={!subagentsExpanded()}>
-            <span class="context-popup-section-summary">{formatNumber(subagentTotal())}</span>
+          <div class="context-popup-row context-popup-row-total">
+            <span class="context-popup-row-label">Total</span>
+            <span
+              class={`context-popup-row-value${sessionTokensAvailable() ? '' : ' unavailable'}`}
+            >
+              {sessionTokensAvailable() ? formatNumber(sessionTotal()) : '--'}
+            </span>
+          </div>
+          <Show
+            when={formatCost(
+              Math.max(props.cost ?? 0, props.tokens.cost ?? 0) + (props.subagentTokens.cost ?? 0)
+            )}
+          >
+            {(cost) => (
+              <div class="context-popup-row context-popup-cost-row">
+                <span class="context-popup-row-label">
+                  Cost
+                  <Show when={props.subagentCount > 0}>
+                    <Tooltip content="Cost includes all subagents.">
+                      <span
+                        class="context-popup-cost-info"
+                        tabindex="0"
+                        aria-label="Cost includes all subagents"
+                      >
+                        <UiIcon source={infoCircleIcon} width="11" height="11" />
+                      </span>
+                    </Tooltip>
+                  </Show>
+                </span>
+                <span class="context-popup-row-value">{cost()}</span>
+              </div>
+            )}
           </Show>
-        </button>
-        <Show when={subagentsExpanded()}>
-          <div class="context-popup-rows context-popup-subagent-rows">
-            <For each={getTokenRows(props.subagentTokens)}>
-              {(row) => (
+        </div>
+
+        <Show when={visibleBreakdown().length > 0}>
+          <div class="context-popup-breakdown-header">
+            <div class="context-popup-breakdown-title">Context Breakdown</div>
+            <Show when={props.subagentCount > 0 && props.nestedBreakdown.length > 0}>
+              <label class="context-breakdown-nested">
+                <input
+                  type="checkbox"
+                  checked={nestedBreakdown()}
+                  onChange={(event) => setNestedBreakdown(event.currentTarget.checked)}
+                />
+                <UiIcon
+                  source={nestedBreakdown() ? checkSquareIcon : squareIcon}
+                  class={`context-breakdown-checkbox context-breakdown-checkbox-${nestedBreakdown() ? 'checked' : 'unchecked'}`}
+                  width="16"
+                  height="16"
+                />
+                <span>nested</span>
+              </label>
+            </Show>
+          </div>
+          <div class="context-breakdown-bar" aria-label="Estimated context breakdown">
+            <For each={visibleBreakdown()}>
+              {(segment) => (
                 <div
-                  class="context-popup-row"
-                  classList={{
-                    'context-popup-row-cache-read': row.key === 'cacheRead',
-                    'context-popup-row-cache-write': row.key === 'cacheWrite',
-                  }}
-                >
-                  <span class="context-popup-row-label">{row.label}</span>
-                  <span class="context-popup-row-value">
-                    <Show when={row.key === 'cacheRead'}>
-                      <CacheReadInfo />
-                    </Show>
-                    <Show when={row.key === 'cacheWrite'}>
-                      <CacheWriteInfo />
-                    </Show>
-                    {formatNumber(row.value)}
-                  </span>
+                  class={`context-breakdown-segment ${segment.key}`}
+                  style={{ width: `${segment.percent}%` }}
+                />
+              )}
+            </For>
+          </div>
+          <div class="context-breakdown-legend">
+            <For each={visibleBreakdown()}>
+              {(segment) => (
+                <div class="context-breakdown-item">
+                  <span class={`context-breakdown-dot ${segment.key}`} />
+                  <span>{BREAKDOWN_LABELS[segment.key]}</span>
+                  <span class="context-breakdown-percent">{segment.percent.toFixed(1)}%</span>
                 </div>
               )}
             </For>
-            <div class="context-popup-row context-popup-row-total">
-              <span class="context-popup-row-label">Total</span>
-              <span class="context-popup-row-value">{formatNumber(subagentTotal())}</span>
-            </div>
           </div>
         </Show>
-        <div class="context-popup-row context-popup-overall-total">
-          <span class="context-popup-row-label">Overall</span>
-          <span class="context-popup-row-value">{formatNumber(overallTotal())}</span>
-        </div>
-      </Show>
 
-      <Show
-        when={
-          props.showCompactAction !== false &&
-          !props.compactDisabled &&
-          shouldShowContextCompact(props.usage.percent)
-        }
-      >
-        <div class="context-popup-actions">
+        <Show when={subagentTotal() > 0}>
           <button
             type="button"
-            class="context-popup-action"
-            disabled={props.compactDisabled}
-            onClick={() => {
-              props.onClose();
-              props.onCompact();
-            }}
+            class="context-popup-section context-popup-section-toggle"
+            aria-expanded={subagentsExpanded()}
+            onClick={() => setSubagentsExpanded((expanded) => !expanded)}
           >
-            Compact session
+            <span>Agents{props.subagentCount > 0 ? ` (${props.subagentCount})` : ''}</span>
+            <UiIcon
+              source={navArrowRightIcon}
+              class={`context-popup-section-chevron${subagentsExpanded() ? ' expanded' : ''}`}
+              width="10"
+              height="10"
+            />
+            <Show when={!subagentsExpanded()}>
+              <span class="context-popup-section-summary">{formatNumber(subagentTotal())}</span>
+            </Show>
           </button>
-        </div>
-      </Show>
+          <Show when={subagentsExpanded()}>
+            <div class="context-popup-rows context-popup-subagent-rows">
+              <For each={getTokenRows(props.subagentTokens)}>
+                {(row) => (
+                  <div
+                    class="context-popup-row"
+                    classList={{
+                      'context-popup-row-cache-read': row.key === 'cacheRead',
+                      'context-popup-row-cache-write': row.key === 'cacheWrite',
+                    }}
+                  >
+                    <span class="context-popup-row-label">{row.label}</span>
+                    <span class="context-popup-row-value">
+                      <Show when={row.key === 'cacheRead'}>
+                        <CacheReadInfo />
+                      </Show>
+                      <Show when={row.key === 'cacheWrite'}>
+                        <CacheWriteInfo />
+                      </Show>
+                      {formatNumber(row.value)}
+                    </span>
+                  </div>
+                )}
+              </For>
+              <div class="context-popup-row context-popup-row-total">
+                <span class="context-popup-row-label">Total</span>
+                <span class="context-popup-row-value">{formatNumber(subagentTotal())}</span>
+              </div>
+            </div>
+          </Show>
+          <div class="context-popup-row context-popup-overall-total">
+            <span class="context-popup-row-label">Overall</span>
+            <span class="context-popup-row-value">{formatNumber(overallTotal())}</span>
+          </div>
+        </Show>
 
-      <Show when={props.model.modelName}>
-        <div class="context-popup-model">
-          {props.model.providerName} / {props.model.modelName}
-        </div>
-      </Show>
+        <Show
+          when={
+            props.showCompactAction !== false &&
+            !props.compactDisabled &&
+            shouldShowContextCompact(props.usage.percent)
+          }
+        >
+          <div class="context-popup-actions">
+            <button
+              type="button"
+              class="context-popup-action"
+              disabled={props.compactDisabled}
+              onClick={() => {
+                props.onClose();
+                props.onCompact();
+              }}
+            >
+              Compact session
+            </button>
+          </div>
+        </Show>
+
+        <Show when={props.model.modelName}>
+          <div class="context-popup-model">
+            {props.model.providerName} / {props.model.modelName}
+          </div>
+        </Show>
+      </div>
     </div>
   );
 }

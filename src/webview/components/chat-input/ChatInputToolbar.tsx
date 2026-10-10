@@ -337,7 +337,6 @@ export function ChatInputMetaToolbar(props: ChatInputMetaToolbarProps) {
               buttonRef={props.workspaceButtonRef}
               popoverRef={props.workspacePopoverRef}
               boundaryRef={props.inputFrameRef}
-              alignTo="left"
               folders={props.workspaceFolders}
               selectedPath={props.selectedWorkspacePath}
               canSelect={props.canSelectWorkspace}
@@ -354,10 +353,6 @@ export function ChatInputMetaToolbar(props: ChatInputMetaToolbarProps) {
               buttonRef={props.permissionButtonRef}
               popoverRef={props.permissionPopoverRef}
               boundaryRef={props.inputFrameRef}
-              alignTo="left"
-              alignToTriggerWhenPossible={
-                props.showWorkspaceControl && props.workspaceFolders.length > 1
-              }
               mode={props.permissionMode}
               activity={props.autoPermissionActivity}
               judgeModel={props.autoApproveJudgeModel}
@@ -447,7 +442,6 @@ export function ChatInputMetaToolbar(props: ChatInputMetaToolbarProps) {
                 <ProviderLimitPopup
                   ref={props.providerLimitPopupRef}
                   boundaryRef={props.inputFrameRef}
-                  alignTo="right"
                   limit={props.providerLimit}
                   providerName={props.currentModel.providerName}
                   onClose={props.onCloseProviderLimitPopup}
@@ -497,7 +491,6 @@ export function ChatInputMetaToolbar(props: ChatInputMetaToolbarProps) {
                   <ContextPopup
                     ref={props.contextPopupRef}
                     boundaryRef={props.inputFrameRef}
-                    alignTo="right"
                     usage={contextUsage()}
                     breakdown={props.contextBreakdown}
                     nestedBreakdown={props.nestedContextBreakdown}

@@ -4,8 +4,7 @@
   bottom: 100%;
   right: -4px;
   z-index: var(--z-popover);
-  margin-bottom: 6px;
-  width: 240px;
+  margin-bottom: 10px;
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 120px);
   overflow-y: auto;
@@ -14,7 +13,7 @@
   border: 1px solid color-mix(in srgb, var(--color-vscode-border-strong) 82%, transparent);
   background: var(--color-vscode-surface-raised);
   box-shadow: var(--chat-shadow-popover);
-  padding: 10px;
+  padding: 0;
   animation: fade-in 0.1s ease-out;
   font-size: 11px;
   user-select: none;
@@ -25,7 +24,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--color-vscode-fg) 2%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-vscode-border) 20%, transparent);
+}
+
+.context-popup-body {
+  padding: 10px;
 }
 
 .context-popup-title {
@@ -412,21 +417,21 @@
   border: 1px solid color-mix(in srgb, var(--color-vscode-border-strong) 82%, transparent);
   background: var(--color-vscode-surface-raised);
   box-shadow: var(--chat-shadow-popover);
-  padding: 4px;
+  padding: 4px 0;
   animation: fade-in 0.1s ease-out;
   user-select: none;
   -webkit-user-select: none;
 }
 
 .composer-completion-header {
-  margin-bottom: 4px;
-  padding: 5px 8px 7px;
+  margin-bottom: 0;
+  padding: 6px 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--color-vscode-border) 20%, transparent);
-  font-size: 10.5px;
+  background: color-mix(in srgb, var(--color-vscode-fg) 2%, transparent);
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: 0.02em;
-  color: var(--color-vscode-muted);
+  color: var(--color-vscode-fg);
 }
 
 .composer-completion-item {
@@ -437,8 +442,8 @@
   gap: 8px;
   border: none;
   background: transparent;
-  border-radius: var(--radius-chip);
-  padding: 7px 8px;
+  border-radius: 0;
+  padding: 7px 10px;
   text-align: left;
   font-family: inherit;
   color: var(--color-vscode-fg);
@@ -449,7 +454,7 @@
 }
 
 .composer-completion-empty {
-  padding: 7px 8px 10px;
+  padding: 7px 10px 10px;
   color: var(--color-vscode-fg-muted);
   font-size: 12px;
   font-weight: 400;
@@ -965,8 +970,7 @@
   bottom: 100%;
   right: -4px;
   z-index: var(--z-popover);
-  margin-bottom: 2px;
-  width: 240px;
+  margin-bottom: 10px;
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 120px);
   overflow-y: auto;
@@ -975,7 +979,7 @@
   border: 1px solid color-mix(in srgb, var(--color-vscode-border-strong) 82%, transparent);
   background: var(--color-vscode-surface-raised);
   box-shadow: var(--chat-shadow-popover);
-  padding: 10px;
+  padding: 0;
   animation: fade-in 0.1s ease-out;
   font-size: 11px;
   user-select: none;
@@ -986,7 +990,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--color-vscode-fg) 2%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-vscode-border) 20%, transparent);
+}
+
+.provider-limit-popup-body {
+  padding: 10px;
 }
 
 .provider-limit-popup-title {
@@ -1334,7 +1344,7 @@
   bottom: 100%;
   left: 0;
   z-index: var(--z-popover);
-  margin-bottom: 2px;
+  margin-bottom: 10px;
   max-height: 200px;
   overflow: hidden auto;
   scrollbar-width: none;
@@ -1342,7 +1352,7 @@
   border: 1px solid color-mix(in srgb, var(--color-vscode-border-strong) 82%, transparent);
   background: var(--color-vscode-surface-raised);
   box-shadow: var(--chat-shadow-popover);
-  padding: 5px;
+  padding: 4px 0;
 }
 
 .toolbar-popover::-webkit-scrollbar {
@@ -1356,14 +1366,11 @@
 }
 
 .toolbar-popover.workspace-popover {
-  width: 360px;
   max-width: calc(100vw - 16px);
   max-height: min(360px, calc(100dvh - 16px));
 }
 
 .toolbar-popover.permission-mode-popover {
-  width: max-content;
-  max-width: 288px;
   max-height: 260px;
 }
 
@@ -1375,11 +1382,6 @@
   align-self: center;
   flex-shrink: 0;
   margin-right: 0;
-}
-
-.toolbar-popover.agent-popover {
-  width: max-content;
-  max-width: 192px;
 }
 
 .agent-picker-value-icon,
@@ -1469,8 +1471,8 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 3px;
-  padding: 6px 9px;
+  gap: 6px;
+  padding: 6px 10px;
   text-align: left;
   font-size: 12px;
   line-height: 1.2;
@@ -1478,12 +1480,12 @@
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: var(--radius-chip);
-  white-space: nowrap;
+  border-radius: 0;
   transition: background-color 0.08s;
 }
 
-.toolbar-popover-item:hover {
+.toolbar-popover-item:hover,
+.toolbar-popover-item.keyboard-focus {
   background: var(--color-vscode-hover);
 }
 
@@ -1523,8 +1525,8 @@
 }
 
 .workspace-popover-notice {
-  margin: 2px 4px 5px;
-  padding: 5px 6px;
+  margin: 4px 10px 6px;
+  padding: 5px 8px;
   border-radius: var(--radius-chip);
   background: color-mix(in srgb, var(--color-vscode-fg) 5%, transparent);
   color: var(--color-vscode-muted);
@@ -1595,14 +1597,12 @@
 }
 
 .toolbar-popover-header {
-  padding: 5px 9px 7px;
-  font-size: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-vscode-muted);
-  border-bottom: 1px solid var(--color-vscode-border-soft);
-  margin-bottom: 4px;
+  color: var(--color-vscode-fg);
+  background: color-mix(in srgb, var(--color-vscode-fg) 2%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-vscode-border) 20%, transparent);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -1611,7 +1611,6 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--color-vscode-surface-raised);
 }
 
 .toolbar-picker.stop-button {
@@ -2940,6 +2939,26 @@ body.vscode-high-contrast-light .chat-send-button.disabled {
   max-width: calc(100vw - 16px);
   max-height: none;
   overflow: visible;
+  padding: 4px 0;
+}
+
+.image-compression-header {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-vscode-fg);
+  background: color-mix(in srgb, var(--color-vscode-fg) 2%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-vscode-border) 20%, transparent);
+}
+
+.image-compression-menu > button {
+  border-radius: 0;
+  padding: 6px 10px;
+}
+
+.image-compression-menu > p {
+  margin-right: 10px;
+  margin-left: 10px;
 }
 
 .image-compression-menu button span {

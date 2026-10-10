@@ -393,38 +393,53 @@ export function ModelPicker(props: {
 
       const hostBox = host.getBoundingClientRect();
       const buttonBox = button.getBoundingClientRect();
-      const gap = props.popupGap ?? 6;
+      const gap = props.popupGap ?? 10;
       const viewportMargin = 8;
-      const defaultMenuWidth = props.matchTriggerWidth ? buttonBox.width : 256.5;
-      const minimumMenuWidth = 220;
-      const boundaryLeft = Math.max(viewportMargin, hostBox.left);
-      const boundaryRight = Math.min(window.innerWidth - viewportMargin, hostBox.right);
-      const boundaryWidth = Math.max(0, boundaryRight - boundaryLeft);
-      const maximumMenuWidth = Math.min(defaultMenuWidth, boundaryWidth);
-      const triggerLeft = Math.max(boundaryLeft, buttonBox.left);
-      const availableRightWidth = boundaryRight - triggerLeft;
-      const canRemainRightOpening =
-        availableRightWidth >= Math.min(minimumMenuWidth, maximumMenuWidth);
-      const menuWidth = canRemainRightOpening
-        ? Math.min(maximumMenuWidth, availableRightWidth)
-        : maximumMenuWidth;
-      const viewportLeft = canRemainRightOpening
-        ? triggerLeft
-        : Math.max(boundaryLeft, Math.min(buttonBox.right - menuWidth, boundaryRight - menuWidth));
-      anchorRef.style.width = `${menuWidth}px`;
-      anchorRef.style.left = `${Math.round(viewportLeft - hostBox.left)}px`;
-      anchorRef.style.right = 'auto';
+      if (props.matchTriggerWidth) {
+        const defaultMenuWidth = buttonBox.width;
+        const minimumMenuWidth = 220;
+        const boundaryLeft = Math.max(viewportMargin, hostBox.left);
+        const boundaryRight = Math.min(window.innerWidth - viewportMargin, hostBox.right);
+        const boundaryWidth = Math.max(0, boundaryRight - boundaryLeft);
+        const maximumMenuWidth = Math.min(defaultMenuWidth, boundaryWidth);
+        const triggerLeft = Math.max(boundaryLeft, buttonBox.left);
+        const availableRightWidth = boundaryRight - triggerLeft;
+        const canRemainRightOpening =
+          availableRightWidth >= Math.min(minimumMenuWidth, maximumMenuWidth);
+        const menuWidth = canRemainRightOpening
+          ? Math.min(maximumMenuWidth, availableRightWidth)
+          : maximumMenuWidth;
+        const viewportLeft = canRemainRightOpening
+          ? triggerLeft
+          : Math.max(
+              boundaryLeft,
+              Math.min(buttonBox.right - menuWidth, boundaryRight - menuWidth)
+            );
+        anchorRef.style.width = `${menuWidth}px`;
+        anchorRef.style.left = `${Math.round(viewportLeft - hostBox.left)}px`;
+        anchorRef.style.right = 'auto';
+      } else {
+        anchorRef.style.width = '';
+        anchorRef.style.left = '0px';
+        anchorRef.style.right = '0px';
+      }
       anchorRef.style.paddingBottom = '0px';
       const editBanner = anchorRef
         .closest('.interactive-input-part')
         ?.querySelector<HTMLElement>('.composer-edit-banner');
+      // The anchor is a sibling of the composer frame, not its descendant,
+      // so the frame is looked up from the shared host.
+      const containerEl =
+        host instanceof HTMLElement
+          ? host.querySelector<HTMLElement>('.chat-input-container')
+          : null;
       const availableHeight = placeTriggerDropdownAnchor(
         anchorRef,
         menuRef,
         button,
         gap,
         viewportMargin,
-        editBanner
+        editBanner ?? containerEl
       );
       const detailsHeight = detailsPlacement() === 'top' ? (detailsRef?.offsetHeight ?? 0) + 7 : 0;
       const menuHeight = Math.min(396, Math.max(0, availableHeight - detailsHeight));

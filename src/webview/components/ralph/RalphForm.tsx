@@ -504,7 +504,6 @@ export function RalphForm() {
                   <Show when={availableVariants().length > 0}>
                     <VariantPicker
                       boundaryRef={modelPickerBoundaryRef()}
-                      alignTo="right"
                       popupGap={6}
                       variants={availableVariants()}
                       selectedVariant={effectiveVariant() ?? null}

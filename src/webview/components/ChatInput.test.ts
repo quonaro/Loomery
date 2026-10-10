@@ -3174,7 +3174,7 @@ describe('ChatInput', () => {
     expect(sendMessageMock).toHaveBeenCalledTimes(2);
   });
 
-  it('right-aligns the provider limit popup when no context is shown', async () => {
+  it('spans the provider limit popup when no context is shown', async () => {
     setupModelState();
     const model = state.providers[0]?.models['gpt-4o'];
     if (!model) throw new Error('Expected GPT-4o fixture');
@@ -3197,10 +3197,11 @@ describe('ChatInput', () => {
 
     expect(container?.querySelector('.context-anchor')).toBeNull();
     expect(popup).not.toBeNull();
-    expect(popup?.style.right).toBe('0px');
+    expect(popup?.style.right).toBe('auto');
+    expect(popup?.style.left).toBe('0px');
   });
 
-  it('right-aligns the provider limit popup when context is shown', async () => {
+  it('spans the provider limit popup when context is shown', async () => {
     setupModelState();
     setState('activeSessionId', 'session-1');
     setState('messages', [assistantMessageEntry({ input: 400, output: 100 })]);
@@ -3220,7 +3221,8 @@ describe('ChatInput', () => {
 
     expect(container?.querySelector('.context-anchor')).not.toBeNull();
     expect(popup).not.toBeNull();
-    expect(popup?.style.right).toBe('0px');
+    expect(popup?.style.right).toBe('auto');
+    expect(popup?.style.left).toBe('0px');
   });
 
   it('aligns the permission popup to the input frame left edge', async () => {

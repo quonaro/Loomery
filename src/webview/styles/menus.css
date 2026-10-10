@@ -457,7 +457,8 @@
 }
 
 .model-picker-anchor {
-  width: 256.5px;
+  right: 0;
+  left: 0;
 }
 
 .model-picker-anchor.details-on-top {

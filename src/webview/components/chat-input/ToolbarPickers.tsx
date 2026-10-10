@@ -25,10 +25,11 @@ import { FolderIcon } from '../FolderIcon';
 import { Tooltip } from '../Tooltip';
 import { toCssUrl, UiIcon } from '../UiIcon';
 import {
-  alignPopupToBoundary,
   clampPopupToViewport,
   flipPopupDownIfNeeded,
+  liftPopupAboveBoundary,
   observePopupViewport,
+  spanPopupToBoundary,
 } from '../../lib/popup-position';
 import { PermissionModeIcon } from './PermissionModeIcon';
 import { isFunction } from '../../lib/runtime-values';
@@ -158,7 +159,6 @@ export function WorkspacePicker(props: {
   buttonRef?: HTMLButtonElement | ((el: HTMLButtonElement) => void);
   popoverRef?: HTMLDivElement | ((el: HTMLDivElement) => void);
   boundaryRef?: HTMLElement;
-  alignTo?: 'left' | 'right';
   folders: WorkspaceFolderContext[];
   selectedPath: string | null;
   canSelect?: boolean;
@@ -200,15 +200,12 @@ export function WorkspacePicker(props: {
 
     const reposition = () => {
       if (!popupEl) return;
-      flipPopupDownIfNeeded(popupEl);
-      if (props.boundaryRef) {
-        const viewportMargin = 8;
-        const boundaryBox = props.boundaryRef.getBoundingClientRect();
-        const boundaryLeft = Math.max(viewportMargin, boundaryBox.left);
-        const boundaryRight = Math.min(window.innerWidth - viewportMargin, boundaryBox.right);
-        popupEl.style.width = `${Math.min(360, Math.max(0, boundaryRight - boundaryLeft))}px`;
-        alignPopupToBoundary(popupEl, props.boundaryRef, props.alignTo ?? 'left');
+      const boundary = props.boundaryRef ?? popupEl.closest<HTMLElement>('.chat-input-container');
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary);
       }
+      flipPopupDownIfNeeded(popupEl);
       clampPopupToViewport(popupEl);
       updateOverflowTitles(popupEl);
     };
@@ -337,8 +334,6 @@ export function PermissionModePicker(props: {
   buttonRef?: HTMLButtonElement | ((el: HTMLButtonElement) => void);
   popoverRef?: HTMLDivElement | ((el: HTMLDivElement) => void);
   boundaryRef?: HTMLElement;
-  alignTo?: 'left' | 'right';
-  alignToTriggerWhenPossible?: boolean;
   mode: PermissionMode;
   activity?: AutoApproveActivity[];
   judgeModel?: { providerName: string; modelName: string } | null;
@@ -399,44 +394,15 @@ export function PermissionModePicker(props: {
 
   createEffect(() => {
     if (!props.showPicker || !popupEl) return;
-    const alignToTriggerWhenPossible = props.alignToTriggerWhenPossible;
 
     const reposition = () => {
       if (!popupEl) return;
-      flipPopupDownIfNeeded(popupEl);
-      if (props.boundaryRef) {
-        popupEl.style.width = '';
-        const viewportMargin = 8;
-        const boundaryBox = props.boundaryRef.getBoundingClientRect();
-        const boundaryLeft = Math.max(viewportMargin, boundaryBox.left);
-        const boundaryRight = Math.min(window.innerWidth - viewportMargin, boundaryBox.right);
-        const boundaryWidth = Math.max(0, boundaryRight - boundaryLeft);
-        const naturalWidth = Math.min(
-          288,
-          popupEl.scrollWidth || popupEl.getBoundingClientRect().width
-        );
-        const popupWidth = Math.min(naturalWidth, boundaryWidth);
-        popupEl.style.width = `${popupWidth}px`;
-        const positionedAncestor =
-          popupEl.offsetParent instanceof HTMLElement
-            ? popupEl.offsetParent
-            : popupEl.parentElement;
-        const ancestorBox = positionedAncestor?.getBoundingClientRect();
-        const fitsAtTrigger =
-          alignToTriggerWhenPossible &&
-          ancestorBox &&
-          ancestorBox.left >= boundaryLeft &&
-          ancestorBox.left + popupWidth <= boundaryRight;
-        if (fitsAtTrigger) {
-          popupEl.style.right = 'auto';
-          popupEl.style.left = '0px';
-        } else if (alignToTriggerWhenPossible && ancestorBox) {
-          popupEl.style.right = 'auto';
-          popupEl.style.left = `${Math.round(boundaryLeft + (boundaryWidth - popupWidth) / 2 - ancestorBox.left)}px`;
-        } else {
-          alignPopupToBoundary(popupEl, props.boundaryRef, props.alignTo ?? 'left');
-        }
+      const boundary = props.boundaryRef ?? popupEl.closest<HTMLElement>('.chat-input-container');
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary);
       }
+      flipPopupDownIfNeeded(popupEl);
       clampPopupToViewport(popupEl);
     };
 
@@ -590,42 +556,13 @@ export function AgentPicker(props: {
 
     const reposition = () => {
       if (!popupEl) return;
-      flipPopupDownIfNeeded(popupEl);
-      const trigger = popupEl.parentElement?.querySelector<HTMLElement>('.toolbar-picker');
       const boundary = popupEl.closest<HTMLElement>('.chat-input-container');
-      const positionedParent = popupEl.offsetParent;
-      if (!trigger || !boundary || !(positionedParent instanceof HTMLElement)) {
-        clampPopupToViewport(popupEl);
-        return;
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary);
       }
-
-      popupEl.style.width = '';
-      popupEl.style.left = '0px';
-      popupEl.style.right = 'auto';
-      popupEl.style.transform = '';
-      const viewportMargin = 8;
-      const boundaryBox = boundary.getBoundingClientRect();
-      const triggerBox = trigger.getBoundingClientRect();
-      const parentBox = positionedParent.getBoundingClientRect();
-      const boundaryLeft = Math.max(viewportMargin, boundaryBox.left);
-      const boundaryRight = Math.min(window.innerWidth - viewportMargin, boundaryBox.right);
-      const boundaryWidth = Math.max(0, boundaryRight - boundaryLeft);
-      const naturalWidth = Math.min(
-        288,
-        popupEl.scrollWidth || popupEl.getBoundingClientRect().width
-      );
-      const maximumWidth = Math.min(naturalWidth, boundaryWidth);
-      const triggerLeft = Math.max(boundaryLeft, triggerBox.left);
-      const availableRightWidth = boundaryRight - triggerLeft;
-      const canRemainRightOpening = availableRightWidth >= Math.min(220, maximumWidth);
-      const width = canRemainRightOpening
-        ? Math.min(maximumWidth, availableRightWidth)
-        : maximumWidth;
-      const left = canRemainRightOpening
-        ? triggerLeft
-        : Math.max(boundaryLeft, Math.min(triggerBox.right - width, boundaryRight - width));
-      popupEl.style.width = `${width}px`;
-      popupEl.style.left = `${Math.round(left - parentBox.left)}px`;
+      flipPopupDownIfNeeded(popupEl);
+      clampPopupToViewport(popupEl);
     };
 
     onCleanup(observePopupViewport(popupEl, reposition));
@@ -804,7 +741,6 @@ export function VariantPicker(props: {
   buttonRef?: HTMLButtonElement | ((el: HTMLButtonElement) => void);
   popoverRef?: HTMLDivElement | ((el: HTMLDivElement) => void);
   boundaryRef?: HTMLElement;
-  alignTo?: 'left' | 'right';
   popupGap?: number;
   variants: string[];
   selectedVariant: string | null;
@@ -833,10 +769,12 @@ export function VariantPicker(props: {
 
     const reposition = () => {
       if (!popupEl) return;
-      flipPopupDownIfNeeded(popupEl);
-      if (props.boundaryRef) {
-        alignPopupToBoundary(popupEl, props.boundaryRef, props.alignTo ?? 'left');
+      const boundary = props.boundaryRef ?? popupEl.closest<HTMLElement>('.chat-input-container');
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary, props.popupGap ?? 10);
       }
+      flipPopupDownIfNeeded(popupEl);
       clampPopupToViewport(popupEl);
     };
 

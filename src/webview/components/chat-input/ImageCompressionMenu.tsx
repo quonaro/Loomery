@@ -84,6 +84,7 @@ export function ImageCompressionMenu(props: {
           items[next]?.focus();
         }}
       >
+        <div class="image-compression-header">Compress image</div>
         <Show when={props.analysis?.recommended}>
           {(image) => (
             <button

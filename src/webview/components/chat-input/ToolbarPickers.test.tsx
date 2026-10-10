@@ -325,7 +325,7 @@ describe('ToolbarPickers', () => {
     }
   });
 
-  it('aligns the workspace popup and resizes it to the available boundary width', async () => {
+  it('spans the workspace popup to the full boundary width', async () => {
     const boundary = document.createElement('div');
     const boundaryRect = vi.spyOn(boundary, 'getBoundingClientRect').mockReturnValue({
       x: 24,
@@ -343,7 +343,6 @@ describe('ToolbarPickers', () => {
       () => (
         <WorkspacePicker
           boundaryRef={boundary}
-          alignTo="left"
           folders={[
             { name: 'Repo A', path: '/repo-a' },
             { name: 'Repo B', path: '/repo-b' },
@@ -361,6 +360,7 @@ describe('ToolbarPickers', () => {
     const popup = container?.querySelector<HTMLElement>('.toolbar-popover');
     expect(popup?.style.left).toBe('24px');
     expect(popup?.style.width).toBe('296px');
+    expect(popup?.style.marginBottom).toBe('10px');
 
     boundaryRect.mockReturnValue({
       x: 24,
@@ -648,7 +648,7 @@ describe('ToolbarPickers', () => {
     expect(toggleButton?.textContent).not.toContain('OpenCode config-based');
   });
 
-  it('limits the permission popover to the input frame', async () => {
+  it('spans the permission popover to the full input frame width', async () => {
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(600);
     let boundary: HTMLDivElement | undefined;
     cleanup = render(
@@ -690,9 +690,10 @@ describe('ToolbarPickers', () => {
 
     expect(popup?.style.width).toBe('250px');
     expect(popup?.style.left).toBe('-200px');
+    expect(popup?.style.marginBottom).toBe('10px');
   });
 
-  it('aligns permissions to its trigger and centers it when space is limited', async () => {
+  it('spans the permission popover to the full boundary width', async () => {
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(700);
     let boundary: HTMLDivElement | undefined;
     cleanup = render(
@@ -704,7 +705,6 @@ describe('ToolbarPickers', () => {
         >
           <PermissionModePicker
             boundaryRef={boundary}
-            alignToTriggerWhenPossible={true}
             mode="default"
             showPicker={true}
             showLabel={true}
@@ -728,12 +728,12 @@ describe('ToolbarPickers', () => {
       left: 300,
       right: 400,
     });
-    vi.spyOn(popup!, 'scrollWidth', 'get').mockReturnValue(288);
     window.dispatchEvent(new Event('resize'));
     await flushMicrotasks();
 
-    expect(popup?.style.width).toBe('288px');
-    expect(popup?.style.left).toBe('-144px');
+    expect(popup?.style.width).toBe('400px');
+    expect(popup?.style.left).toBe('-200px');
+    expect(popup?.style.marginBottom).toBe('10px');
 
     boundaryRect.mockReturnValue({
       ...boundary!.getBoundingClientRect(),
@@ -743,7 +743,8 @@ describe('ToolbarPickers', () => {
     window.dispatchEvent(new Event('resize'));
     await flushMicrotasks();
 
-    expect(popup?.style.left).toBe('0px');
+    expect(popup?.style.width).toBe('600px');
+    expect(popup?.style.left).toBe('-200px');
   });
 
   it('renders the agent picker state and forwards hover and selection', () => {
@@ -1084,7 +1085,7 @@ describe('ToolbarPickers', () => {
     expect(document.querySelector('.agent-picker-details')).toBeNull();
   });
 
-  it('limits the agent popover to the input host', async () => {
+  it('spans the agent popover to the full input host width', async () => {
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(600);
     cleanup = render(
       () => (
@@ -1131,6 +1132,7 @@ describe('ToolbarPickers', () => {
 
     expect(popup?.style.width).toBe('250px');
     expect(popup?.style.left).toBe('-200px');
+    expect(popup?.style.marginBottom).toBe('10px');
   });
 
   it('shows and selects the default reasoning option', async () => {
@@ -1241,7 +1243,7 @@ describe('ToolbarPickers', () => {
     }
   );
 
-  it('right-aligns the variant picker popover when a boundary is provided', async () => {
+  it('spans the variant picker popover to the full boundary width', async () => {
     const boundary = document.createElement('div');
     document.body.appendChild(boundary);
     const [showPicker, setShowPicker] = createSignal(false);
@@ -1250,7 +1252,6 @@ describe('ToolbarPickers', () => {
       () => (
         <VariantPicker
           boundaryRef={boundary}
-          alignTo="right"
           variants={['low', 'high']}
           selectedVariant="high"
           selectedLabel="High"
@@ -1295,8 +1296,10 @@ describe('ToolbarPickers', () => {
 
     const popover = container?.querySelector<HTMLElement>('.toolbar-popover');
 
-    expect(popover?.style.left).toBe('auto');
-    expect(popover?.style.right).toBe('0px');
+    expect(popover?.style.right).toBe('auto');
+    expect(popover?.style.left).toBe('-140px');
+    expect(popover?.style.width).toBe('200px');
+    expect(popover?.style.marginBottom).toBe('10px');
 
     boundary.remove();
   });

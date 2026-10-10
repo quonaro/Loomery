@@ -143,6 +143,52 @@ export function alignPopupToBoundary(
 }
 
 /**
+ * Stretch an absolutely positioned popup to the full width of a boundary
+ * element (normally the composer frame) so every chat popup opens as a
+ * full-width card like the MCP picker, regardless of which narrow trigger
+ * wrapper it is rendered in.
+ */
+export function spanPopupToBoundary(el: HTMLElement, boundaryEl: HTMLElement): void {
+  const positionedAncestor =
+    el.offsetParent instanceof HTMLElement
+      ? el.offsetParent
+      : el.parentElement instanceof HTMLElement
+        ? el.parentElement
+        : null;
+  if (!positionedAncestor) return;
+
+  const parentRect = positionedAncestor.getBoundingClientRect();
+  const boundaryRect = boundaryEl.getBoundingClientRect();
+
+  el.style.right = 'auto';
+  el.style.left = `${Math.round(boundaryRect.left - parentRect.left)}px`;
+  el.style.width = `${Math.max(0, Math.round(boundaryRect.right - boundaryRect.left))}px`;
+}
+
+/**
+ * Lift an upward-opening popup (anchored `bottom: 100%` inside a trigger
+ * wrapper) above a boundary element - normally the composer frame - so the
+ * popup opens above the whole chat box like the MCP picker instead of
+ * overlapping the composer. The lift is applied as bottom margin, so the
+ * flip helper keeps working: a clipped popup still flips below the box.
+ */
+export function liftPopupAboveBoundary(el: HTMLElement, boundaryEl: HTMLElement, gap = 10): void {
+  el.style.marginBottom = '';
+  const positionedAncestor =
+    el.offsetParent instanceof HTMLElement
+      ? el.offsetParent
+      : el.parentElement instanceof HTMLElement
+        ? el.parentElement
+        : null;
+  if (!positionedAncestor) return;
+
+  const anchorTop = positionedAncestor.getBoundingClientRect().top;
+  const boundaryTop = boundaryEl.getBoundingClientRect().top;
+  const lift = Math.max(0, Math.round(anchorTop - boundaryTop));
+  el.style.marginBottom = `${lift + gap}px`;
+}
+
+/**
  * Flip an upward-opening popup (anchored `bottom: 100%` inside a relative
  * trigger wrapper) to open downward when it would be clipped above and there
  * is more room below the trigger. Returns whether the popup now opens down.

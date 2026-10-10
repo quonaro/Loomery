@@ -3,9 +3,11 @@ import {
   alignPopupToBoundary,
   clampPopupToViewport,
   flipPopupDownIfNeeded,
+  liftPopupAboveBoundary,
   observePopupViewport,
   placeDropdownAnchor,
   placeTriggerDropdownAnchor,
+  spanPopupToBoundary,
 } from './popup-position';
 
 const originalInnerWidth = window.innerWidth;
@@ -322,6 +324,93 @@ describe('popup-position', () => {
 
     expect(popup.style.left).toBe('auto');
     expect(popup.style.right).toBe('0px');
+  });
+
+  it('stretches popups to the full width of a boundary element', () => {
+    const popup = document.createElement('div');
+    const parent = document.createElement('div');
+    parent.appendChild(popup);
+    document.body.appendChild(parent);
+
+    vi.spyOn(parent, 'getBoundingClientRect').mockReturnValue({
+      x: 140,
+      y: 0,
+      top: 0,
+      left: 140,
+      right: 220,
+      bottom: 24,
+      width: 80,
+      height: 24,
+      toJSON: () => ({}),
+    });
+
+    const boundary = document.createElement('div');
+    vi.spyOn(boundary, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 220,
+      bottom: 24,
+      width: 220,
+      height: 24,
+      toJSON: () => ({}),
+    });
+
+    try {
+      mockOffsetParent(popup, parent);
+      spanPopupToBoundary(popup, boundary);
+
+      expect(popup.style.right).toBe('auto');
+      expect(popup.style.left).toBe('-140px');
+      expect(popup.style.width).toBe('220px');
+    } finally {
+      parent.remove();
+    }
+  });
+
+  it('lifts popups above a boundary element with a gap', () => {
+    const popup = document.createElement('div');
+    const parent = document.createElement('div');
+    parent.appendChild(popup);
+    document.body.appendChild(parent);
+
+    vi.spyOn(parent, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 100,
+      top: 100,
+      left: 0,
+      right: 80,
+      bottom: 124,
+      width: 80,
+      height: 24,
+      toJSON: () => ({}),
+    });
+
+    const boundary = document.createElement('div');
+    vi.spyOn(boundary, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 40,
+      top: 40,
+      left: 0,
+      right: 220,
+      bottom: 200,
+      width: 220,
+      height: 160,
+      toJSON: () => ({}),
+    });
+
+    try {
+      mockOffsetParent(popup, parent);
+      liftPopupAboveBoundary(popup, boundary);
+
+      expect(popup.style.marginBottom).toBe('70px');
+
+      liftPopupAboveBoundary(popup, boundary, 6);
+      expect(popup.style.marginBottom).toBe('66px');
+    } finally {
+      parent.remove();
+    }
   });
 
   it('observes popup and window changes for repositioning', async () => {

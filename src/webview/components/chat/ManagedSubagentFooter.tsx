@@ -269,7 +269,6 @@ export function ManagedSubagentFooter(props: {
                   <Show when={showProviderLimitPopup()}>
                     <ProviderLimitPopup
                       boundaryRef={inputFrameRef}
-                      alignTo="right"
                       limit={compactProviderLimit()}
                       providerName={currentModel().providerName}
                       onClose={() => setShowProviderLimitPopup(false)}
@@ -296,7 +295,6 @@ export function ManagedSubagentFooter(props: {
                     <Show when={showContextPopup()}>
                       <ContextPopup
                         boundaryRef={inputFrameRef}
-                        alignTo="right"
                         usage={usage()}
                         breakdown={contextBreakdown()}
                         nestedBreakdown={nestedContextBreakdown()}

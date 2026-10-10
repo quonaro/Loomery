@@ -1,9 +1,11 @@
 import { createSignal, For, onCleanup, onMount, Show } from 'solid-js';
 import type { ProviderLimitStatus, ProviderLimitWindow } from '../../../shared/protocol';
 import {
-  alignPopupToBoundary,
   clampPopupToViewport,
+  flipPopupDownIfNeeded,
+  liftPopupAboveBoundary,
   observePopupViewport,
+  spanPopupToBoundary,
 } from '../../lib/popup-position';
 import {
   formatProviderLimitWindowReset,
@@ -24,7 +26,6 @@ const PROVIDER_LIMIT_ERROR_PERCENT = 90;
 export function ProviderLimitPopup(props: {
   ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
   boundaryRef?: HTMLElement;
-  alignTo?: 'left' | 'right';
   limit: ProviderLimitStatus | null;
   providerName: string;
   onClose: () => void;
@@ -53,119 +54,130 @@ export function ProviderLimitPopup(props: {
     if (!popupEl) return;
     const reposition = () => {
       if (!popupEl) return;
-      if (props.boundaryRef)
-        alignPopupToBoundary(popupEl, props.boundaryRef, props.alignTo ?? 'right');
+      const boundary = props.boundaryRef ?? popupEl.closest<HTMLElement>('.chat-input-container');
+      if (boundary) {
+        spanPopupToBoundary(popupEl, boundary);
+        liftPopupAboveBoundary(popupEl, boundary);
+      }
+      flipPopupDownIfNeeded(popupEl);
       clampPopupToViewport(popupEl);
     };
     onCleanup(observePopupViewport(popupEl, reposition));
   });
 
   return (
-    <div ref={setRef} class="provider-limit-popup" onClick={(e) => e.stopPropagation()}>
+    <div
+      ref={setRef}
+      class="provider-limit-popup"
+      data-popup-position-pending
+      onClick={(e) => e.stopPropagation()}
+    >
       <div class="provider-limit-popup-header">
         <span class="provider-limit-popup-title">Provider Limits</span>
       </div>
 
-      <Show
-        when={props.limit?.status === 'available' && windows().length > 0}
-        fallback={
-          <Show when={creditBalance() === undefined}>
-            <div class="provider-limit-popup-empty">
-              {props.limit?.status === 'unsupported' || props.limit?.status === 'error'
-                ? props.limit.note || 'Limits unavailable'
-                : 'No active limits'}
-            </div>
-          </Show>
-        }
-      >
-        <div class="provider-limit-popup-rows">
-          <For each={windows()}>{(window) => <ProviderLimitRow window={window} />}</For>
-        </div>
-      </Show>
+      <div class="provider-limit-popup-body">
+        <Show
+          when={props.limit?.status === 'available' && windows().length > 0}
+          fallback={
+            <Show when={creditBalance() === undefined}>
+              <div class="provider-limit-popup-empty">
+                {props.limit?.status === 'unsupported' || props.limit?.status === 'error'
+                  ? props.limit.note || 'Limits unavailable'
+                  : 'No active limits'}
+              </div>
+            </Show>
+          }
+        >
+          <div class="provider-limit-popup-rows">
+            <For each={windows()}>{(window) => <ProviderLimitRow window={window} />}</For>
+          </div>
+        </Show>
 
-      <Show when={creditBalance() !== undefined}>
-        <div class="provider-limit-credit-section provider-limit-row-head">
-          <span class="provider-limit-row-label">Credits</span>
-          <span class="provider-limit-row-pct">{creditBalance()?.toLocaleString()}</span>
-        </div>
-      </Show>
+        <Show when={creditBalance() !== undefined}>
+          <div class="provider-limit-credit-section provider-limit-row-head">
+            <span class="provider-limit-row-label">Credits</span>
+            <span class="provider-limit-row-pct">{creditBalance()?.toLocaleString()}</span>
+          </div>
+        </Show>
 
-      <Show when={resetCredits()}>
-        {(resets) => {
-          const unavailableCount = () =>
-            Math.max(resets().availableCount - (resets().credits?.length ?? 0), 0);
-          return (
-            <div class="provider-limit-reset-section">
-              <button
-                type="button"
-                class="provider-limit-reset-toggle"
-                aria-expanded={resetCreditsExpanded()}
-                onClick={() => setResetCreditsExpanded((expanded) => !expanded)}
-              >
-                <span>Usage limit resets ({resets().availableCount})</span>
-                <UiIcon
-                  source={navArrowRightIcon}
-                  class={`provider-limit-reset-chevron${resetCreditsExpanded() ? ' expanded' : ''}`}
-                  width="10"
-                  height="10"
-                />
-              </button>
-              <Show when={resetCreditsExpanded()}>
-                <div class="provider-limit-reset-content">
-                  <ul class="provider-limit-reset-rows" aria-label="Available usage limit resets">
-                    <For each={resets().credits ?? []}>
-                      {(credit) => (
-                        <li class="provider-limit-reset-row">
-                          <Show when={!isGenericResetCreditTitle(credit.title)}>
-                            <span class="provider-limit-reset-title">{credit.title}: </span>
-                          </Show>
-                          <span class="provider-limit-reset-expiration">
-                            {credit.expiresAt == null
-                              ? 'Does not expire'
-                              : `Expires ${formatResetCreditExpiration(credit.expiresAt)}`}
-                          </span>
+        <Show when={resetCredits()}>
+          {(resets) => {
+            const unavailableCount = () =>
+              Math.max(resets().availableCount - (resets().credits?.length ?? 0), 0);
+            return (
+              <div class="provider-limit-reset-section">
+                <button
+                  type="button"
+                  class="provider-limit-reset-toggle"
+                  aria-expanded={resetCreditsExpanded()}
+                  onClick={() => setResetCreditsExpanded((expanded) => !expanded)}
+                >
+                  <span>Usage limit resets ({resets().availableCount})</span>
+                  <UiIcon
+                    source={navArrowRightIcon}
+                    class={`provider-limit-reset-chevron${resetCreditsExpanded() ? ' expanded' : ''}`}
+                    width="10"
+                    height="10"
+                  />
+                </button>
+                <Show when={resetCreditsExpanded()}>
+                  <div class="provider-limit-reset-content">
+                    <ul class="provider-limit-reset-rows" aria-label="Available usage limit resets">
+                      <For each={resets().credits ?? []}>
+                        {(credit) => (
+                          <li class="provider-limit-reset-row">
+                            <Show when={!isGenericResetCreditTitle(credit.title)}>
+                              <span class="provider-limit-reset-title">{credit.title}: </span>
+                            </Show>
+                            <span class="provider-limit-reset-expiration">
+                              {credit.expiresAt == null
+                                ? 'Does not expire'
+                                : `Expires ${formatResetCreditExpiration(credit.expiresAt)}`}
+                            </span>
+                          </li>
+                        )}
+                      </For>
+                      <Show when={unavailableCount() > 0}>
+                        <li class="provider-limit-reset-unavailable">
+                          Expiration details unavailable for {unavailableCount()}{' '}
+                          {unavailableCount() === 1 ? 'reset' : 'resets'}.
                         </li>
+                      </Show>
+                    </ul>
+                    <Show when={resetCreditsUsageLink()}>
+                      {(link) => (
+                        <a
+                          class="provider-limit-reset-link"
+                          href={link().url}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            postMessage({
+                              type: 'vscode/open-external',
+                              payload: { url: link().url },
+                            });
+                          }}
+                        >
+                          {link().label}
+                          <UiIcon source={openNewWindowIcon} width="11" height="11" />
+                        </a>
                       )}
-                    </For>
-                    <Show when={unavailableCount() > 0}>
-                      <li class="provider-limit-reset-unavailable">
-                        Expiration details unavailable for {unavailableCount()}{' '}
-                        {unavailableCount() === 1 ? 'reset' : 'resets'}.
-                      </li>
                     </Show>
-                  </ul>
-                  <Show when={resetCreditsUsageLink()}>
-                    {(link) => (
-                      <a
-                        class="provider-limit-reset-link"
-                        href={link().url}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          postMessage({
-                            type: 'vscode/open-external',
-                            payload: { url: link().url },
-                          });
-                        }}
-                      >
-                        {link().label}
-                        <UiIcon source={openNewWindowIcon} width="11" height="11" />
-                      </a>
-                    )}
-                  </Show>
-                </div>
-              </Show>
-            </div>
-          );
-        }}
-      </Show>
+                  </div>
+                </Show>
+              </div>
+            );
+          }}
+        </Show>
 
-      <Show when={props.providerName}>
-        <div class="provider-limit-popup-provider">
-          {props.providerName}
-          <Show when={planName()}>{(name) => <> · {name()}</>}</Show>
-        </div>
-      </Show>
+        <Show when={props.providerName}>
+          <div class="provider-limit-popup-provider">
+            {props.providerName}
+            <Show when={planName()}>{(name) => <> · {name()}</>}</Show>
+          </div>
+        </Show>
+      </div>
     </div>
   );
 }
