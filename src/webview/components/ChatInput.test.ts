@@ -760,7 +760,7 @@ describe('ChatInput', () => {
     });
 
     it.each([false, true])(
-      'disables inline broken chips and sends without the image or its placeholder (steering: %s)',
+      'disables inline broken chips and sends without the image or its placeholder (busy: %s)',
       async (steering) => {
         if (steering) setupMatchingActiveTurn();
         setIsLoading(steering);
@@ -781,12 +781,19 @@ describe('ChatInput', () => {
             new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, metaKey: steering })
           );
         await flushAsyncWork();
-        expect(sendMessageMock).toHaveBeenCalledWith(
-          'Describe ',
-          expect.objectContaining({
-            queuedAttachments: expect.objectContaining({ clipboardImages: [] }),
-          })
-        );
+        if (steering) {
+          expect(sendMessageMock).not.toHaveBeenCalled();
+          expect(state.queuedMessages).toHaveLength(1);
+          expect(state.queuedMessages[0]?.text).toBe('Describe ');
+          expect(state.queuedMessages[0]?.clipboardImages).toEqual([]);
+        } else {
+          expect(sendMessageMock).toHaveBeenCalledWith(
+            'Describe ',
+            expect.objectContaining({
+              queuedAttachments: expect.objectContaining({ clipboardImages: [] }),
+            })
+          );
+        }
       }
     );
 
@@ -1583,7 +1590,7 @@ describe('ChatInput', () => {
     await Promise.resolve();
 
     expect(container?.querySelector('.rich-composer')?.getAttribute('data-placeholder')).toBe(
-      'Queue a follow-up or steer'
+      'Queue a follow-up'
     );
 
     setState('sessionStatus', {
@@ -1593,7 +1600,7 @@ describe('ChatInput', () => {
     await Promise.resolve();
 
     expect(container?.querySelector('.rich-composer')?.getAttribute('data-placeholder')).toBe(
-      'Queue a follow-up or steer'
+      'Queue a follow-up'
     );
 
     await vi.advanceTimersByTimeAsync(700);
@@ -8425,14 +8432,12 @@ describe('ChatInput', () => {
       expect(
         container?.querySelector<HTMLButtonElement>('[aria-label="Thinking level"]')?.disabled
       ).toBe(false);
-      container?.querySelector<HTMLButtonElement>('[aria-label="More send options"]')?.click();
-      const menuAction = (label: string) =>
-        [...container!.querySelectorAll<HTMLButtonElement>('.busy-menu button')].find((button) =>
-          button.textContent?.includes(label)
-        );
-      expect(menuAction('Steer with Message')?.disabled).toBe(true);
-      expect(menuAction('Stop and Send')?.disabled).toBe(true);
-      menuAction('Stop and Send')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(
+        container?.querySelector<HTMLButtonElement>('[aria-label="More send options"]')
+      ).toBeNull();
+      expect(
+        container?.querySelector<HTMLButtonElement>('[aria-label="Add to queue (Enter)"]')
+      ).not.toBeNull();
       expect(abortSessionMock).not.toHaveBeenCalled();
       container
         ?.querySelector('.rich-composer')
@@ -8458,9 +8463,6 @@ describe('ChatInput', () => {
       );
       setState('selectedAgent', 'build');
       setInputText('Matching settings');
-      if (!menuAction('Steer with Message'))
-        container?.querySelector<HTMLButtonElement>('[aria-label="More send options"]')?.click();
-      expect(menuAction('Steer with Message')?.disabled).toBe(false);
       expect(
         container?.querySelector<HTMLButtonElement>('[aria-label="Send as Steer"]')?.disabled
       ).toBe(true);
@@ -8551,7 +8553,7 @@ describe('ChatInput', () => {
     }
   );
 
-  it('sends busy composer input as a steer on modifier enter', async () => {
+  it('queues busy composer input on modifier enter', async () => {
     setupMatchingActiveTurn();
     setIsLoading(true);
     setState('activeSessionId', 'session-1');
@@ -8565,56 +8567,37 @@ describe('ChatInput', () => {
     );
     await flushAsyncWork();
 
-    expect(sendMessageMock).toHaveBeenCalledWith('Change direction', { delivery: 'steer' });
-    expect(state.queuedMessages).toEqual([]);
+    expect(sendMessageMock).not.toHaveBeenCalled();
+    expect(state.queuedMessages).toHaveLength(1);
+    expect(state.queuedMessages[0]?.text).toBe('Change direction');
   });
 
-  it('stops the active response before sending from the busy send menu', async () => {
+  it('offers only a single queue send button while busy', async () => {
     setupMatchingActiveTurn();
     setIsLoading(true);
     setState('activeSessionId', 'session-1');
-    setInputText('Follow up after stopping');
+    setInputText('Follow up while busy');
 
     cleanup = render(() => ChatInput(), container!);
-
-    const menuButton = container?.querySelector<HTMLButtonElement>(
-      '[aria-label="More send options"]'
-    );
-    menuButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncWork();
 
-    const stopAndSendButton = [...container!.querySelectorAll<HTMLButtonElement>('button')].find(
-      (button) => button.textContent?.includes('Stop and Send')
-    );
-    stopAndSendButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await flushAsyncWork();
-
-    expect(abortSessionMock).toHaveBeenCalledTimes(1);
-    expect(sendMessageMock).toHaveBeenCalledWith('Follow up after stopping', { noReply: false });
-    expect(state.queuedMessages).toEqual([]);
-  });
-
-  it('does not send from the busy menu when stopping fails', async () => {
-    setupMatchingActiveTurn();
-    abortSessionMock.mockRejectedValueOnce(new Error('abort failed'));
-    setIsLoading(true);
-    setState('activeSessionId', 'session-1');
-    setInputText('Do not send after a failed stop');
-
-    cleanup = render(() => ChatInput(), container!);
+    expect(
+      container?.querySelector<HTMLButtonElement>('[aria-label="More send options"]')
+    ).toBeNull();
+    expect(container?.querySelector('.busy-menu')).toBeNull();
+    expect(
+      container?.querySelector<HTMLButtonElement>('[aria-label="Add to queue (Enter)"]')
+    ).not.toBeNull();
 
     container
-      ?.querySelector<HTMLButtonElement>('[aria-label="More send options"]')
+      ?.querySelector<HTMLButtonElement>('[aria-label="Add to queue (Enter)"]')
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const stopAndSendButton = [...container!.querySelectorAll<HTMLButtonElement>('button')].find(
-      (button) => button.textContent?.includes('Stop and Send')
-    );
-    stopAndSendButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await flushAsyncWork();
 
-    expect(abortSessionMock).toHaveBeenCalledTimes(1);
+    expect(abortSessionMock).not.toHaveBeenCalled();
     expect(sendMessageMock).not.toHaveBeenCalled();
-    expect(inputText()).toBe('Do not send after a failed stop');
+    expect(state.queuedMessages).toHaveLength(1);
+    expect(state.queuedMessages[0]?.text).toBe('Follow up while busy');
   });
 
   it('runs a typed slash command with args on Enter', async () => {
@@ -10358,13 +10341,13 @@ describe('ChatInput', () => {
       await flushAsyncWork();
       expect(sendMessageMock).toHaveBeenCalledTimes(1);
       expect(editor.textContent).toBe('');
-      expect(editor.getAttribute('data-placeholder')).toBe('Queue a follow-up or steer');
+      expect(editor.getAttribute('data-placeholder')).toBe('Queue a follow-up');
       expect(container!.querySelector('.chat-attachments-container')).toBeNull();
       if (createsSession) {
         setState('activeSessionId', 'created-session');
         await flushAsyncWork();
         expect(editor.textContent).toBe('');
-        expect(editor.getAttribute('data-placeholder')).toBe('Queue a follow-up or steer');
+        expect(editor.getAttribute('data-placeholder')).toBe('Queue a follow-up');
         expect(container!.querySelector('.chat-attachments-container')).toBeNull();
       }
       // The send still owns its payload; a newly attached file belongs to the next draft.

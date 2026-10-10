@@ -78,7 +78,7 @@ for (const scenario of ['large-transcript', 'blank', 'busy-stop-send']) {
                   animation: getComputedStyle(node).animationName,
                   pointerEvents: getComputedStyle(node).pointerEvents,
                   placeholder: element
-                    .querySelector(':scope > .chat-editor-container .rich-composer')
+                    .querySelector(':scope .chat-input-main-box .rich-composer')
                     ?.getAttribute('data-placeholder'),
                 })
               );
@@ -94,7 +94,7 @@ for (const scenario of ['large-transcript', 'blank', 'busy-stop-send']) {
           return {
             height: bounds.height,
             toolbarBottomGap: bounds.bottom - toolbar.getBoundingClientRect().bottom,
-            draftEmpty: !element.querySelector(':scope > .chat-editor-container .rich-composer')
+            draftEmpty: !element.querySelector(':scope .chat-input-main-box .rich-composer')
               ?.textContent,
             attachmentCount: element.querySelectorAll(
               ':scope > .chat-attachments-container .chat-attachment-chip'

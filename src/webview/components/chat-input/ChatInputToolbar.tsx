@@ -16,7 +16,6 @@ import { formatTurnCost } from '../../lib/message-metrics';
 import { Tooltip } from '../Tooltip';
 import { UiIcon } from '../UiIcon';
 import { AttachButton } from './AttachButton';
-import { BusySendMenu } from './BusySendMenu';
 import { ContextPopup, ContextUsageButton, formatContextUsageTitle } from './ContextPopup';
 import { ProviderLimitPopup } from './ProviderLimitPopup';
 import { SendControls } from './SendControls';
@@ -127,16 +126,8 @@ type ToolbarSharedProps = {
   onStop: () => void;
   showSendControl: boolean;
   showBusySendControls: boolean;
-  showBusySendOptions: boolean;
   canSend: boolean;
-  busyToggleRef?: HTMLButtonElement | ((el: HTMLButtonElement) => void);
-  showBusyMenu: boolean;
   onSend: () => void;
-  onToggleBusyMenu: () => void;
-  busyMenuRef?: HTMLDivElement | ((el: HTMLDivElement) => void);
-  onQueue: () => void;
-  onSteer: () => void;
-  onStopAndSend: () => void;
 };
 
 type ChatInputMainToolbarProps = ToolbarSharedProps & {
@@ -239,38 +230,6 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
       ref={props.toolbarRef}
       class={`chat-input-toolbars toolbar-main ${props.compactTight ? 'compact-tight' : ''}`}
     >
-      <div ref={props.toolbarRightRef} class="toolbar-right toolbar-send-left">
-        <Show when={props.showStopButton}>
-          <StopButton onStop={props.onStop} />
-        </Show>
-
-        <Show when={props.showSendControl}>
-          <div style={{ position: 'relative' }}>
-            <SendControls
-              showBusyControls={props.showBusySendControls}
-              showBusyOptions={props.showBusySendOptions}
-              busyMenuOpen={props.showBusyMenu}
-              canSend={props.canSend}
-              busyToggleRef={props.busyToggleRef}
-              onSend={props.onSend}
-              onToggleBusyMenu={props.onToggleBusyMenu}
-            />
-
-            <Show
-              when={props.showBusyMenu && props.showBusySendControls && props.showBusySendOptions}
-            >
-              <BusySendMenu
-                ref={props.busyMenuRef}
-                onQueue={props.onQueue}
-                onSteer={props.onSteer}
-                onStopAndSend={props.onStopAndSend}
-                queueOnly={props.queueOnly}
-              />
-            </Show>
-          </div>
-        </Show>
-      </div>
-
       <div
         ref={props.toolbarLeftRef}
         class={`toolbar-left${props.showLeftPopupState ? ' showing-context-popup' : ''}`}
@@ -328,6 +287,22 @@ export function ChatInputMainToolbar(props: ChatInputMainToolbarProps) {
 
         <Show when={props.selectionCostWarning}>
           {(warning) => <SelectionCostWarning {...warning()} />}
+        </Show>
+      </div>
+
+      <div ref={props.toolbarRightRef} class="toolbar-right">
+        <Show when={props.showStopButton}>
+          <StopButton onStop={props.onStop} />
+        </Show>
+
+        <Show when={props.showSendControl}>
+          <div style={{ position: 'relative' }}>
+            <SendControls
+              showBusyControls={props.showBusySendControls}
+              canSend={props.canSend}
+              onSend={props.onSend}
+            />
+          </div>
         </Show>
       </div>
     </div>

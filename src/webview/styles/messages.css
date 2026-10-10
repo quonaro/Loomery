@@ -2968,19 +2968,6 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   border-radius: 50%;
 }
 
-.interactive-session .chat-input-toolbars.toolbar-main .send-button-group .send-main {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-top-left-radius: 50%;
-  border-bottom-left-radius: 50%;
-  width: 26px;
-}
-
-.interactive-session .chat-input-toolbars.toolbar-main .send-mode-options {
-  border-top-right-radius: 50%;
-  border-bottom-right-radius: 50%;
-}
-
 /* Meta row lives inside the same card, like Local / DataMart in the reference. */
 .interactive-session .chat-input-container > .chat-input-toolbars.toolbar-meta {
   padding: 0;
@@ -3015,11 +3002,6 @@ body.vscode-dark .interactive-session .chat-input-container.focused {
   margin-left: auto;
   flex-shrink: 0;
   min-width: 0;
-}
-
-.interactive-session .chat-input-toolbars.toolbar-main .toolbar-right.toolbar-send-left {
-  margin-left: 0;
-  justify-content: flex-start;
 }
 
 .interactive-session .chat-input-toolbars.toolbar-main .toolbar-popover {

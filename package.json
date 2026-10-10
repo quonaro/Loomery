@@ -35,6 +35,7 @@
     "NOTICES.md",
     "dist/webview",
     "assets/icon.png",
+    "assets/icon-blue.png",
     "README.md",
     "CHANGELOG.md"
   ],
@@ -585,7 +586,7 @@
   "extensionKind": [
     "workspace"
   ],
-  "icon": "assets/icon.png",
+  "icon": "assets/icon-blue.png",
   "galleryBanner": {
     "color": "#232323",
     "theme": "dark"

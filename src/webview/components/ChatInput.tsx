@@ -856,13 +856,10 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   let contextPopupRef: HTMLDivElement | undefined;
   let providerLimitButtonRef: HTMLButtonElement | undefined;
   let providerLimitPopupRef: HTMLDivElement | undefined;
-  let busyMenuRef: HTMLDivElement | undefined;
-  let busyToggleRef: HTMLButtonElement | undefined;
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
   const [showAgentPicker, setShowAgentPicker] = createSignal(false);
   const [showWorkspacePicker, setShowWorkspacePicker] = createSignal(false);
   const [agentFocusIndex, setAgentFocusIndex] = createSignal(0);
-  const [showBusyMenu, setShowBusyMenu] = createSignal(false);
   const [showVariantPicker, setShowVariantPicker] = createSignal(false);
   const [showPermissionModePicker, setShowPermissionModePicker] = createSignal(false);
   const [showContextPopup, setShowContextPopup] = createSignal(false);
@@ -1036,7 +1033,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     | 'permission'
     | 'context'
     | 'providerLimit'
-    | 'busy'
     | 'lsp'
     | 'mcp';
   const closePopups = (except?: PopupKind) => {
@@ -1049,7 +1045,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     if (except !== 'permission') setShowPermissionModePicker(false);
     if (except !== 'context') setShowContextPopup(false);
     if (except !== 'providerLimit') setShowProviderLimitPopup(false);
-    if (except !== 'busy') setShowBusyMenu(false);
   };
   const anyComposerPopupOpen = () =>
     showWorkspacePicker() ||
@@ -1060,8 +1055,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     showLspPicker() ||
     showPermissionModePicker() ||
     showContextPopup() ||
-    showProviderLimitPopup() ||
-    showBusyMenu();
+    showProviderLimitPopup();
 
   createEffect(() => {
     const pending = pendingWorkspacePath();
@@ -2710,7 +2704,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       showAgentPicker() ||
       showVariantPicker() ||
       showPermissionModePicker() ||
-      showBusyMenu() ||
       showContextPopup() ||
       showProviderLimitPopup() ||
       (isFocused() && showCompletionMenu())
@@ -2842,16 +2835,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         reportBlockedSend();
         return;
       }
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        isComposerBusy() &&
-        !hasPendingApproval() &&
-        !composerEditingMessage()
-      ) {
-        sendFromUi('steer');
-      } else {
-        sendFromUi();
-      }
+      sendFromUi();
     }
   }
 
@@ -3232,11 +3216,11 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     };
   }
 
-  function sendFromUi(mode?: 'queue' | 'steer') {
-    void handleSend(mode).catch((err) => logError('Failed to send message', err));
+  function sendFromUi() {
+    void handleSend().catch((err) => logError('Failed to send message', err));
   }
 
-  async function handleSend(mode?: 'queue' | 'steer' | 'after-stop') {
+  async function handleSend() {
     const text = inputText();
     if (isPauseSlashCommand(text)) {
       await requestPauseSession();
@@ -3263,21 +3247,10 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const sendSessionWasBusy = isComposerBusy();
     const queuedEdit = queuedMessageEdit();
     const pendingApproval = hasPendingApproval();
-    if (
-      sendSessionWasBusy &&
-      !composerEditingMessage() &&
-      queueOnlySelection() &&
-      mode === 'steer'
-    ) {
-      mode = 'queue';
-    }
-    if (
-      pendingApproval &&
-      (mode === 'steer' || mode === 'after-stop' || composerEditingMessage())
-    ) {
+    if (pendingApproval && composerEditingMessage()) {
       return;
     }
-    const shouldQueue = mode === 'queue' || pendingApproval;
+    const shouldQueue = pendingApproval;
     const sendableText = getSendableInputText(text);
     const hasBrokenImages = state.clipboardImages.some((image) => imageError(image.id));
     const hasSendableImages = hasSendableClipboardImages();
@@ -3439,11 +3412,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       }
     }
 
-    if (mode === 'steer' && queueOnlySelection()) mode = 'queue';
-
     if (
-      mode !== 'steer' &&
-      mode !== 'after-stop' &&
       (shouldQueue || sendSessionWasBusy || queuedEdit?.sessionId === sendSessionId) &&
       sendSessionId &&
       (sendableText.trim() || hasQueuedAttachments)
@@ -3576,15 +3545,12 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       // where Enter was pressed if navigation changes the active session meanwhile.
       const capturedTarget =
         props.newSession || composerSessionId() !== sendSessionId ? sendSessionId : undefined;
-      const sendOptions: NonNullable<Parameters<typeof sendMessage>[1]> =
-        mode === 'steer'
-          ? { delivery: 'steer' }
-          : {
-              noReply: false,
-              queuedAttachments: props.newSession ? queuedAttachments : undefined,
-              newSessionWorkspace,
-              onOptimisticPublish: props.newSession ? props.onBeforeSend : undefined,
-            };
+      const sendOptions: NonNullable<Parameters<typeof sendMessage>[1]> = {
+        noReply: false,
+        queuedAttachments: props.newSession ? queuedAttachments : undefined,
+        newSessionWorkspace,
+        onOptimisticPublish: props.newSession ? props.onBeforeSend : undefined,
+      };
       if (capturedTarget !== undefined) sendOptions.targetSessionId = capturedTarget;
       if (hasBrokenImages) sendOptions.queuedAttachments = queuedAttachments;
       if (queuedEdit)
@@ -3621,17 +3587,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         void handleSend();
       });
     }
-  }
-
-  async function handleStopAndSend() {
-    if (hasPendingApproval() || queueOnlySelection()) return;
-    try {
-      await abortSession();
-    } catch {
-      return;
-    }
-    await handleSend('after-stop');
-    setShowBusyMenu(false);
   }
 
   async function dispatchQueuedMessage(item: (typeof state.queuedMessages)[number], retry = false) {
@@ -4976,7 +4931,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         setShowLspPicker(false);
         setShowVariantPicker(false);
         setShowPermissionModePicker(false);
-        setShowBusyMenu(false);
         setShowContextPopup(false);
         setShowProviderLimitPopup(false);
         setCompletionIndex(0);
@@ -5009,9 +4963,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       }
       if (showVariantPicker() && clickedOutside(target, variantPickerRef, variantPopoverRef)) {
         setShowVariantPicker(false);
-      }
-      if (showBusyMenu() && clickedOutside(target, busyToggleRef, busyMenuRef)) {
-        setShowBusyMenu(false);
       }
       if (showContextPopup() && clickedOutside(target, contextButtonRef, contextPopupRef)) {
         setShowContextPopup(false);
@@ -5109,7 +5060,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         showPermissionModePicker()
       )
         return;
-      if (showBusyMenu() || showContextPopup() || showProviderLimitPopup()) return;
+      if (showContextPopup() || showProviderLimitPopup()) return;
       toolbarFitter.schedule();
     });
     observer.observe(toolbarRef);
@@ -5456,7 +5407,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       canSend() &&
       !composerEditingMessage()
   );
-  const showBusySendOptions = createMemo(() => isBusyWithoutInterruption());
 
   const clipboardImagesNeedVision = () =>
     composerClipboardImages().length > 0 && !currentPromptCanHandleImages();
@@ -5832,7 +5782,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     showMcpPicker: showMcpPicker(),
     showLspPicker: showLspPicker(),
     showPermissionModePicker: showPermissionModePicker(),
-    showBusyMenu: showBusyMenu(),
     showContextPopup: showContextPopup(),
     showProviderLimitPopup: showProviderLimitPopup(),
   }));
@@ -6113,7 +6062,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       deps.showPermissionModePicker
     )
       return;
-    if (deps.showBusyMenu || deps.showContextPopup || deps.showProviderLimitPopup) return;
+    if (deps.showContextPopup || deps.showProviderLimitPopup) return;
 
     toolbarFitter.schedule({ contentChanged: true });
   });
@@ -6285,7 +6234,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
           ref={(el) => {
             inputFrameRef = el;
           }}
-          class={`chat-input-container ${isFocused() ? 'focused' : ''} ${showModelPicker() || showMcpPicker() || showLspPicker() ? 'showing-model-picker' : ''} ${showAgentPicker() || showVariantPicker() || showMcpPicker() || showLspPicker() || showBusyMenu() || (isFocused() && showCompletionMenu()) ? 'showing-context-popup' : ''}`}
+          class={`chat-input-container ${isFocused() ? 'focused' : ''} ${showModelPicker() || showMcpPicker() || showLspPicker() ? 'showing-model-picker' : ''} ${showAgentPicker() || showVariantPicker() || showMcpPicker() || showLspPicker() || (isFocused() && showCompletionMenu()) ? 'showing-context-popup' : ''}`}
           style={{
             'min-height': sendComposerMinHeight() ? `${sendComposerMinHeight()}px` : undefined,
           }}
@@ -6400,7 +6349,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
                     : composerHasActiveQuestion() || composerHasActivePermission()
                       ? 'Respond to the prompt above to continue...'
                       : workspaceSendPending() || isComposerDisplayBusy()
-                        ? 'Queue a follow-up or steer'
+                        ? 'Queue a follow-up'
                         : 'Tip: Type @ to bring in context from another chat'
               }
               value={inputText()}
@@ -6454,7 +6403,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
                 setShowLspPicker(false);
                 setShowVariantPicker(false);
                 setShowPermissionModePicker(false);
-                setShowBusyMenu(false);
               }}
               onKeyUp={(cursorOffset, selectionEnd) => {
                 if (cursorOffset === selectionEnd) setCaretPosition(cursorOffset);
@@ -6732,30 +6680,8 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
               onStop={requestStopSession}
               showSendControl={showSendControl()}
               showBusySendControls={showBusySendControls()}
-              showBusySendOptions={showBusySendOptions()}
               canSend={canSend()}
-              busyToggleRef={(el) => {
-                busyToggleRef = el;
-              }}
-              showBusyMenu={showBusyMenu()}
               onSend={() => sendFromUi()}
-              onToggleBusyMenu={() => {
-                const next = !showBusyMenu();
-                closePopups(next ? 'busy' : undefined);
-                setShowBusyMenu(next);
-              }}
-              busyMenuRef={(el) => {
-                busyMenuRef = el;
-              }}
-              onQueue={() => {
-                sendFromUi('queue');
-                setShowBusyMenu(false);
-              }}
-              onSteer={() => {
-                sendFromUi('steer');
-                setShowBusyMenu(false);
-              }}
-              onStopAndSend={() => void handleStopAndSend()}
             />
           </div>
 
@@ -6949,30 +6875,8 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
             onStop={requestStopSession}
             showSendControl={showSendControl()}
             showBusySendControls={showBusySendControls()}
-            showBusySendOptions={showBusySendOptions()}
             canSend={canSend()}
-            busyToggleRef={(el) => {
-              busyToggleRef = el;
-            }}
-            showBusyMenu={showBusyMenu()}
             onSend={() => sendFromUi()}
-            onToggleBusyMenu={() => {
-              const next = !showBusyMenu();
-              closePopups(next ? 'busy' : undefined);
-              setShowBusyMenu(next);
-            }}
-            busyMenuRef={(el) => {
-              busyMenuRef = el;
-            }}
-            onQueue={() => {
-              sendFromUi('queue');
-              setShowBusyMenu(false);
-            }}
-            onSteer={() => {
-              sendFromUi('steer');
-              setShowBusyMenu(false);
-            }}
-            onStopAndSend={() => void handleStopAndSend()}
           />
         </div>
       </div>

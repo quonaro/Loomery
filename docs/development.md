@@ -135,7 +135,7 @@ npm run test
 npm run test:e2e
 ```
 
-Use `npm run vscode:install` when you specifically want to package and install the VSIX into your local VS Code. The helper removes old Loomery VSIX files, packages the current version, and passes its exact filename to the VS Code CLI on macOS, Linux, and Windows. Run `npm run vscode:install -- --dry-run` to inspect those operations without changing files or invoking the build or VS Code.
+Use `npm run vscode:install` when you specifically want to package and install the VSIX into your local VS Code-family IDEs (VS Code, Cursor, Trae, Windsurf, VSCodium, and similar forks share the same `--install-extension` CLI contract). By default the helper auto-detects every known editor CLI on `PATH`, packages once, and installs into each of them. Narrow it with `npm run vscode:install -- --target cursor` (comma/space separated, full paths allowed), list candidates with `--list`, or set `LOOMERY_VSCODE_CLIS="code cursor"` / `LOOMERY_VSCODE_CLI=<bin>`. The helper removes old Loomery VSIX files, packages the current version, and passes its exact filename to each CLI on macOS, Linux, and Windows. Run `npm run vscode:install -- --dry-run` to inspect those operations without changing files or invoking the build or the editors. `lota install [target]` is a thin wrapper over the same script (`all` by default).
 
 ## Build
 
@@ -177,7 +177,7 @@ There is also a convenience script for this flow:
 npm run vscode:install
 ```
 
-The script requires the `code` CLI on `PATH`. Set `LOOMERY_VSCODE_CLI` to another executable or command shim, such as `code-insiders`, when needed.
+The script auto-detects editor CLIs. Set `LOOMERY_VSCODE_CLIS` (space/comma separated) or `LOOMERY_VSCODE_CLI` to override, or pass `--target` explicitly, such as `cursor`, when needed.
 
 After installation, reload the window:
 
@@ -513,6 +513,6 @@ docs/
 | `npm run typecheck` | Check all TypeScript source, test, E2E, and tooling code |
 | `npm run package:vsix` | Create a VSIX from existing build output |
 | `npm run package` | Build and create a VSIX package |
-| `npm run vscode:install` | Package and install the VSIX into local VS Code |
+| `npm run vscode:install` | Package and install the VSIX into detected VS Code-family IDEs |
 
 The OpenCode compatibility commands require a running Docker daemon. See the [compatibility harness guide](../scripts/opencode-compatibility/README.md) for floor checks, release discovery, and report behavior.

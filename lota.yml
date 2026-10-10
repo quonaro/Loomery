@@ -64,3 +64,12 @@ build:
     set -euo pipefail
     npm run package
     ls -lh ./*.vsix
+
+install:
+  desc: Build vsix and install into VS Code forks (code/cursor/trae/codium/...)
+  color: green
+  args:
+  - "target:str?"
+  script: |
+    set -euo pipefail
+    npm run vscode:install -- --target="${target:-all}"

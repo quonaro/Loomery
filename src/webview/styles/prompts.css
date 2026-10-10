@@ -601,7 +601,6 @@ body.vscode-high-contrast
   :is(
     .toolbar-picker,
     .chat-send-button.enabled,
-    .send-mode-options,
     .question-btn,
     .chat-stop-button,
     .question-option,
@@ -611,7 +610,6 @@ body.vscode-high-contrast-light
   :is(
     .toolbar-picker,
     .chat-send-button.enabled,
-    .send-mode-options,
     .question-btn,
     .chat-stop-button,
     .question-option,

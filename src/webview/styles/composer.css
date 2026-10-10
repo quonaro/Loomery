@@ -1628,8 +1628,7 @@
 .chat-input-toolbars.compact-tight .toolbar-left,
 .chat-input-toolbars.compact-tight .toolbar-right,
 .chat-input-toolbars.compact-tight .toolbar-meta-left,
-.chat-input-toolbars.compact-tight .toolbar-meta-right,
-.chat-input-toolbars.compact-tight .send-button-group {
+.chat-input-toolbars.compact-tight .toolbar-meta-right {
   gap: 3px;
 }
 
@@ -1659,15 +1658,6 @@
 
 .chat-input-toolbars.compact-tight .chat-send-button {
   width: 26px;
-  height: 26px;
-}
-
-.chat-input-toolbars.compact-tight .send-button-group .send-main {
-  width: 24px;
-}
-
-.chat-input-toolbars.compact-tight .send-mode-options {
-  width: 16px;
   height: 26px;
 }
 .toolbar-picker.stop-button svg,
@@ -1704,32 +1694,6 @@
 .chat-input-toolbars.compact-tight .toolbar-attach-button {
   width: 22px;
   height: 22px;
-}
-
-.toolbar-popover.busy-menu {
-  left: 0;
-  right: auto;
-  min-width: 190px;
-}
-
-.busy-menu-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  flex-shrink: 0;
-  color: color-mix(in srgb, var(--color-vscode-fg-muted) 62%, transparent);
-}
-
-.busy-menu-label {
-  flex: 1;
-  min-width: 0;
-}
-
-.busy-menu-hint {
-  font-size: 11px;
-  color: var(--color-vscode-muted);
-  margin-left: auto;
 }
 
 .chat-send-button {
@@ -1775,39 +1739,6 @@ body.vscode-light .chat-send-button.disabled,
 body.vscode-high-contrast-light .chat-send-button.disabled {
   background: color-mix(in srgb, var(--color-vscode-fg) 12%, transparent);
   color: var(--color-vscode-muted);
-}
-
-.send-button-group {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.send-button-group .send-main {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  width: 26px;
-}
-
-.send-mode-options {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 28px;
-  border: none;
-  cursor: pointer;
-  background: var(--color-vscode-accent);
-  color: var(--color-vscode-button-fg);
-  border-radius: 0 var(--radius-control) var(--radius-control) 0;
-  border-left: 1px solid color-mix(in srgb, var(--color-vscode-button-separator) 100%, transparent);
-  transition: background-color 0.15s;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.send-mode-options:hover {
-  background: var(--color-vscode-button-hover);
 }
 
 .chat-stop-button {
