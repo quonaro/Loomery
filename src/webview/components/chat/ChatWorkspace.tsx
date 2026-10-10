@@ -13,6 +13,7 @@ import { editingMessage, inlineEditMount } from '../../lib/message-edit-state';
 import { ralphStore } from '../../lib/stores/ralph-store';
 import { state } from '../../lib/state';
 import { ManagedSubagentFooter } from './ManagedSubagentFooter';
+import { MissingDirectoryBanner } from './MissingDirectoryBanner';
 
 const LazyRalphDashboard = lazy(() =>
   import('../ralph/RalphDashboard').then((module) => ({ default: module.RalphDashboard }))
@@ -70,6 +71,9 @@ export function ChatWorkspace(props: {
   showPermissionSettings: boolean;
   showReconnectBanner: boolean;
   slowApiRequests: readonly SlowApiRequest[];
+  readOnlySession: { id: string; directory: string } | null;
+  onRelocateSession: (sessionId: string) => Promise<void>;
+  onBackToSessions: () => void;
   sessionFilter: SessionListFilter | null;
   subagentParentId: string | null;
   sidebarSubagentParentId: string | null;
@@ -254,6 +258,16 @@ export function ChatWorkspace(props: {
             {activeChatHeader(props.showDesktopBackButton, !props.showDesktopSessionPane)}
           </div>
         </div>
+      </Show>
+      <Show when={props.readOnlySession}>
+        {(session) => (
+          <MissingDirectoryBanner
+            sessionId={session().id}
+            directory={session().directory}
+            onRelocate={props.onRelocateSession}
+            onBack={props.onBackToSessions}
+          />
+        )}
       </Show>
       <div class="chat-main-column-shell">
         <Show

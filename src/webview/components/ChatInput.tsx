@@ -163,6 +163,7 @@ import {
   type MessageEditContext,
 } from '../lib/message-edit-state';
 import { ralphStore } from '../lib/stores/ralph-store';
+import { sessionStore } from '../lib/stores/session-store';
 import { ralphRunner } from './ralph/ralph-runner';
 import type { RalphSelectedModel } from '../../shared/ralph';
 import {
@@ -5328,9 +5329,17 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   });
 
   const hasPendingApproval = () => composerHasActiveQuestion() || composerHasActivePermission();
+  const isReadOnlySession = () => {
+    const activeId = state.activeSessionId;
+    if (!activeId) return false;
+    return sessionStore.isSessionReadOnly(
+      state.sessions.find((session) => session.id === activeId)
+    );
+  };
   const canSend = () =>
     connectionInitialized() &&
     !state.messagesLoading &&
+    !isReadOnlySession() &&
     (isAbortSlashCommand(inputText()) ||
       isPauseSlashCommand(inputText()) ||
       (!state.workspaceCatalogReloadPending &&
@@ -5360,6 +5369,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     if (!hasContent) return null;
     if (!connectionInitialized()) return 'Still connecting to the server';
     if (state.messagesLoading) return 'Messages are still loading';
+    if (isReadOnlySession()) return 'This session is read-only because its folder no longer exists';
     if (state.workspaceCatalogReloadPending) {
       return 'Waiting for the workspace catalog to reload';
     }

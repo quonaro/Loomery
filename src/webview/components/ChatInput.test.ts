@@ -1343,6 +1343,41 @@ describe('ChatInput', () => {
     );
   });
 
+  it('blocks sending when the active session folder no longer exists', async () => {
+    setState('sessions', [session('session-1', 2_000, { directory: '/repo/gone' })]);
+    setState('activeSessionId', 'session-1');
+    setState('missingSessionDirectories', ['/repo/gone']);
+    setInputText('Continue this work');
+    cleanup = render(() => ChatInput(), container!);
+    await flushAsyncWork();
+
+    const sendButton = container?.querySelector<HTMLButtonElement>('[aria-label="Send (Enter)"]');
+    expect(sendButton?.disabled).toBe(true);
+
+    container
+      ?.querySelector('.rich-composer')
+      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await flushAsyncWork();
+
+    expect(sendMessageMock).not.toHaveBeenCalled();
+  });
+
+  it('allows sending when the active session folder is present', async () => {
+    setState('sessions', [session('session-1', 2_000, { directory: '/repo' })]);
+    setState('activeSessionId', 'session-1');
+    setState('missingSessionDirectories', ['/repo/gone']);
+    setInputText('Continue this work');
+    cleanup = render(() => ChatInput(), container!);
+    await flushAsyncWork();
+
+    container
+      ?.querySelector('.rich-composer')
+      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await flushAsyncWork();
+
+    expect(sendMessageMock).toHaveBeenCalledWith('Continue this work', expect.anything());
+  });
+
   it('keeps sending disabled until initial message hydration completes', async () => {
     setState('activeSessionId', 'session-1');
     setState('messagesLoading', true);

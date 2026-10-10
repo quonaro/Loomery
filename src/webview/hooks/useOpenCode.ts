@@ -29,6 +29,7 @@ export {
   refreshRoutingState,
   rejectQuestion,
   reloadSessions,
+  relocateSession,
   respondPermission,
   respondQuestion,
   restoreSession,

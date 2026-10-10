@@ -1078,6 +1078,21 @@ body:not(.vscode-light):not(.vscode-high-contrast):not(.vscode-high-contrast-lig
   height: 12px;
 }
 
+.session-item-readonly-marker {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--color-vscode-warning) 55%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-vscode-warning) 12%, transparent);
+  color: var(--color-vscode-warning);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .session-item-shared-marker {
   display: inline-flex;
   flex-shrink: 0;

@@ -2051,6 +2051,25 @@ describe('SessionListView actions', () => {
     expect(document.querySelector('[role="menu"]')).toBeNull();
   });
 
+  it('badges a session whose folder no longer exists as read-only', () => {
+    setSessions([session('stranded', Date.now(), { directory: '/repo/gone' })]);
+    setState('missingSessionDirectories', ['/repo/gone']);
+    cleanup = render(() => <SessionListView />, container);
+
+    const marker = container.querySelector<HTMLElement>('.session-item-readonly-marker');
+    expect(marker).toBeInstanceOf(HTMLSpanElement);
+    expect(marker?.textContent?.trim()).toBe('Read-only');
+    expect(marker?.getAttribute('title')).toContain('Folder no longer exists');
+  });
+
+  it('does not badge a session when its folder is present', () => {
+    setSessions([session('live', Date.now(), { directory: '/repo' })]);
+    setState('missingSessionDirectories', ['/repo/gone']);
+    cleanup = render(() => <SessionListView />, container);
+
+    expect(container.querySelector('.session-item-readonly-marker')).toBeNull();
+  });
+
   it.each(['Open in Editor', 'Open in Window'])(
     'opens a session using %s from its row menu',
     (label) => {

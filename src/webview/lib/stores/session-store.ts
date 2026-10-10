@@ -1,4 +1,5 @@
 import type { FileDiff, SessionStatus } from '../../types';
+import { isSameWorkspacePath } from '../../../shared/workspace-path';
 import { isRunningSessionStatus } from '../session-event-reducer';
 import { batch } from 'solid-js';
 import { produce } from 'solid-js/store';
@@ -67,6 +68,30 @@ export function captureSessionStatusSnapshotTime() {
   return captureSessionStateTime();
 }
 
+/** Records a workspace directory the server reports as missing (404 Location not found). */
+export function markSessionDirectoryMissing(directory: string) {
+  if (!directory || isSessionDirectoryMissing(directory)) return;
+  setState('missingSessionDirectories', (directories) => [...directories, directory]);
+}
+
+export function unmarkSessionDirectoryMissing(directory: string | null | undefined) {
+  if (!directory) return;
+  setState('missingSessionDirectories', (directories) =>
+    directories.filter((candidate) => !isSameWorkspacePath(candidate, directory))
+  );
+}
+
+export function isSessionDirectoryMissing(directory: string | null | undefined): boolean {
+  if (!directory) return false;
+  return state.missingSessionDirectories.some((candidate) =>
+    isSameWorkspacePath(candidate, directory)
+  );
+}
+
+export function isSessionReadOnly(session: { directory?: string } | null | undefined): boolean {
+  return isSessionDirectoryMissing(session?.directory);
+}
+
 export function resetSessionStatusSnapshotTracking() {
   sessionStatusLocalUpdatedAt.clear();
   scheduledProviderRetries.clear();
@@ -96,6 +121,10 @@ export const sessionStore = {
   getPersistedActiveSessionId,
   persistLastOpenedView,
   getPersistedLastOpenedView,
+  markSessionDirectoryMissing,
+  unmarkSessionDirectoryMissing,
+  isSessionDirectoryMissing,
+  isSessionReadOnly,
   pruneMessagesFrom,
   removeMessagesForSessions,
   markSessionSeen,

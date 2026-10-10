@@ -22,10 +22,16 @@ import {
   setShowPermissionSettings,
 } from '../lib/state';
 import { Show, createSignal, onMount, onCleanup, createEffect, createMemo, on } from 'solid-js';
-import { selectSession, deleteSessionImmediately, startNewSession } from '../hooks/useOpenCode';
+import {
+  selectSession,
+  deleteSessionImmediately,
+  relocateSession,
+  startNewSession,
+} from '../hooks/useOpenCode';
 import { normalizeSessionTitle } from '../../shared/session-title';
 import { ChatWorkspace } from './chat/ChatWorkspace';
 import { ralphStore } from '../lib/stores/ralph-store';
+import { sessionStore } from '../lib/stores/session-store';
 import { getOpenSessionTabs } from '../lib/session-tabs';
 import {
   shouldHideEmptySessionFromList,
@@ -793,6 +799,14 @@ export function Chat() {
     const sessionId = state.activeSessionId;
     return sessionId ? sessionsById().get(sessionId) || null : null;
   });
+  const readOnlySession = createMemo(() => {
+    const session = activeSession();
+    if (!session || !sessionStore.isSessionReadOnly(session)) return null;
+    return { id: session.id, directory: session.directory };
+  });
+  const relocateReadOnlySession = async (sessionId: string) => {
+    await relocateSession(sessionId);
+  };
   const managedSubagentParent = createMemo(() => {
     const parentId = activeSession()?.parentID;
     return parentId ? sessionsById().get(parentId) || null : null;
@@ -899,6 +913,11 @@ export function Chat() {
         showPermissionSettings={showPermissionSettings()}
         showReconnectBanner={showReconnectBanner()}
         slowApiRequests={slowApiRequests()}
+        readOnlySession={readOnlySession()}
+        onRelocateSession={relocateReadOnlySession}
+        onBackToSessions={() => {
+          void openAllSessions();
+        }}
         sessionFilter={sessionFilter()}
         subagentParentId={subagentParentId()}
         sidebarSubagentParentId={sidebarSubagentParentId()}

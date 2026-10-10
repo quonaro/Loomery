@@ -1322,6 +1322,42 @@ describe('header status badges', () => {
     expect(container?.querySelector('.chat-transport-banner')).toBeNull();
   });
 
+  it('marks a session in a missing folder read-only and offers relocation', async () => {
+    const relocateSpy = vi
+      .spyOn(openCodeModule, 'relocateSession')
+      .mockResolvedValue('relocated-1');
+    setState('sessions', [session('stranded', Date.now(), { directory: '/repo/gone' })]);
+    setState('activeSessionId', 'stranded');
+    setState('missingSessionDirectories', ['/repo/gone']);
+
+    cleanup = render(() => Chat(), container!);
+    await Promise.resolve();
+
+    const banner = container?.querySelector('.chat-readonly-banner');
+    expect(banner).toBeInstanceOf(HTMLDivElement);
+    expect(banner?.textContent).toContain('Read-only');
+    expect(banner?.textContent).toContain('/repo/gone');
+
+    const relocateButton = Array.from(
+      banner?.querySelectorAll<HTMLButtonElement>('button') ?? []
+    ).find((button) => button.textContent?.includes('Relocate'));
+    expect(relocateButton).toBeInstanceOf(HTMLButtonElement);
+    relocateButton?.click();
+    await Promise.resolve();
+    expect(relocateSpy).toHaveBeenCalledWith('stranded');
+  });
+
+  it('does not mark a live session read-only when its folder is present', async () => {
+    setState('sessions', [session('live', Date.now(), { directory: '/repo' })]);
+    setState('activeSessionId', 'live');
+    setState('missingSessionDirectories', ['/repo/gone']);
+
+    cleanup = render(() => Chat(), container!);
+    await Promise.resolve();
+
+    expect(container?.querySelector('.chat-readonly-banner')).toBeNull();
+  });
+
   it.each([false, true])('derives raw indicators once with session picker %s', (picker) => {
     setState('sessions', [session('first', Date.now()), session('second', Date.now() - 1)]);
     setState('activeSessionId', 'first');

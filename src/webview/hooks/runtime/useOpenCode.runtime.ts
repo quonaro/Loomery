@@ -56,6 +56,10 @@ export async function selectSession(id: string, options?: SessionSelectionOption
   await getCurrentOpenCodeRuntime().selectSession(id, options);
 }
 
+export async function relocateSession(sourceId: string) {
+  return getCurrentOpenCodeRuntime().relocateSession(sourceId);
+}
+
 export async function loadFullSessionHistory(sessionId: string) {
   await getCurrentOpenCodeRuntime().loadFullSessionHistory(sessionId);
 }

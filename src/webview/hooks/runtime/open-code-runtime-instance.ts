@@ -140,6 +140,8 @@ import {
 } from '../session/session-send';
 import { SessionStatusOperations } from '../session/session-status';
 import { resolveMessagesSelectedModel, SessionSyncOperations } from '../session/session-sync';
+import { isMissingSessionDirectoryError } from '../session/session-selection';
+import { relocateSessionWithDependencies } from '../session/session-relocate';
 import { createTodoSyncOperations } from '../todo-sync';
 import { asRecord, isString } from '../../lib/runtime-values';
 
@@ -162,6 +164,7 @@ export interface OpenCodeRuntime {
   resumeSteering(sessionId: string): Promise<boolean>;
   applySessionMcps(names: string[], sessionId?: string | null): Promise<void>;
   selectSession(id: string, options?: SessionSelectionOptions): Promise<boolean>;
+  relocateSession(sourceId: string): Promise<string | null>;
   loadFullSessionHistory(sessionId: string): Promise<void>;
   loadOlderSessionHistoryPage(
     sessionId: string,
@@ -273,6 +276,9 @@ function isCurrentGeneration(current: number, expected: number) {
 }
 
 const POLLED_STATUS_SNAPSHOT_FRESHNESS_MS = 100;
+
+const READ_ONLY_SESSION_MESSAGE =
+  'This session is read-only because its folder no longer exists. Relocate it to keep working.';
 
 export type SessionStatusSnapshot = {
   statuses: Record<string, SessionStatus>;
@@ -2519,6 +2525,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       removeUnavailableSession,
       importLegacySession: (sessionId, directory) =>
         postMessage({ type: 'session/import-v1', payload: { sessionId, directory } }),
+      markSessionDirectoryMissing: sessionStore.markSessionDirectoryMissing,
       getActiveSessionId: () => appStore.state.activeSessionId,
       setActiveSessionId: sessionStore.setActiveSessionId,
       clearPendingAbort,
@@ -2881,6 +2888,26 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     emptyRecycleBin: () => client.loomery.recycleBin.empty(),
   });
 
+  function enterReadOnlySession(
+    id: string,
+    directory: string,
+    options?: SessionSelectionOptions
+  ): boolean {
+    sessionStore.markSessionDirectoryMissing(directory);
+    const cached = getCachedSessionMessages(id);
+    batch(() => {
+      sessionStore.clearMessages();
+      sessionStore.setActiveSessionId(id);
+      sessionStore.setMessagesIncremental(cached);
+      appStore.setState('pendingSessionSelectionId', null);
+      appStore.setState('messagesLoading', false);
+    });
+    if (options?.markSeen ?? true) sessionStore.markSessionSeen(id);
+    sessionStore.persistActiveSessionId(id);
+    sessionStore.persistLastOpenedView({ type: 'session', sessionId: id, directory });
+    return true;
+  }
+
   async function selectSession(id: string, options?: SessionSelectionOptions) {
     const draftGeneration = getNewChatDraftGeneration();
     const activation = ++sessionActivationGeneration;
@@ -2891,6 +2918,10 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     const targetDirectory = options?.directory ?? knownSession?.directory;
     appStore.setState('pendingSessionSelectionId', null);
     sessionActivationDirectory = null;
+    if (targetDirectory && sessionStore.isSessionDirectoryMissing(targetDirectory)) {
+      sessionActivationController = null;
+      return enterReadOnlySession(id, targetDirectory, options);
+    }
     if (targetDirectory && !isSameWorkspacePath(targetDirectory, currentWorkspacePath)) {
       sessionActivationDirectory = targetDirectory;
       batch(() => {
@@ -2917,7 +2948,10 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
         }
         upsertSession(activatedSession);
       } catch (err) {
+        const missingDirectory =
+          targetDirectory && isMissingSessionDirectoryError(err) ? targetDirectory : null;
         if (
+          !missingDirectory &&
           activation === sessionActivationGeneration &&
           getNewChatDraftGeneration() === draftGeneration &&
           !activationController.signal.aborted &&
@@ -2932,6 +2966,14 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
             appStore.setState('pendingSessionSelectionId', null);
             appStore.setState('messagesLoading', false);
           });
+        }
+        if (
+          missingDirectory &&
+          activation === sessionActivationGeneration &&
+          getNewChatDraftGeneration() === draftGeneration &&
+          !activationController.signal.aborted
+        ) {
+          return enterReadOnlySession(id, missingDirectory, options);
         }
         if (
           activation === sessionActivationGeneration &&
@@ -2954,6 +2996,18 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       appStore.setState('pendingSessionSelectionId', null);
     }
     const result = await selection;
+    if (result.state === 'read-only') {
+      if (activation !== sessionActivationGeneration) return false;
+      const directory =
+        options?.directory ??
+        appStore.state.sessions.find((session) => session.id === id)?.directory;
+      if (!directory) {
+        if (options?.throwOnLoadFailure === true)
+          throw new Error('Failed to load restored conversation history');
+        return false;
+      }
+      return enterReadOnlySession(id, directory, options);
+    }
     if (result.state === 'failed' && options?.throwOnLoadFailure === true)
       throw new Error('Failed to load restored conversation history');
     const selected =
@@ -2962,6 +3016,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       appStore.state.activeSessionId === id;
     if (selected) {
       const directory = getSessionDirectory(id);
+      if (directory) sessionStore.unmarkSessionDirectoryMissing(directory);
       sessionStore.persistLastOpenedView(
         directory
           ? { type: 'session', sessionId: id, directory }
@@ -2978,10 +3033,13 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
   }
 
   function syncSessionMessages(sessionId: string): Promise<void> {
+    // A read-only session's folder is gone; history requests would only 404.
+    if (isReadOnlySessionTarget(sessionId)) return Promise.resolve();
     return sessionMessageSyncCoordinator.sync(sessionId);
   }
 
   function syncPolledSessionMessages(sessionId: string): Promise<void> {
+    if (isReadOnlySessionTarget(sessionId)) return Promise.resolve();
     return sessionMessageSyncCoordinator.syncIfStale(sessionId);
   }
 
@@ -3183,6 +3241,37 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     );
   }
 
+  function isReadOnlySessionTarget(sessionId: string | null | undefined): boolean {
+    if (!sessionId) return false;
+    return sessionStore.isSessionReadOnly(
+      appStore.state.sessions.find((session) => session.id === sessionId)
+    );
+  }
+
+  async function relocateSession(sourceId: string): Promise<string | null> {
+    return await relocateSessionWithDependencies(
+      {
+        getSession: (sessionId) =>
+          appStore.state.sessions.find((session) => session.id === sessionId),
+        getSourceMessages: (sessionId) => {
+          const active =
+            appStore.state.activeSessionId === sessionId
+              ? appStore.state.messages.filter((entry) => entry.info.sessionID === sessionId)
+              : [];
+          const seen = new Set(active.map((entry) => entry.info.id));
+          return [
+            ...active,
+            ...getCachedSessionMessages(sessionId).filter((entry) => !seen.has(entry.info.id)),
+          ];
+        },
+        createSession: (title) => createSession(title),
+        selectSession: (sessionId) => selectSession(sessionId),
+        sendMessage: (text) => sendMessage(text),
+      },
+      sourceId
+    );
+  }
+
   async function sendMessage(
     text: string,
     options?: {
@@ -3200,10 +3289,21 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       onOptimisticPublish?: () => void;
     }
   ): Promise<boolean> {
+    const targetId =
+      options?.targetSessionId ??
+      (options?.newSessionWorkspace ? null : appStore.state.activeSessionId);
+    if (targetId && isReadOnlySessionTarget(targetId)) {
+      uiStore.setError(READ_ONLY_SESSION_MESSAGE);
+      return false;
+    }
     return await sessionSendOperations.sendMessage(text, options);
   }
 
   async function retryMessage(messageId: string, sessionId = appStore.state.activeSessionId) {
+    if (isReadOnlySessionTarget(sessionId)) {
+      uiStore.setError(READ_ONLY_SESSION_MESSAGE);
+      return;
+    }
     await sessionSendOperations.retryMessage(messageId, sessionId);
   }
 
@@ -3217,6 +3317,10 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
       onOptimisticPublish?: () => void;
     }
   ) {
+    if (isReadOnlySessionTarget(appStore.state.activeSessionId)) {
+      uiStore.setError(READ_ONLY_SESSION_MESSAGE);
+      return false;
+    }
     return await sessionControlOperations.editMessage(messageId, text, options);
   }
 
@@ -3391,6 +3495,7 @@ export function createOpenCodeRuntime(): OpenCodeRuntime {
     applySessionMcps,
     resumeSteering,
     selectSession,
+    relocateSession,
     loadFullSessionHistory,
     loadOlderSessionHistoryPage,
     loadOlderSessionPrompts: loadOlderSessionPromptsForCurrentWorkspace,

@@ -71,11 +71,19 @@ type SessionSelectionDeps = {
   setError(message: string): void;
   removeUnavailableSession?(sessionId: string): void;
   importLegacySession?(sessionId: string, directory: string): void;
+  markSessionDirectoryMissing?(directory: string): void;
 };
 
 export type SessionSelectionResult = {
-  state: 'loaded' | 'failed' | 'unavailable' | 'superseded';
+  state: 'loaded' | 'failed' | 'unavailable' | 'superseded' | 'read-only';
 };
+
+/** Matches server errors for directories that no longer exist on disk. */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- Promise rejection values have no typed contract.
+export function isMissingSessionDirectoryError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /^404\b/i.test(message) && /location not found/i.test(message);
+}
 
 function isV1Session(session: Session | undefined): boolean {
   return Boolean(session && /^v?1(?:\.|$)/i.test(session.version.trim()));
@@ -145,9 +153,15 @@ export async function selectSessionWithDependencies(
       return { state: 'superseded' };
     }
     clearMessagesLoadingIfOwned();
+    const legacySession = deps.getSession(id);
+    const directory = options?.directory ?? legacySession?.directory;
+    if (isMissingSessionDirectoryError(error)) {
+      // The folder was deleted or renamed. The caller opens the cached
+      // transcript read-only instead of failing the selection.
+      if (directory) deps.markSessionDirectoryMissing?.(directory);
+      return { state: 'read-only' };
+    }
     if (error instanceof Error && /^404\b.*session not found/i.test(error.message)) {
-      const legacySession = deps.getSession(id);
-      const directory = options?.directory ?? legacySession?.directory;
       deps.removeUnavailableSession?.(id);
       if (directory && isV1Session(legacySession)) {
         deps.importLegacySession?.(id, directory);

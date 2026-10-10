@@ -133,6 +133,8 @@ export interface AppState {
   sessionsHasMore: boolean;
   sessionsLoadingMore: boolean;
   sessionsPaginationError: string | null;
+  /** Workspace directories confirmed missing (server answers 404 Location not found). Sessions there open read-only. */
+  missingSessionDirectories: string[];
   recycleBinLoadError: string | null;
   messagesLoading: boolean;
   pendingSessionSelectionId: string | null;
@@ -399,6 +401,7 @@ export function createAppState(): AppStateInstance {
     sessionsHasMore: false,
     sessionsLoadingMore: false,
     sessionsPaginationError: null,
+    missingSessionDirectories: [],
     recycleBinLoadError: null,
     messagesLoading: false,
     pendingSessionSelectionId: null,

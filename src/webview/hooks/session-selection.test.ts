@@ -210,6 +210,27 @@ describe('session-selection helpers', () => {
     expect(deps.setError).not.toHaveBeenCalled();
     expect(deps.persistActiveSessionId).not.toHaveBeenCalled();
   });
+
+  it('reports a missing folder as read-only instead of failing the selection', async () => {
+    const markSessionDirectoryMissing = vi.fn();
+    const legacy = loadedSession('session-1').session;
+    const deps = createSelectionDependencies({
+      getActiveSessionId: () => 'session-1',
+      getSession: () => legacy,
+      loadSession: async () => {
+        throw new Error('404 Location not found: /repo');
+      },
+      markSessionDirectoryMissing,
+    });
+
+    await expect(
+      selectSessionWithDependencies(deps, { next: () => 1 }, 'session-1')
+    ).resolves.toEqual({ state: 'read-only' });
+
+    expect(markSessionDirectoryMissing).toHaveBeenCalledExactlyOnceWith('/repo');
+    expect(deps.setError).not.toHaveBeenCalled();
+    expect(deps.persistActiveSessionId).not.toHaveBeenCalled();
+  });
   it('restores metadata ahead of stale local and message selections even while busy', async () => {
     const model = { providerID: 'openai', modelID: 'saved-model' };
     const oldModel = { providerID: 'openai', modelID: 'old-model', variant: 'high' };

@@ -60,6 +60,7 @@ import { postMessage } from '../../lib/bridge';
 import { setManualWorkspaceSelection } from '../../lib/app-state';
 import { requestWorkspaceSelection } from '../../lib/workspace-selection';
 import { ralphStore } from '../../lib/stores/ralph-store';
+import { sessionStore } from '../../lib/stores/session-store';
 import { isEmptySession, shouldHideEmptySessionFromList } from '../../lib/empty-session';
 import { getOpenSessionTabs } from '../../lib/session-tabs';
 import { formatEditCount, formatVariantLabel } from '../../lib/format';
@@ -2543,6 +2544,15 @@ function SessionListItem(props: {
                 aria-label="Pinned session"
               >
                 <UiIcon source={pinIcon} class="session-item-pinned-icon" width={12} height={12} />
+              </span>
+            </Show>
+            <Show when={sessionStore.isSessionReadOnly(props.session)}>
+              <span
+                class="session-item-readonly-marker"
+                title="Folder no longer exists - opens read-only"
+                aria-label="Read-only session"
+              >
+                Read-only
               </span>
             </Show>
             <Show when={props.session.share?.url}>
