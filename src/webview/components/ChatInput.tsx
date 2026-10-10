@@ -1171,12 +1171,11 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
   const [sessionReferences, setSessionReferences] = createSignal<Record<string, Session>>({});
   const [rulesFiles, setRulesFiles] = createSignal<DroppedFile[]>([]);
   const [terminalEntries, setTerminalEntries] = createSignal<TerminalContextReference[]>([]);
-  const [showFileSearchHint, setShowFileSearchHint] = createSignal(false);
   const [suppressCompletion, setSuppressCompletion] = createSignal(false);
   const [toolbarCompactMode, setToolbarCompactMode] = createSignal<ToolbarCompactMode>('full');
   const [sendComposerMinHeight, setSendComposerMinHeight] = createSignal(0);
   let latestFileSearchRequestId = 0;
-  let latestFileSearchQuery = '';
+  let latestFileSearchQuery: string | null = null;
   let latestFileSearchScope = getFileSearchScopeKey();
   let fileSearchTimer: ReturnType<typeof setTimeout> | null = null;
   let sessionSearchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -2411,7 +2410,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     if (fileSearchScope !== latestFileSearchScope) {
       latestFileSearchScope = fileSearchScope;
       latestFileSearchRequestId += 1;
-      latestFileSearchQuery = '';
+      latestFileSearchQuery = null;
       setFileSearchResults([]);
       setTableSearchResults([]);
     }
@@ -2420,35 +2419,22 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
         clearTimeout(fileSearchTimer);
         fileSearchTimer = null;
       }
-      latestFileSearchQuery = '';
+      latestFileSearchQuery = null;
       setFileSearchResults([]);
-      setShowFileSearchHint(false);
       setTableSearchResults([]);
       return;
     }
 
     const rawQuery = completion.query.trim();
+    const wantsFileSearch =
+      completion.scope === 'file' || completion.scope === 'directory' || rawQuery.length > 0;
 
-    if (completion.scope === 'rules' || completion.scope === 'terminal') {
+    if (!wantsFileSearch) {
       if (fileSearchTimer) {
         clearTimeout(fileSearchTimer);
         fileSearchTimer = null;
       }
-      latestFileSearchQuery = '';
-      setFileSearchResults([]);
-      setTableSearchResults([]);
-      setShowFileSearchHint(false);
-      return;
-    }
-
-    setShowFileSearchHint(rawQuery.length === 0);
-
-    if (!rawQuery) {
-      if (fileSearchTimer) {
-        clearTimeout(fileSearchTimer);
-        fileSearchTimer = null;
-      }
-      latestFileSearchQuery = '';
+      latestFileSearchQuery = null;
       setFileSearchResults([]);
       setTableSearchResults([]);
       return;
@@ -2460,12 +2446,21 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const requestId = latestFileSearchRequestId;
     latestFileSearchQuery = rawQuery;
     if (fileSearchTimer) clearTimeout(fileSearchTimer);
-    fileSearchTimer = setTimeout(() => {
-      fileSearchTimer = null;
+    const request = () =>
       postMessage({
         type: 'files/search',
         payload: { requestId, query: rawQuery, limit: 12 },
       });
+    if (!rawQuery) {
+      // A selected file or folder scope lists workspace entries right away, so
+      // skip the debounce for the initial request.
+      fileSearchTimer = null;
+      request();
+      return;
+    }
+    fileSearchTimer = setTimeout(() => {
+      fileSearchTimer = null;
+      request();
     }, 120);
   });
 
@@ -2603,7 +2598,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       rawQuery,
       scope: completion.scope,
       source: mentionCompletionSource(),
-      meta: { showFileSearchHint: showFileSearchHint() },
       sessions: mentionSessions(),
       skills: mentionSkills(),
       rules: rulesFiles(),
@@ -2730,7 +2724,8 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       return undefined;
     if (completion?.type === 'mention' && completion.scope === 'rules') return 'Rules';
     if (completion?.type === 'mention' && completion.scope === 'terminal') return 'Terminals';
-    if (showFileSearchHint()) return 'Type to search workspace files';
+    if (completion?.type === 'mention' && completion.scope === 'file') return 'Files';
+    if (completion?.type === 'mention' && completion.scope === 'directory') return 'Folders';
     if (
       completion?.type === 'slash' &&
       completion.query.toLowerCase().startsWith(`${SKILLS_COMMAND_NAME} `)
@@ -2747,6 +2742,12 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     }
     if (completion?.type === 'mention' && completion.scope === 'rules') {
       return composerCompletions().length === 0 ? 'No rule files found' : undefined;
+    }
+    if (completion?.type === 'mention' && completion.scope === 'file') {
+      return composerCompletions().length === 0 ? 'No matching files' : undefined;
+    }
+    if (completion?.type === 'mention' && completion.scope === 'directory') {
+      return composerCompletions().length === 0 ? 'No matching folders' : undefined;
     }
     if (!problemsPickerScope()) return undefined;
     if (pendingProblems()) return 'Loading problems…';
@@ -2782,10 +2783,12 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     return (
       composerCompletions().length > 0 ||
       !!problemsPickerScope() ||
-      (completion.type === 'mention' && showFileSearchHint()) ||
       completion.type === 'session' ||
       (completion.type === 'mention' &&
-        (completion.scope === 'rules' || completion.scope === 'terminal'))
+        (completion.scope === 'rules' ||
+          completion.scope === 'terminal' ||
+          completion.scope === 'file' ||
+          completion.scope === 'directory'))
     );
   };
 
@@ -3177,7 +3180,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       setTableSearchResults([]);
       setSessionSearchResults([]);
     });
-    latestFileSearchQuery = '';
+    latestFileSearchQuery = null;
 
     queueMicrotask(() => {
       if (richEditorRef) richEditorRef.focus();
@@ -3203,7 +3206,7 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       setTableSearchResults([]);
       setSessionSearchResults([]);
     });
-    latestFileSearchQuery = '';
+    latestFileSearchQuery = null;
 
     queueMicrotask(() => {
       if (richEditorRef) {

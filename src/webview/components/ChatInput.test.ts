@@ -3770,9 +3770,7 @@ describe('ChatInput', () => {
 
     expect(inputText()).toBe('@file:');
     expect(container?.querySelector('.composer-completion-menu')).not.toBeNull();
-    expect(container?.querySelector('.composer-completion-header')?.textContent).toBe(
-      'Type to search workspace files'
-    );
+    expect(container?.querySelector('.composer-completion-header')?.textContent).toBe('Files');
   });
 
   it('attaches a discovered rule file from the @rules scope', async () => {

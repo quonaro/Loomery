@@ -70,10 +70,6 @@ export function getProblemCompletionItems(
   return matches.length > 0 ? [all, ...matches] : [];
 }
 
-export type MentionCompletionMeta = {
-  showFileSearchHint: boolean;
-};
-
 export type MentionSkillEntry = {
   name: string;
   description: string;
@@ -468,7 +464,6 @@ export function getMentionCompletionItems({
   agents,
   files,
   source,
-  meta,
   scope = 'all',
   sessions = [],
   skills = [],
@@ -479,7 +474,6 @@ export function getMentionCompletionItems({
   agents?: Agent[];
   files?: DroppedFile[];
   source?: MentionCompletionSource;
-  meta?: MentionCompletionMeta;
   scope?: MentionScope;
   sessions?: Session[];
   skills?: MentionSkillEntry[];
@@ -494,7 +488,6 @@ export function getMentionCompletionItems({
   if (query && (exactAgentMatch || exactFileMatch)) return [];
 
   if (scope === 'file' || scope === 'directory') {
-    if (!rawQuery) return [];
     const wantedType = scope === 'directory' ? 'directory' : 'file';
     return mentionSource.fileEntries
       .filter((entry) => entry.item.file.type === wantedType)
@@ -523,47 +516,43 @@ export function getMentionCompletionItems({
     })
     .map((agent) => agent.item);
 
-  const fileItems = (rawQuery ? mentionSource.fileEntries : []).map((file) => file.item);
+  const fileItems = (rawQuery ? mentionSource.fileEntries : []).map((entry) => entry.item);
 
-  if (!rawQuery && !meta?.showFileSearchHint) {
+  if (!rawQuery) {
     return agentItems.slice(0, 10);
   }
 
-  const sessionItems = rawQuery
-    ? sessions
-        .filter((session) => matchesMentionQuery(query, [session.title, session.id]))
-        .slice(0, 10)
-        .map((session) => ({
-          key: `session:${session.id}`,
-          type: 'session' as const,
-          label: normalizeSessionTitle(session.title) || 'Untitled',
-          detail: '',
-          value: `session:${session.id} `,
-          session,
-        }))
-    : [];
+  const sessionItems = sessions
+    .filter((session) => matchesMentionQuery(query, [session.title, session.id]))
+    .slice(0, 10)
+    .map((session) => ({
+      key: `session:${session.id}`,
+      type: 'session' as const,
+      label: normalizeSessionTitle(session.title) || 'Untitled',
+      detail: '',
+      value: `session:${session.id} `,
+      session,
+    }));
 
-  const skillItems = rawQuery
-    ? skills
-        .filter((skill) => matchesMentionQuery(query, [skill.name, skill.description]))
-        .slice(0, 10)
-        .map((skill) => ({
-          key: `skill-ref:${skill.name}`,
-          type: 'skill-ref' as const,
-          label: skill.name,
-          detail: skill.description,
-          value: formatSkillReference(skill.name),
-          skillName: skill.name,
-        }))
-    : [];
+  const skillItems = skills
+    .filter((skill) => matchesMentionQuery(query, [skill.name, skill.description]))
+    .slice(0, 10)
+    .map((skill) => ({
+      key: `skill-ref:${skill.name}`,
+      type: 'skill-ref' as const,
+      label: skill.name,
+      detail: skill.description,
+      value: formatSkillReference(skill.name),
+      skillName: skill.name,
+    }));
 
-  const terminalItems = rawQuery
-    ? toTerminalItems(terminals.filter((terminal) => matchesMentionQuery(query, [terminal.name])))
-    : [];
+  const terminalItems = toTerminalItems(
+    terminals.filter((terminal) => matchesMentionQuery(query, [terminal.name]))
+  );
 
   return [
     ...agentItems,
-    ...(rawQuery ? mentionSource.tableItems : []),
+    ...mentionSource.tableItems,
     ...fileItems,
     ...sessionItems,
     ...skillItems,
@@ -665,7 +654,7 @@ export function createMentionCompletionSource({
   };
 }
 
-export function shouldRequestMentionFileSearch(previousQuery: string, nextQuery: string) {
+export function shouldRequestMentionFileSearch(previousQuery: string | null, nextQuery: string) {
   return previousQuery !== nextQuery;
 }
 

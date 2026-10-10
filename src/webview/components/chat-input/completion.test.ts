@@ -183,12 +183,11 @@ describe('getMentionCompletionItems', () => {
     expect(fileItem?.value).toBe('@README.md ');
   });
 
-  it('shows file results for empty @ queries', () => {
+  it('keeps only agents for an empty unscoped @ query', () => {
     const completions = getMentionCompletionItems({
       rawQuery: '',
       agents,
       files,
-      meta: { showFileSearchHint: true },
     });
 
     expect(completions.some((item) => item.type === 'agent' && item.label === 'helper')).toBe(true);
@@ -270,10 +269,10 @@ describe('scoped mention completions', () => {
     expect(items[0]).toMatchObject({ type: 'file', file: { type: 'directory' } });
   });
 
-  it('returns nothing for an empty scoped file query', () => {
-    expect(getMentionCompletionItems({ rawQuery: '', scope: 'file', agents: [], files })).toEqual(
-      []
-    );
+  it('lists scoped files immediately for an empty query', () => {
+    const items = getMentionCompletionItems({ rawQuery: '', scope: 'file', agents: [], files });
+    expect(items.map((item) => item.type)).toEqual(['file']);
+    expect(items[0]).toMatchObject({ type: 'file', label: 'src/app.ts', file: { type: 'file' } });
   });
 
   it('mixes sessions and skills into a full search', () => {
@@ -395,6 +394,7 @@ describe('shouldRequestMentionFileSearch', () => {
     expect(shouldRequestMentionFileSearch('readme', 'readme')).toBe(false);
     expect(shouldRequestMentionFileSearch('readme', 'read')).toBe(true);
     expect(shouldRequestMentionFileSearch('', 'readme')).toBe(true);
+    expect(shouldRequestMentionFileSearch(null, '')).toBe(true);
   });
 });
 
