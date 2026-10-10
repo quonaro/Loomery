@@ -559,6 +559,52 @@ async function flushAsyncWork(count = 16) {
   }
 }
 
+function captureBridgeMessages() {
+  const messages: WebviewMessage[] = [];
+  fixture<{ __sendToExtension?: (message: WebviewMessage) => void }>(window).__sendToExtension = (
+    message
+  ) => messages.push(message);
+  return messages;
+}
+
+// Selects one of the bare `@` scope rows (Files, Directories, ...) from the
+// completion menu and returns the composer editor.
+async function selectMentionScope(label: string) {
+  setInputText('@');
+  cleanup = render(() => ChatInput({ newSession: true }), container!);
+  const editor = container?.querySelector<HTMLDivElement>('.rich-composer');
+  if (!editor?.firstChild) throw new Error('Expected populated composer editor');
+  editor.focus();
+  setCollapsedSelection(editor.firstChild, '@'.length);
+  editor.dispatchEvent(new KeyboardEvent('keyup', { key: '@', bubbles: true }));
+  await flushAsyncWork();
+  const scopeButton = Array.from(
+    container?.querySelectorAll<HTMLButtonElement>('.completion-scope') ?? []
+  ).find((item) => item.textContent?.startsWith(label));
+  if (!scopeButton) throw new Error(`Missing ${label} scope`);
+  scopeButton.click();
+  await flushAsyncWork();
+  return editor;
+}
+
+function respondToFileSearch(
+  messages: WebviewMessage[],
+  files: Array<{ path: string; relativePath: string; type: 'file' | 'directory' }>
+) {
+  const search = messages.find(
+    (message) => message.type === 'files/search' && message.payload.query === ''
+  );
+  if (search?.type !== 'files/search') throw new Error('Expected an initial scoped file search');
+  window.dispatchEvent(
+    new MessageEvent('message', {
+      data: {
+        type: 'files/search-results',
+        payload: { requestId: search.payload.requestId, query: '', files },
+      },
+    })
+  );
+}
+
 function postQueuedSessionStatus(sessionId: string, status: 'busy' | 'idle') {
   window.dispatchEvent(
     new MessageEvent('message', {
@@ -3771,6 +3817,103 @@ describe('ChatInput', () => {
     expect(inputText()).toBe('@file:');
     expect(container?.querySelector('.composer-completion-menu')).not.toBeNull();
     expect(container?.querySelector('.composer-completion-header')?.textContent).toBe('Files');
+  });
+
+  it('lists workspace files when the @file scope is selected from the menu', async () => {
+    const messages = captureBridgeMessages();
+    setState('editorContext', {
+      workspacePath: '/repo',
+      activeFile: null,
+      selection: null,
+      diagnostics: [],
+    });
+
+    await selectMentionScope('Files');
+    expect(inputText()).toBe('@file:');
+
+    respondToFileSearch(messages, [
+      { path: '/repo/src/index.ts', relativePath: 'src/index.ts', type: 'file' },
+    ]);
+    await flushAsyncWork();
+
+    expect(container?.querySelector('.completion-file')?.textContent).toContain('src/index.ts');
+    expect(container?.querySelector('.composer-completion-empty')).toBeNull();
+  });
+
+  it('lists workspace folders when the @directory scope is selected from the menu', async () => {
+    const messages = captureBridgeMessages();
+    setState('editorContext', {
+      workspacePath: '/repo',
+      activeFile: null,
+      selection: null,
+      diagnostics: [],
+    });
+
+    await selectMentionScope('Directories');
+    expect(inputText()).toBe('@directory:');
+
+    respondToFileSearch(messages, [{ path: '/repo/src', relativePath: 'src', type: 'directory' }]);
+    await flushAsyncWork();
+
+    expect(container?.querySelector('.completion-file')?.textContent).toContain('src');
+    expect(container?.querySelector('.composer-completion-empty')).toBeNull();
+  });
+
+  it('lists rule files when the @rules scope is selected from the menu', async () => {
+    vi.mocked(client.loomery.workspaceRules).mockResolvedValue({
+      files: [{ path: '/repo/AGENTS.md', relativePath: 'AGENTS.md', type: 'file' }],
+    });
+
+    await selectMentionScope('Rules');
+    expect(inputText()).toBe('@rules:');
+
+    await vi.waitFor(() =>
+      expect(container?.querySelector('.completion-file')?.textContent).toContain('AGENTS.md')
+    );
+  });
+
+  it('lists terminals when the @terminal scope is selected from the menu', async () => {
+    vi.mocked(client.loomery.terminalContext).mockResolvedValue([
+      { id: 'term-1', name: 'zsh', hasOutput: true, lineCount: 2 },
+    ]);
+
+    await selectMentionScope('Terminal');
+    expect(inputText()).toBe('@terminal:');
+
+    await vi.waitFor(() =>
+      expect(container?.querySelector('.completion-terminal')?.textContent).toContain('zsh')
+    );
+  });
+
+  it('lists conversations when the @session scope is selected from the menu', async () => {
+    setState('sessions', [session('session-auth', 2_000, { title: 'Authentication' })]);
+
+    await selectMentionScope('Conversations');
+    expect(inputText()).toBe('@session:');
+
+    await vi.waitFor(() =>
+      expect(container?.querySelector('.completion-session')?.textContent).toContain(
+        'Authentication'
+      )
+    );
+  });
+
+  it('lists skills when the @skill scope is selected from the menu', async () => {
+    setState('commands', [
+      {
+        name: 'zzloomerytest',
+        description: 'Run tests',
+        template: 'Run tests',
+        source: 'skill',
+      },
+    ]);
+
+    await selectMentionScope('Skills');
+    expect(inputText()).toBe('@skill:');
+
+    await vi.waitFor(() =>
+      expect(container?.querySelector('.completion-slash')?.textContent).toContain('zzloomerytest')
+    );
   });
 
   it('attaches a discovered rule file from the @rules scope', async () => {

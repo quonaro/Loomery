@@ -3172,6 +3172,11 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const text = inputText();
     const nextValue = `${text.slice(0, completion.start)}${value}${text.slice(completion.end)}`;
     const nextCursor = completion.start + value.length;
+    // Clear the tracked query before the batch flushes so the completion effect
+    // re-requests the scoped listing even though the query text is unchanged.
+    // Setting it afterwards would clobber the in-flight request's query and make
+    // the response look stale.
+    latestFileSearchQuery = null;
     batch(() => {
       setInputText(nextValue);
       setCaretPosition(nextCursor);
@@ -3180,7 +3185,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       setTableSearchResults([]);
       setSessionSearchResults([]);
     });
-    latestFileSearchQuery = null;
 
     queueMicrotask(() => {
       if (richEditorRef) richEditorRef.focus();
@@ -3198,6 +3202,9 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
     const trailingSpace = getMentionInsertionTrailingSpace(value, text[completion.end]);
     const nextValue = `${text.slice(0, completion.start)}${value}${trailingSpace}${text.slice(completion.end)}`;
     const nextCursor = completion.start + value.length + trailingSpace.length;
+    // Reset before the batch so an immediate re-query is not clobbered by a
+    // late assignment after the completion effect has already fired.
+    latestFileSearchQuery = null;
     batch(() => {
       setInputText(nextValue);
       setCaretPosition(nextCursor);
@@ -3206,7 +3213,6 @@ export function ChatInput(props: { newSession?: boolean; onBeforeSend?: () => vo
       setTableSearchResults([]);
       setSessionSearchResults([]);
     });
-    latestFileSearchQuery = null;
 
     queueMicrotask(() => {
       if (richEditorRef) {
