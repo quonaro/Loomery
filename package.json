@@ -44,6 +44,7 @@
   ],
   "scripts": {
     "postinstall": "node scripts/build-anti-slop-plugin.mjs",
+    "prepare": "node scripts/install-pre-commit.mjs",
     "build:extension": "node esbuild.config.mjs",
     "build:webview": "vite build",
     "preview:webview": "vite --open /preview.html",

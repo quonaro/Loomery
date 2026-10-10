@@ -1,0 +1,69 @@
+# pre-commit hooks for Loomery.
+#
+# Install once (hooks are also installed best-effort by `npm install` via `prepare`):
+#
+#   pip install pre-commit && pre-commit install
+#
+# Run manually:
+#
+#   pre-commit run --all-files
+#
+# What runs on every commit:
+# - hygiene from pre-commit-hooks (whitespace, EOF, yaml/json/toml, large files,
+#   merge conflicts, private keys, LF line endings)
+# - oxfmt on staged files under src/ (matches `npm run fmt`)
+# - oxlint type-aware on staged JS/TS files (matches `npm run lint:check`)
+# - full `npm run typecheck` when JS/TS files change
+
+default_install_hook_types: [pre-commit, pre-push]
+
+exclude: |
+  (?x)^(
+    dist/|
+    node_modules/|
+    artifacts/|
+    tmp/|
+    .vscode-test/|
+    .+\.vsix$|
+    .+\.(wav|wasm|png)$
+  )$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: ^\.vscode/
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+  - repo: local
+    hooks:
+      - id: oxfmt
+        name: oxfmt (src only, matches `npm run fmt`)
+        entry: npx --no-install oxfmt --write --no-error-on-unmatched-pattern
+        language: system
+        files: ^src/.+\.(?:[mc]?[jt]sx?|css)$
+        pass_filenames: true
+        require_serial: true
+      - id: oxlint
+        name: oxlint type-aware (matches `npm run lint:check`)
+        entry: npx --no-install oxlint -c oxlint.config.mts --type-aware --no-error-on-unmatched-pattern
+        language: system
+        files: \.(?:[mc]?[jt]sx?)$
+        pass_filenames: true
+        require_serial: true
+      - id: typecheck
+        name: typecheck (matches `npm run typecheck`)
+        entry: npm run typecheck
+        language: system
+        files: \.(?:[mc]?[jt]sx?)$
+        pass_filenames: false
+        require_serial: true

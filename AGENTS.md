@@ -35,5 +35,6 @@
 - Before performance work, or changes to running animations, memo equality, webview message payloads, code splitting, or CSS build targets, read `docs/performance.md`. Decide with work counts and same-input baseline comparisons, not headless timings alone.
 - UI design: never use a decorative accent rail on only one edge of a component, such as a thick left border or inset edge shadow. Use full-perimeter borders, backgrounds, or shadows instead; structural dividers between internal sections are allowed.
 - Post-change actions: after code changes, run `npm run lint` and `npm run fmt`, then run the narrowest relevant tests, `npm run typecheck` when types changed, and `npm run typecheck:suggestions`. Do not stop after implementation without reporting each command and its result.
+- Pre-commit: `.pre-commit-config.yaml` runs hygiene checks plus `oxfmt` (src), type-aware `oxlint`, and `npm run typecheck`; install hooks with `pre-commit install` (also attempted best-effort by `npm install` via `prepare`).
 - Repo-local Cursor/Copilot rules: none found in `.cursor/rules/`, `.cursorrules`, or `.github/copilot-instructions.md`.
 - OpenCode version bumps: follow `docs/opencode-version-bumps.md`.

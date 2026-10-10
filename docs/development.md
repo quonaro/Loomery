@@ -26,6 +26,31 @@ If you plan to run e2e tests locally for the first time, install the Playwright 
 npx playwright install
 ```
 
+## Pre-commit
+
+The repository uses [pre-commit](https://pre-commit.com/) with the hooks declared in
+`.pre-commit-config.yaml`. Every commit runs file hygiene checks plus the same
+`oxfmt` (under `src/`), type-aware `oxlint`, and `npm run typecheck` checks used
+by this guide.
+
+Install the hooks once:
+
+```sh
+pip install pre-commit && pre-commit install
+```
+
+`npm install` also installs the hooks on a best-effort basis through the
+`prepare` script (`scripts/install-pre-commit.mjs`); it never fails the install
+when the `pre-commit` binary is missing.
+
+Run all hooks manually without committing:
+
+```sh
+pre-commit run --all-files
+```
+
+Avoid `--no-verify` unless a hook itself is broken; fix or report the failure instead.
+
 ## Validate The Project
 
 For a quick contributor sanity check:
