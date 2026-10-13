@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { STORAGE_KEYS } from './state-storage';
 import { isString } from './runtime-values';
 import {
-  closeOtherSessionTabs,
   closeSessionTab,
-  closeSessionTabsToTheRight,
+  closeSessionTabs,
   getOpenSessionTabs,
   openSessionTab,
   reorderSessionTabs,
@@ -54,27 +53,17 @@ describe('session tabs', () => {
     expect(closeSessionTab('missing')).toBeNull();
   });
 
-  it('closes every tab except the kept one', () => {
-    setOpenSessionTabsForTest(['a', 'b', 'c']);
-
-    closeOtherSessionTabs('b');
-    expect(getOpenSessionTabs()).toEqual(['b']);
-
-    closeOtherSessionTabs('missing');
-    expect(getOpenSessionTabs()).toEqual(['b']);
-  });
-
-  it('closes tabs to the right of the target', () => {
+  it('closes the given tabs and preserves the rest', () => {
     setOpenSessionTabsForTest(['a', 'b', 'c', 'd']);
 
-    closeSessionTabsToTheRight('b');
-    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+    closeSessionTabs(['b', 'd']);
+    expect(getOpenSessionTabs()).toEqual(['a', 'c']);
 
-    closeSessionTabsToTheRight('b');
-    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+    closeSessionTabs([]);
+    expect(getOpenSessionTabs()).toEqual(['a', 'c']);
 
-    closeSessionTabsToTheRight('missing');
-    expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+    closeSessionTabs(['missing']);
+    expect(getOpenSessionTabs()).toEqual(['a', 'c']);
   });
 
   it('reorders a tab to the position of its target', () => {

@@ -63,19 +63,18 @@ export function closeSessionTab(sessionId: string): string | null {
   return next[index] ?? next[index - 1] ?? null;
 }
 
-/** Closes every tab except `keepId`, leaving it as the only open tab. */
-export function closeOtherSessionTabs(keepId: string): void {
+/**
+ * Removes the given session ids from the strip, preserving the order of the
+ * rest. Tabs that are not in `ids` stay open, so closing the tabs of one
+ * project never drops the remembered tabs of another.
+ */
+export function closeSessionTabs(ids: readonly string[]): void {
+  if (ids.length === 0) return;
+  const removing = new Set(ids);
   const current = openSessionTabs();
-  if (!current.includes(keepId) || current.length === 1) return;
-  commit([keepId]);
-}
-
-/** Closes tabs positioned after `id`, keeping it and everything to its left. */
-export function closeSessionTabsToTheRight(id: string): void {
-  const current = openSessionTabs();
-  const index = current.indexOf(id);
-  if (index === -1 || index >= current.length - 1) return;
-  commit(current.slice(0, index + 1));
+  const next = current.filter((id) => !removing.has(id));
+  if (next.length === current.length) return;
+  commit(next);
 }
 
 /** Moves `sourceId` to the position of `targetId`, preserving the rest. */

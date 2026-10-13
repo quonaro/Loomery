@@ -15,13 +15,13 @@ import { clampPopupToViewport } from '../../lib/popup-position';
 import { getSessionTreeRootId, state } from '../../lib/state';
 import {
   NEW_SESSION_TAB_ID,
-  closeOtherSessionTabs,
   closeSessionTab,
-  closeSessionTabsToTheRight,
+  closeSessionTabs,
   getOpenSessionTabs,
   openSessionTab,
   reorderSessionTabs,
 } from '../../lib/session-tabs';
+import { isSameWorkspacePath } from '../../../shared/workspace-path';
 import {
   chatBubbleQuestionIcon,
   checkIcon,
@@ -59,10 +59,28 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
   const sessionsById = createMemo(
     () => new Map(state.sessions.map((session) => [session.id, session]))
   );
+  // Tabs are tied to a project, so only the project of the active session
+  // (falling back to the current workspace folder while no session is active)
+  // stays in the strip. Switching projects hides the unrelated tabs instead of
+  // showing every project's sessions everywhere.
+  const currentProjectDirectory = createMemo<string | null>(() => {
+    const activeId = state.activeSessionId;
+    if (activeId) {
+      const directory = sessionsById().get(activeId)?.directory;
+      if (directory) return directory;
+    }
+    return state.editorContext.workspacePath ?? null;
+  });
   // Keep plain ids so `<For>` keeps each tab's DOM stable across updates.
   const tabs = createMemo(() => {
     const sessions = sessionsById();
-    return getOpenSessionTabs().filter((id) => id === NEW_SESSION_TAB_ID || sessions.has(id));
+    const project = currentProjectDirectory();
+    return getOpenSessionTabs().filter((id) => {
+      if (id === NEW_SESSION_TAB_ID) return true;
+      const session = sessions.get(id);
+      if (!session) return false;
+      return !project || isSameWorkspacePath(session.directory, project);
+    });
   });
 
   // Sessions blocked on a user decision (permission request or question) get the
@@ -207,7 +225,7 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
 
   const closeOtherTabs = (id: string) => {
     const closing = tabs().filter((tabId) => tabId !== id);
-    closeOtherSessionTabs(id);
+    closeSessionTabs(closing);
     if (closing.includes(activeTabId())) activate(id);
   };
 
@@ -215,7 +233,7 @@ export function SessionTabs(props: { onCreateSession: () => void }) {
     const current = tabs();
     const index = current.indexOf(id);
     const closing = index === -1 ? [] : current.slice(index + 1);
-    closeSessionTabsToTheRight(id);
+    closeSessionTabs(closing);
     if (closing.includes(activeTabId())) activate(id);
   };
 

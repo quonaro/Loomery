@@ -20,12 +20,16 @@ function session(id: string, updated: number, title = `Session ${id}`): Session 
   return {
     id,
     projectID: 'project-1',
-    directory: `/repo/${id}`,
+    directory: '/repo',
     title,
     version: '1',
     time: { created: updated - 1_000, updated },
     summary: { files: 0, additions: 0, deletions: 0 },
   };
+}
+
+function sessionInDirectory(id: string, updated: number, directory: string): Session {
+  return { ...session(id, updated), directory };
 }
 
 function permission(sessionId: string): Permission {
@@ -52,6 +56,7 @@ beforeEach(() => {
   setState('questions', []);
   setState('queuedMessages', []);
   setOpenSessionTabsForTest([]);
+  setState('editorContext', 'workspacePath', null);
   container = document.createElement('div');
   document.body.appendChild(container);
 });
@@ -68,6 +73,7 @@ afterEach(() => {
   setState('questions', []);
   setState('queuedMessages', []);
   setOpenSessionTabsForTest([]);
+  setState('editorContext', 'workspacePath', null);
   vi.restoreAllMocks();
 });
 
@@ -85,6 +91,38 @@ describe('SessionTabs', () => {
       'Session a'
     );
     expect(getOpenSessionTabs()).toEqual(['a', 'b']);
+  });
+
+  it('shows only the tabs from the active session project', () => {
+    setSessions([
+      sessionInDirectory('a', 3, '/repo-a'),
+      sessionInDirectory('b', 2, '/repo-b'),
+      sessionInDirectory('c', 1, '/repo-a'),
+    ]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const titles = [...container.querySelectorAll('.session-tab-title')].map(
+      (element) => element.textContent
+    );
+    expect(titles).toEqual(['Session a', 'Session c']);
+    // Hidden tabs of the other project stay remembered.
+    expect(getOpenSessionTabs()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('falls back to the selected workspace folder while no session is active', () => {
+    setSessions([sessionInDirectory('a', 3, '/repo-b'), sessionInDirectory('b', 2, '/repo-a')]);
+    setState('editorContext', 'workspacePath', '/repo-a');
+    setOpenSessionTabsForTest(['a', 'b']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const titles = [...container.querySelectorAll('.session-tab-title')].map(
+      (element) => element.textContent
+    );
+    expect(titles).toEqual(['Session b']);
   });
 
   it('labels an untitled session tab as New Session', () => {
@@ -247,7 +285,7 @@ describe('SessionTabs', () => {
 
     container.querySelectorAll<HTMLElement>('.session-tab')[1]!.click();
 
-    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo/b' });
+    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo' });
   });
 
   it('closes a tab and switches to the neighbour when the active tab closes', () => {
@@ -262,7 +300,7 @@ describe('SessionTabs', () => {
       .click();
 
     expect(getOpenSessionTabs()).toEqual(['b']);
-    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo/b' });
+    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo' });
   });
 
   it('skips hidden unavailable tabs when choosing the neighbour on close', () => {
@@ -277,7 +315,7 @@ describe('SessionTabs', () => {
       .querySelector<HTMLButtonElement>('.session-tab.is-active .session-tab-close')!
       .click();
 
-    expect(selectSession).toHaveBeenCalledExactlyOnceWith('b', { directory: '/repo/b' });
+    expect(selectSession).toHaveBeenCalledExactlyOnceWith('b', { directory: '/repo' });
     expect(selectSession).not.toHaveBeenCalledWith('stale', expect.anything());
   });
 
@@ -366,7 +404,24 @@ describe('SessionTabs', () => {
     menuItem(menu, 'Close other tabs').click();
 
     expect(getOpenSessionTabs()).toEqual(['b']);
-    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo/b' });
+    expect(selectSession).toHaveBeenCalledWith('b', { directory: '/repo' });
+  });
+
+  it('keeps other projects tabs when closing the tabs of the current project', () => {
+    setSessions([
+      sessionInDirectory('a', 4, '/repo-a'),
+      sessionInDirectory('b', 3, '/repo-a'),
+      sessionInDirectory('c', 2, '/repo-b'),
+    ]);
+    setState('activeSessionId', 'a');
+    setOpenSessionTabsForTest(['a', 'b', 'c']);
+
+    cleanup = render(() => <SessionTabs onCreateSession={() => {}} />, container);
+
+    const menu = openTabMenu(container.querySelectorAll<HTMLElement>('.session-tab')[0]!);
+    menuItem(menu, 'Close other tabs').click();
+
+    expect(getOpenSessionTabs()).toEqual(['a', 'c']);
   });
 
   it('closes tabs to the right of the target without switching', () => {
