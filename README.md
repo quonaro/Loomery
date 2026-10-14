@@ -1,35 +1,43 @@
-![Loomery](https://raw.githubusercontent.com/quonaro/loomery/main/assets/banner.jpg)
-
 # Loomery: OpenCode Workbench
-
-[![Visual Studio Marketplace](https://badgen.net/vs-marketplace/v/quonaro.loomery?color=0078d4)](https://marketplace.visualstudio.com/items?itemName=quonaro.loomery)
-[![Open VSX Version](https://badgen.net/open-vsx/version/quonaro/loomery?color=a66f00&label=Open%20VSX)](https://open-vsx.org/extension/quonaro/loomery)
 
 Loomery runs [OpenCode](https://opencode.ai) inside VS Code. It adds project-aware chat, parallel sessions, plan and change review, model and permission controls, commit-message generation, and usage reports.
 
-**Supports OpenCode v2 and v1.** Loomery automatically detects the connected API and uses the same workbench for either version. OpenCode v2 is recommended for new installations.
+**Supports OpenCode v2 and v1.** Loomery automatically detects the connected API and uses the same workbench for either version. OpenCode v2 is recommended.
 
 OpenCode remains responsible for agents, providers, models, commands, skills, MCP servers, and their configuration. Loomery reads that configuration and provides a VS Code interface for it.
 
-![The Loomery OpenCode workbench in VS Code](https://raw.githubusercontent.com/quonaro/loomery/main/assets/demo.png)
+## Status
 
-## Quick start
+This is a personal dogfooding project, not a product. I build and use Loomery every day as my main way to run OpenCode inside VS Code, and it changes only as I hit problems or rough edges worth fixing.
 
-1. [Install Loomery](https://marketplace.visualstudio.com/items?itemName=quonaro.loomery) from the VS Code Marketplace.
-2. Install [OpenCode v2](https://opencode.ai/v2/docs/) with `npm install -g @opencode/cli` on macOS, Linux, or WSL. For native Windows, download the standalone CLI from that page.
-3. Run `opencode auth login`, or use `/connect` in Loomery, if no provider is configured.
-4. Open a folder in VS Code and select `Loomery` from the Activity Bar.
-5. Start a session. Loomery starts or connects to OpenCode when needed.
+- It is not published to the VS Code Marketplace, Open VSX, or any other registry, and there are no plans to publish it for now.
+- There is no support promise, release cadence, or compatibility guarantee.
+- Loomery is a fork of [Varro](https://github.com/koltyakov/varro) by Andrew Koltyakov. See [License](#license).
 
-Already using v1? You can keep it, or install it with `npm install -g opencode-ai`. Set `loomery.server.command` to your v1 executable to select it explicitly. With this setting empty, Loomery searches for `opencode2` first, then `opencode`. Current v1 and v2 packages both install `opencode`, so the command name alone does not identify the version. Run `opencode --version` to check. See [choosing and updating OpenCode](https://github.com/quonaro/loomery/blob/main/docs/usage.md#choose-and-update-opencode) before switching versions.
+## Running locally
 
-> After switching from v1 to v2, you may need to run `Loomery: Restart Server` from the Command Palette. Installing v2 does not replace an already running v1 server. If restart fails or Loomery still shows v1, stop the old OpenCode process explicitly, especially on Windows, then restart with the v2 executable. Let active work finish first. See [restart recovery steps](https://github.com/quonaro/loomery/blob/main/docs/usage.md#if-restart-does-not-switch-to-v2) and confirm the connected version in Loomery's status bar.
+Build it from source, or package and install the VSIX into your own editor. There is no published build to install from a marketplace.
+
+```sh
+npm install
+npm run build
+```
+
+Then pick one:
+
+1. Open this repository in VS Code and press `F5` to launch an Extension Development Host with the extension loaded. `F5` starts the watchers first, so source edits rebuild and reload the host automatically.
+2. Run `npm run dev` to watch the extension and webview and open the webview preview.
+3. Run `npm run vscode:install` to package the current version and install the VSIX into the local VS Code-family editors found on `PATH`.
 
 Install OpenCode on the host where Loomery runs. A native Windows VS Code window needs the Windows CLI; add it to `PATH` or set `loomery.server.command` to its executable path. A VS Code WSL window needs OpenCode installed inside that WSL distribution. Native OpenCode data is under `%USERPROFILE%\.local\share\opencode`; WSL uses the Linux data directory.
 
-Loomery supports VS Code and VSCodium. Support for other VS Code forks is limited; see [VS Code fork compatibility](https://github.com/quonaro/loomery/blob/main/docs/vscode-forks.md).
+Already using v1? You can keep it, or install it with `npm install -g opencode-ai`. Set `loomery.server.command` to your v1 executable to select it explicitly. With this setting empty, Loomery searches for `opencode2` first, then `opencode`. Current v1 and v2 packages both install `opencode`, so the command name alone does not identify the version. Run `opencode --version` to check. See [choosing and updating OpenCode](docs/usage.md#choose-and-update-opencode) before switching versions.
 
-## Why Loomery
+> After switching from v1 to v2, you may need to run `Loomery: Restart Server` from the Command Palette. Installing v2 does not replace an already running v1 server. If restart fails or Loomery still shows v1, stop the old OpenCode process explicitly, especially on Windows, then restart with the v2 executable. Let active work finish first. See [restart recovery steps](docs/usage.md#if-restart-does-not-switch-to-v2) and confirm the connected version in Loomery's status bar.
+
+Loomery supports VS Code and VSCodium. Support for other VS Code forks is limited; see [VS Code fork compatibility](docs/vscode-forks.md).
+
+## Highlights
 
 - Choose among the providers and models supported by OpenCode instead of tying the editor to one model vendor.
 - Reuse OpenCode agents, commands, skills, MCP servers, and project instructions. The same configuration remains available in Loomery, the OpenCode TUI, and other OpenCode clients.
@@ -64,13 +72,13 @@ Loomery supports VS Code and VSCodium. Support for other VS Code forks is limite
 | LSP, formatters, and tools | Integrated | Show language-server status and tool activity. OpenCode owns definitions and execution. |
 | Configuration and TUI | Handoff | Edit instruction files or continue a session in the OpenCode TUI. |
 
-Coverage depends on the connected version. The supported v2 API has no session sharing or OpenCode LSP service. Loomery disables sharing on v2; VS Code Problems can still be attached as context. V2 session annotations are stored locally by Loomery. See [version differences and history import](https://github.com/quonaro/loomery/blob/main/docs/usage.md#version-differences-and-history).
+Coverage depends on the connected version. The supported v2 API has no session sharing or OpenCode LSP service. Loomery disables sharing on v2; VS Code Problems can still be attached as context. V2 session annotations are stored locally by Loomery. See [version differences and history import](docs/usage.md#version-differences-and-history).
 
 ## Sessions
 
 Loomery filters sessions to the current workspace and groups them into `Recent`, `Archive`, and `Recycle Bin`. Filters identify `Running`, `Needs attention`, `Failed`, `Plan ready`, and `Completed` sessions. Rows can show queued prompts, changed files, added and removed lines, token use, duration, and current state.
 
-Indicators at the top of the chat summarize activity in other sessions: a numbered spinner means running, blue means waiting for input or permission, red means failed, yellow means a plan is ready, and green means completed. Select an indicator to open the matching session or filter. Colors may vary with the active VS Code theme. See the [usage guide](https://github.com/quonaro/loomery/blob/main/docs/usage.md#sessions) for details.
+Indicators at the top of the chat summarize activity in other sessions: a numbered spinner means running, blue means waiting for input or permission, red means failed, yellow means a plan is ready, and green means completed. Select an indicator to open the matching session or filter. Colors may vary with the active VS Code theme. See the [usage guide](docs/usage.md#sessions) for details.
 
 OpenCode search covers loaded and older root sessions. Open any session in the sidebar, an editor tab, or the OpenCode TUI. Root sessions can be pinned, renamed, shared, or recycled. Child sessions remain linked to their parent. On wide layouts, the session list can remain beside the active chat.
 
@@ -84,8 +92,6 @@ Notifications show `Project: <name>`, the chat title, and event details. Clickin
 
 Requires a local desktop host; remote SSH, WSL, and containers are unsupported. macOS uses `osascript` for banners and `afplay` for sound. Linux needs `notify-send` for banners and `paplay`, `aplay`, or `canberra-gtk-play` for sound. OS permissions and Focus/Do Not Disturb settings apply.
 
-![Workspace sessions with status, token, and change summaries](https://raw.githubusercontent.com/quonaro/loomery/main/assets/sessions.png)
-
 ## Chat and context
 
 Live document context includes the current editor selection by default; a file that is merely open without a selection is not attached. A chip in the composer shows this context and can disable it for the session. Use `Loomery: Add to Context` or `Cmd+Shift+K` / `Ctrl+Shift+K` to add files, folders, line ranges, or terminal output. You can also drag files and folders into the composer or paste images.
@@ -95,8 +101,6 @@ Type `@` to find workspace files and agents. Type `&` to reference a recent root
 During a run, queue a follow-up, steer the current work, or stop it and send a replacement. Queued prompts can be reordered, paused, resumed, edited, retried, removed, or sent immediately as steering.
 
 Commands stream their output. Failures, questions, approvals, file edits, and the final response remain visible. Completed routine work and thinking are grouped under summaries such as `Explored` and `Worked`. You can expand summaries, open long tool input or output in an editor, show thinking, or enable inline file previews.
-
-![Chat output, attached context, file changes, and inline questions](https://raw.githubusercontent.com/quonaro/loomery/main/assets/chat.png)
 
 Other chat workflows include rendered Mermaid previews, transcript turn navigation, changed-file links, Source Control handoff, reconnecting sessions after reload, and commands such as `/review`, `/compact`, `/export`, `/stats`, `/skills`, `/diagnostics`, `/fork`, and `/ralph`. Ralph runs support iteration, verification, repair, pause, and resume, and use `Full access`.
 
@@ -116,9 +120,7 @@ Child sessions inherit the nearest selected mode in their session tree. Manual c
 
 Loomery initially selects `Auto` unless `loomery.chat.defaultPermissionMode` or a saved project/global selection says otherwise. `Default` follows the connected OpenCode version's global and agent rules. V2 uses ordered `permissions` rules with `action`, `resource`, and `effect`; supported v1-format rules remain accepted. See [v2 permissions](https://opencode.ai/v2/docs/permissions/) or [v1 permissions](https://opencode.ai/docs/permissions/) for syntax and defaults.
 
-See the [Loomery permissions guide](https://github.com/quonaro/loomery/blob/main/docs/permissions.md) for mode behavior, manual approvals, and automatic review details.
-
-![Per-session permission modes in Loomery](https://raw.githubusercontent.com/quonaro/loomery/main/assets/permissions.png)
+See the [Loomery permissions guide](docs/permissions.md) for mode behavior, manual approvals, and automatic review details.
 
 ## Models, providers, and MCP
 
@@ -126,13 +128,11 @@ The model picker reads providers and models from OpenCode. It displays known too
 
 The Models view connects supported API-key and OAuth credentials through OpenCode. It also provides reauthentication when a provider reports an expired or revoked credential. Terminal-based OpenCode setup remains available.
 
-A tool-capable text-only model can delegate image analysis to an OpenCode sub-agent named `vision`. Assign that agent an image-capable model and include an exact `@vision` mention in the prompt. See [Add vision to a text-only model](https://github.com/quonaro/loomery/blob/main/docs/usage.md#add-vision-to-a-text-only-model).
+A tool-capable text-only model can delegate image analysis to an OpenCode sub-agent named `vision`. Assign that agent an image-capable model and include an exact `@vision` mention in the prompt. See [Add vision to a text-only model](docs/usage.md#add-vision-to-a-text-only-model).
 
-For read-only investigation, define a primary agent named `ask` with explicit read and search permissions. See [Configure primary agents](https://github.com/quonaro/loomery/blob/main/docs/usage.md#configure-primary-agents).
+For read-only investigation, define a primary agent named `ask` with explicit read and search permissions. See [Configure primary agents](docs/usage.md#configure-primary-agents).
 
 MCP servers come from OpenCode configuration and can be connected or disconnected per session.
-
-![Provider and model selection in Loomery](https://raw.githubusercontent.com/quonaro/loomery/main/assets/providers.png)
 
 ## Usage and limits
 
@@ -140,11 +140,7 @@ The composer shows context-window fill, and session rows show token use. The con
 
 Run `/stats` or `Loomery: Usage Stats` for a Markdown report from retained OpenCode history across all projects. It covers token use and total assistant duration for today, 7 days, and 30 days, grouped by provider and model. `/stats all` adds all retained history.
 
-![Context window and session token breakdown](https://raw.githubusercontent.com/quonaro/loomery/main/assets/context.png)
-
 Loomery shows quota windows, reset times, and available OpenAI/Codex or Z.ai usage-limit resets when supported provider endpoints supply them. Direct limit checks support OpenAI/Codex, GitHub Copilot, OpenRouter, xAI, Ollama Cloud, Z.ai, Kimi for Coding, and OpenCode Go. After a usage-limit error, you can stop retries or switch providers.
-
-![Provider quota limits and reset windows](https://raw.githubusercontent.com/quonaro/loomery/main/assets/limits.png)
 
 ## Commit messages
 
@@ -154,7 +150,7 @@ Loomery never mixes staged and unstaged changes, stages files, or commits automa
 
 ## Server and updates
 
-Loomery selects and remembers a local port by default with `loomery.server.port: "auto"`. Existing verified servers survive extension updates and reloads without a migration restart. New managed servers require credentials. Set an integer port from 1 through 65535 for a fixed endpoint; explicit ports never silently fall back. For manual server management, set the port explicitly, disable the deprecated debug setting `loomery.server.autoStart`, and run `opencode serve --port 4096`.
+Loomery selects and remembers a local port by default with `loomery.server.port: "auto"`. Existing verified servers survive extension updates and reloads without a migration restart. New managed servers require credentials. Set an integer port from 1 through 65535 for a fixed endpoint; explicit ports never silently fall back. For manual server management, set the port explicitly, disable the debug setting `loomery.server.autoStart` and start Loomery in attach-only mode, then run `opencode serve --port 4096`.
 
 Attachment to a different OS user's listener, or one whose owner cannot be verified, requires confirmation before sessions or events are loaded, even with supplied credentials. This prevents accidental attachment; it does not secure an unauthenticated server against other clients. See [ownership and migration](docs/server-ownership.md).
 
@@ -166,20 +162,19 @@ Loomery reloads global OpenCode configuration when OpenCode is idle. Changes to 
 
 - [VS Code](https://code.visualstudio.com/) or [VSCodium](https://vscodium.com/) 1.120 or newer
 - [Node.js](https://nodejs.org/) 22.22.2+ on Node 22, or Node 24.15.0+
-- [OpenCode v2 CLI](https://opencode.ai/v2/docs/) 2.0.5+ recommended, or [v1 CLI](https://opencode.ai/docs/) 1.16.0+, on `PATH` or configured through `loomery.server.command`. Tested with v2 2.0.24 and v1 1.18.35
+- [OpenCode v2 CLI](https://opencode.ai/v2/docs/) 2.0.5+ recommended, or [v1 CLI](https://opencode.ai/docs/) 1.16.0+, on `PATH` or configured through `loomery.server.command`
 - A trusted, non-virtual workspace. Remote workspaces run Loomery and OpenCode on the remote extension host
 
 ## Documentation
 
-- [Usage guide](https://github.com/quonaro/loomery/blob/main/docs/usage.md)
-- [Docker Sandboxes with Remote SSH](https://github.com/quonaro/loomery/blob/main/docs/docker-sandboxes.md): suggested step-by-step setup for running Loomery and OpenCode inside a sandbox
-- [Docker and remote servers](https://github.com/quonaro/loomery/blob/main/docs/docker-server.md): advanced setup with reduced functionality, not recommended for general use
-- [Permissions guide](https://github.com/quonaro/loomery/blob/main/docs/permissions.md)
-- [Configure primary agents](https://github.com/quonaro/loomery/blob/main/docs/usage.md#configure-primary-agents)
-- [VS Code fork compatibility](https://github.com/quonaro/loomery/blob/main/docs/vscode-forks.md)
-- [Development guide](https://github.com/quonaro/loomery/blob/main/docs/development.md)
-- [Architecture overview](https://github.com/quonaro/loomery/blob/main/docs/architecture.md)
-- [Issues and feature requests](https://github.com/quonaro/loomery/issues)
+- [Usage guide](docs/usage.md)
+- [Docker Sandboxes with Remote SSH](docs/docker-sandboxes.md): suggested step-by-step setup for running Loomery and OpenCode inside a sandbox
+- [Docker and remote servers](docs/docker-server.md): advanced setup with reduced functionality, not recommended for general use
+- [Permissions guide](docs/permissions.md)
+- [Configure primary agents](docs/usage.md#configure-primary-agents)
+- [VS Code fork compatibility](docs/vscode-forks.md)
+- [Development guide](docs/development.md)
+- [Architecture overview](docs/architecture.md)
 
 ## License
 
