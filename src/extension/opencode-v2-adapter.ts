@@ -791,7 +791,7 @@ export class OpenCodeV2Adapter {
       if (action.startsWith('message/') && method === 'DELETE') {
         const messageID = decodeURIComponent(action.slice('message/'.length));
         const notLast = new Error(
-          'OpenCode v2 can only delete messages from the end of the transcript'
+          'OpenCode v2 can only delete messages from the end of the transcript. Delete the later messages first, or use Revert to remove this message and everything after it.'
         );
         let cursor: string | undefined;
         const seen = new Set<string>();

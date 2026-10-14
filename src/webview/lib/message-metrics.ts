@@ -168,6 +168,20 @@ export function latestAssistantFinishedBeforeLoading(
   return finishedAt !== null && (loadingStartedAt === null || loadingStartedAt <= finishedAt);
 }
 
+/** True when the message is the last entry for its session. */
+export function isLastMessageInSession(
+  messages: readonly MessageEntry[],
+  sessionId: string,
+  messageId: string
+): boolean {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const entry = messages[index];
+    if (!entry || entry.info.sessionID !== sessionId) continue;
+    return entry.info.id === messageId;
+  }
+  return true;
+}
+
 /** True when any tool part is still pending or running (turn not yet settled). */
 export function hasUnsettledToolPart(parts: Part[]): boolean {
   return parts.some(

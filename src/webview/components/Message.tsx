@@ -30,7 +30,11 @@ import { postMessage } from '../lib/bridge';
 import { deferredFilePath, loadFileContent } from '../lib/deferred-content';
 import { editingMessageId, startEditingMessage } from '../lib/message-edit-state';
 import { collapseLeadingDuplicateFileEvents } from '../lib/message-event-collapse';
-import { getAssistantDiffRequest, isAssistantMessage } from '../lib/message-metrics';
+import {
+  getAssistantDiffRequest,
+  isAssistantMessage,
+  isLastMessageInSession,
+} from '../lib/message-metrics';
 import { formatMessageSentTime } from '../lib/message-time';
 import { isWorkspaceDirectoryText, shouldShowAssistantPartInline } from '../lib/part-utils';
 import {
@@ -624,7 +628,10 @@ export function Message(props: {
     !isManagedSubagentSession() &&
     !isActiveSessionWorking() &&
     !isSteeringMessage() &&
-    !isPlanImplementation();
+    !isPlanImplementation() &&
+    (state.serverStatus.state !== 'running' ||
+      state.serverStatus.apiVersion !== 2 ||
+      isLastMessageInSession(state.messages, props.info.sessionID, props.info.id));
   const handleDeleteMessage = () => deleteMessage(props.info.sessionID, props.info.id);
   let editContentController: AbortController | undefined;
   createEffect(

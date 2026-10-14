@@ -14,6 +14,7 @@ import {
   formatTurnCost,
   formatTurnDuration,
   isAssistantMessage,
+  isLastMessageInSession,
 } from '../../lib/message-metrics';
 import { formatMessageSentTime } from '../../lib/message-time';
 import {
@@ -374,7 +375,10 @@ export function AssistantDialogSummaryForMessage(
     !state.sessions.some(
       (session) => session.id === state.activeSessionId && Boolean(session.parentID)
     ) &&
-    !isActiveSessionWorking();
+    !isActiveSessionWorking() &&
+    (state.serverStatus.state !== 'running' ||
+      state.serverStatus.apiVersion !== 2 ||
+      isLastMessageInSession(state.messages, props.msg.info.sessionID, props.msg.info.id));
   const handleDeleteMessage = () => deleteMessage(props.msg.info.sessionID, props.msg.info.id);
   return (
     <AssistantDialogSummary
